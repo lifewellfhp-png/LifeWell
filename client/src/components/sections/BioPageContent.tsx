@@ -199,7 +199,7 @@ export function BioPageContent({
         </Container>
       </section>
 
-      <StatsBand stats={cmsStats?.length ? cmsStats : stats} bookingUrl={bookHref} />
+      <StatsBand stats={cmsStats ?? stats} bookingUrl={bookHref} />
     </div>
   );
 }

@@ -864,7 +864,8 @@ function mapHowItWorks(cms: PublicCmsPayload | null) {
 
 function mapStats(cms: PublicCmsPayload | null): Stat[] {
   const content = sectionContent(cms, 'home', 'stats');
-  const raw = Array.isArray(content?.items) ? content.items : [];
+  if (!content || !Array.isArray(content.items)) return staticStats;
+  const raw = content.items;
   const items: Stat[] = raw
     .map((item) => {
       if (!item || typeof item !== 'object') return null;
@@ -878,7 +879,7 @@ function mapStats(cms: PublicCmsPayload | null): Stat[] {
       } satisfies Stat;
     })
     .filter((item): item is Stat => Boolean(item));
-  return items.length ? items : staticStats;
+  return items;
 }
 
 function mapFees(cms: PublicCmsPayload | null) {
