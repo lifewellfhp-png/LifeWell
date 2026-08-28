@@ -1,4 +1,4 @@
-import { Container, Section } from '@/components/ui/Section';
+import { Container } from '@/components/ui/Section';
 import { LongArrow } from '@/components/ui/SwapButton';
 import type { BookingProfiles } from '@/lib/cms-resolve';
 
@@ -14,61 +14,6 @@ const externalLinkProps = {
   target: '_blank' as const,
   rel: 'noopener noreferrer' as const,
 };
-
-/** Booking page: a quiet secondary option beneath the primary CharmHealth calendar. */
-export function SecondaryBookingOption({ profiles }: { profiles: BookingProfiles }) {
-  const { zocdoc, psychologyToday, display } = profiles;
-  const zocdocUrl = display.bookingPage && zocdoc.enabled ? zocdoc.bookingUrl : null;
-  const ptUrl = display.bookingPage && psychologyToday.enabled ? psychologyToday.contactUrl || psychologyToday.profileUrl : null;
-
-  if (!zocdocUrl && !ptUrl) return null;
-
-  return (
-    <Section tone="transparent" aria-labelledby="secondary-booking-heading">
-      <Container>
-        <div className="mx-auto max-w-[40rem] text-center">
-          <p
-            id="secondary-booking-heading"
-            className="text-[13px] font-semibold uppercase tracking-[1px] text-[#6b7280]"
-          >
-            Prefer another option?
-          </p>
-
-          {zocdocUrl && (
-            <div className="mt-4">
-              <a
-                href={zocdocUrl}
-                {...externalLinkProps}
-                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-[30px] border border-[var(--lw-primary)] px-[26px] py-[12px] text-[15px] font-semibold text-[var(--lw-primary)] no-underline transition-colors duration-300 hover:bg-[var(--lw-primary)] hover:text-white sm:text-[16px]"
-              >
-                {zocdoc.ctaLabel}
-                <LongArrow />
-              </a>
-              {zocdoc.description && (
-                <p className="mx-auto mt-3 max-w-[46ch] text-[14px] leading-[1.4] text-[#6b7280]">
-                  {zocdoc.description}
-                </p>
-              )}
-              <p className="mt-2 text-[12px] text-[#9ca3af]">You&apos;ll leave LifeWell&apos;s website and book on Zocdoc.</p>
-            </div>
-          )}
-
-          {ptUrl && (
-            <p className="mt-6 text-[14px] text-[#6b7280]">
-              <a
-                href={ptUrl}
-                {...externalLinkProps}
-                className="font-semibold text-[var(--lw-accent)] underline-offset-4 hover:underline"
-              >
-                {psychologyToday.ctaLabel}
-              </a>
-            </p>
-          )}
-        </div>
-      </Container>
-    </Section>
-  );
-}
 
 /** Bio page: tasteful, text-only professional-profile trust links. */
 export function ProviderTrustLinks({ profiles }: { profiles: BookingProfiles }) {

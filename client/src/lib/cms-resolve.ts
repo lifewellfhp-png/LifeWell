@@ -462,6 +462,13 @@ export type BookingProfiles = {
     bioPage: boolean;
     reviewsPage: boolean;
   };
+  pageCopy: {
+    heading: string;
+    subtitle: string;
+    directHeading: string;
+    directDescription: string;
+    trustHeading: string;
+  };
 };
 
 const DEFAULT_BOOKING_PROFILES: BookingProfiles = {
@@ -488,6 +495,13 @@ const DEFAULT_BOOKING_PROFILES: BookingProfiles = {
     bookingPage: true,
     bioPage: false,
     reviewsPage: true,
+  },
+  pageCopy: {
+    heading: 'Book an Appointment',
+    subtitle: 'Choose the option that works best for you.',
+    directHeading: 'Book Directly with LifeWell',
+    directDescription: 'Schedule your appointment directly with LifeWell through our secure booking system.',
+    trustHeading: 'Also find LifeWell on trusted platforms',
   },
 };
 
@@ -537,6 +551,7 @@ function mapBookingProfiles(cms: PublicCmsPayload | null): BookingProfiles {
   const zocdoc = asRecord(content.zocdoc) ?? {};
   const pt = asRecord(content.psychology_today) ?? {};
   const display = asRecord(content.display) ?? {};
+  const pageCopy = asRecord(content.page_copy) ?? {};
   const ratingEnabled = zocdoc.rating_enabled === true;
 
   return {
@@ -563,6 +578,13 @@ function mapBookingProfiles(cms: PublicCmsPayload | null): BookingProfiles {
       bookingPage: display.booking_page !== false,
       bioPage: display.bio_page === true,
       reviewsPage: display.reviews_page !== false,
+    },
+    pageCopy: {
+      heading: safeLabel(pageCopy.heading, DEFAULT_BOOKING_PROFILES.pageCopy.heading),
+      subtitle: safeLabel(pageCopy.subtitle, DEFAULT_BOOKING_PROFILES.pageCopy.subtitle),
+      directHeading: safeLabel(pageCopy.direct_heading, DEFAULT_BOOKING_PROFILES.pageCopy.directHeading),
+      directDescription: safeLabel(pageCopy.direct_description, DEFAULT_BOOKING_PROFILES.pageCopy.directDescription),
+      trustHeading: safeLabel(pageCopy.trust_heading, DEFAULT_BOOKING_PROFILES.pageCopy.trustHeading),
     },
   };
 }

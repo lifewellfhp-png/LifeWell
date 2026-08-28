@@ -30,10 +30,19 @@ type DisplayForm = {
   reviews_page: boolean;
 };
 
+type PageCopyForm = {
+  heading: string;
+  subtitle: string;
+  direct_heading: string;
+  direct_description: string;
+  trust_heading: string;
+};
+
 type FormState = {
   zocdoc: ZocdocForm;
   psychology_today: PsychologyTodayForm;
   display: DisplayForm;
+  page_copy: PageCopyForm;
 };
 
 const EMPTY: FormState = {
@@ -60,6 +69,13 @@ const EMPTY: FormState = {
     booking_page: true,
     bio_page: false,
     reviews_page: true,
+  },
+  page_copy: {
+    heading: 'Book an Appointment',
+    subtitle: 'Choose the option that works best for you.',
+    direct_heading: 'Book Directly with LifeWell',
+    direct_description: 'Schedule your appointment directly with LifeWell through our secure booking system.',
+    trust_heading: 'Also find LifeWell on trusted platforms',
   },
 };
 
@@ -115,6 +131,7 @@ export default function BookingProfilesPage() {
       const zocdoc = record(content.zocdoc);
       const pt = record(content.psychology_today);
       const display = record(content.display);
+      const pageCopy = record(content.page_copy);
       setForm({
         zocdoc: {
           enabled: zocdoc.enabled === true,
@@ -139,6 +156,13 @@ export default function BookingProfilesPage() {
           booking_page: display.booking_page !== false,
           bio_page: display.bio_page === true,
           reviews_page: display.reviews_page !== false,
+        },
+        page_copy: {
+          heading: str(pageCopy.heading) || EMPTY.page_copy.heading,
+          subtitle: str(pageCopy.subtitle) || EMPTY.page_copy.subtitle,
+          direct_heading: str(pageCopy.direct_heading) || EMPTY.page_copy.direct_heading,
+          direct_description: str(pageCopy.direct_description) || EMPTY.page_copy.direct_description,
+          trust_heading: str(pageCopy.trust_heading) || EMPTY.page_copy.trust_heading,
         },
       });
     });
@@ -202,6 +226,13 @@ export default function BookingProfilesPage() {
           description: form.psychology_today.description.trim(),
         },
         display: { ...form.display },
+        page_copy: {
+          heading: form.page_copy.heading.trim() || EMPTY.page_copy.heading,
+          subtitle: form.page_copy.subtitle.trim() || EMPTY.page_copy.subtitle,
+          direct_heading: form.page_copy.direct_heading.trim() || EMPTY.page_copy.direct_heading,
+          direct_description: form.page_copy.direct_description.trim() || EMPTY.page_copy.direct_description,
+          trust_heading: form.page_copy.trust_heading.trim() || EMPTY.page_copy.trust_heading,
+        },
       },
     };
 
@@ -443,6 +474,61 @@ export default function BookingProfilesPage() {
               />
               Reviews / testimonials page
             </label>
+          </div>
+        </section>
+
+        <hr style={{ margin: '1.75rem 0', border: 0, borderTop: '1px solid #e5e7eb' }} />
+
+        <section>
+          <h2>Booking page copy</h2>
+          <p className="page-sub" style={{ marginTop: 0 }}>
+            Headings and descriptions for the redesigned{' '}
+            <code>/book-telehealth-mental-health-appointment</code> page. Leave the defaults if
+            you're not sure.
+          </p>
+          <div className="grid-2">
+            <div className="field" style={{ gridColumn: '1 / -1' }}>
+              <label htmlFor="pc_heading">Page heading</label>
+              <input
+                id="pc_heading"
+                value={form.page_copy.heading}
+                onChange={(e) => setForm({ ...form, page_copy: { ...form.page_copy, heading: e.target.value } })}
+              />
+            </div>
+            <div className="field" style={{ gridColumn: '1 / -1' }}>
+              <label htmlFor="pc_subtitle">Page subtitle</label>
+              <input
+                id="pc_subtitle"
+                value={form.page_copy.subtitle}
+                onChange={(e) => setForm({ ...form, page_copy: { ...form.page_copy, subtitle: e.target.value } })}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="pc_direct_heading">Direct-booking card heading</label>
+              <input
+                id="pc_direct_heading"
+                value={form.page_copy.direct_heading}
+                onChange={(e) => setForm({ ...form, page_copy: { ...form.page_copy, direct_heading: e.target.value } })}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="pc_trust_heading">Trusted-platforms section heading</label>
+              <input
+                id="pc_trust_heading"
+                value={form.page_copy.trust_heading}
+                onChange={(e) => setForm({ ...form, page_copy: { ...form.page_copy, trust_heading: e.target.value } })}
+              />
+            </div>
+            <div className="field" style={{ gridColumn: '1 / -1' }}>
+              <label htmlFor="pc_direct_description">Direct-booking card description</label>
+              <input
+                id="pc_direct_description"
+                value={form.page_copy.direct_description}
+                onChange={(e) =>
+                  setForm({ ...form, page_copy: { ...form.page_copy, direct_description: e.target.value } })
+                }
+              />
+            </div>
           </div>
         </section>
 

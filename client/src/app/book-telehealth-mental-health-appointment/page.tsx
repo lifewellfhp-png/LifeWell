@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 
-import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { JourneyCta } from '@/components/sections/JourneyCta';
 import { HowItWorks } from '@/components/sections/HowItWorks';
 import { BookingCalendar } from '@/components/sections/BookingCalendar';
-import { SecondaryBookingOption } from '@/components/sections/BookingProfiles';
+import {
+  BookingPageHeader,
+  BookingChoiceGrid,
+  TrustedPlatformsSection,
+} from '@/components/sections/PremiumBookingChoice';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { pageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
@@ -46,21 +49,13 @@ export default async function BookPage() {
       />
 
       <div className="bg-white">
-        <InnerPageHero
-          image={{
-            src: '/images/sections/Book-Telehealth-Mental-Health-Appointment.avif',
-            alt: 'Booking a telehealth mental health appointment',
-          }}
-          imageSide="left"
-          title="Book Telehealth Mental Health Appointment"
-          accent="for Secure, Professional Care"
-          lead={DESCRIPTION}
-          leadSize="subhead"
-        />
+        <BookingPageHeader profiles={cms.bookingProfiles} />
+
+        <BookingChoiceGrid profiles={cms.bookingProfiles} calendarAnchor="#charm-calendar" />
 
         <BookingCalendar src={cms.booking.url} label={cms.booking.label} />
 
-        <SecondaryBookingOption profiles={cms.bookingProfiles} />
+        <TrustedPlatformsSection profiles={cms.bookingProfiles} />
 
         <HowItWorks
           steps={cms.steps}
