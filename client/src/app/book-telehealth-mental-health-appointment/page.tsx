@@ -4,6 +4,7 @@ import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { JourneyCta } from '@/components/sections/JourneyCta';
 import { HowItWorks } from '@/components/sections/HowItWorks';
 import { BookingCalendar } from '@/components/sections/BookingCalendar';
+import { SecondaryBookingOption } from '@/components/sections/BookingProfiles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { pageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
@@ -58,6 +59,8 @@ export default async function BookPage() {
         />
 
         <BookingCalendar src={cms.booking.url} label={cms.booking.label} />
+
+        <SecondaryBookingOption profiles={cms.bookingProfiles} />
 
         <HowItWorks
           steps={cms.steps}

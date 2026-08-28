@@ -1,6 +1,6 @@
 import { hero } from '@/data/marketing';
 import { site } from '@/data/site';
-import type { ResolvedHero } from '@/lib/cms-resolve';
+import type { ResolvedHero, BookingProfiles } from '@/lib/cms-resolve';
 import { HeroMedia } from './HeroMedia';
 import { OutlineButton, SwapButton } from '@/components/ui/SwapButton';
 
@@ -13,16 +13,23 @@ export function Hero({
   hero: heroProp,
   bookingUrl,
   bookingLabel,
+  bookingProfiles,
 }: {
   hero?: ResolvedHero;
   bookingUrl?: string;
   bookingLabel?: string;
+  bookingProfiles?: BookingProfiles;
 } = {}) {
   const data: ResolvedHero = heroProp ?? { ...hero };
   const primary = data.headingPrimary || data.heading;
   const accent = data.headingAccent || '';
   const bookHref = bookingUrl ?? site.booking.page;
   const bookLabel = bookingLabel ?? site.booking.label;
+  const zocdocUrl =
+    bookingProfiles?.display.homepage && bookingProfiles.zocdoc.enabled
+      ? bookingProfiles.zocdoc.bookingUrl
+      : null;
+  const zocdocLabel = bookingProfiles?.zocdoc.ctaLabel ?? '';
 
   return (
     <section
@@ -51,6 +58,20 @@ export function Hero({
             <SwapButton href={bookHref}>{bookLabel}</SwapButton>
             <OutlineButton href="/our-services">View All Services</OutlineButton>
           </div>
+
+          {zocdocUrl && (
+            <p className="mt-4 text-[13px] font-light leading-[1.45] text-white/80 sm:text-[14px]">
+              Prefer another way to book?{' '}
+              <a
+                href={zocdocUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-white underline-offset-4 hover:underline"
+              >
+                {zocdocLabel}
+              </a>
+            </p>
+          )}
 
           <p className="mt-8 text-[12px] font-light leading-[1.45] text-white sm:mt-10 sm:text-[14px] min-[1181px]:text-[16px]">
             {data.badge}

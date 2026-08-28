@@ -41,7 +41,11 @@ export default async function TestimonialsPage() {
         )}
         id="testimonials-schema"
       />
-      <TestimonialsPageContent testimonials={cms.testimonials} bookingUrl={cms.booking.page} />
+      <TestimonialsPageContent
+        testimonials={cms.testimonials}
+        bookingUrl={cms.booking.page}
+        bookingProfiles={cms.bookingProfiles}
+      />
     </>
   );
 }

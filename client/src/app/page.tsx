@@ -38,7 +38,12 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero hero={cms.hero} bookingUrl={cms.booking.page} bookingLabel={cms.booking.label} />
+      <Hero
+        hero={cms.hero}
+        bookingUrl={cms.booking.page}
+        bookingLabel={cms.booking.label}
+        bookingProfiles={cms.bookingProfiles}
+      />
       <WelcomeSection welcome={cms.welcome} />
 
       <Section tone="raised" aria-labelledby="services-heading">

@@ -39,6 +39,7 @@ export default async function BioPage() {
         bookingUrl={cms.booking.page}
         phone={cms.settings.practicePhone || loc?.phone}
         email={cms.settings.practiceEmail || loc?.email}
+        bookingProfiles={cms.bookingProfiles}
       />
     </>
   );

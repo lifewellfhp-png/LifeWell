@@ -1,11 +1,13 @@
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { JourneyCta } from '@/components/sections/JourneyCta';
+import { PatientTrustSection } from '@/components/sections/BookingProfiles';
 import {
   testimonials as staticTestimonials,
   testimonialsCta,
   testimonialsSection,
 } from '@/data/marketing';
 import type { Testimonial } from '@/types/content';
+import type { BookingProfiles } from '@/lib/cms-resolve';
 
 const DISPLAY_NAME: Record<string, string> = {
   'Elisa Smith': 'Elisa M.',
@@ -20,9 +22,11 @@ const DISPLAY_NAME: Record<string, string> = {
 export function TestimonialsPageContent({
   testimonials = staticTestimonials,
   bookingUrl,
+  bookingProfiles,
 }: {
   testimonials?: Testimonial[];
   bookingUrl?: string;
+  bookingProfiles?: BookingProfiles;
 }) {
   const PAGE_QUOTES = testimonials.length > 1 ? testimonials.slice(1) : testimonials;
   return (
@@ -79,6 +83,8 @@ export function TestimonialsPageContent({
           </ul>
         </div>
       </section>
+
+      {bookingProfiles && <PatientTrustSection profiles={bookingProfiles} />}
 
       <JourneyCta
         href={bookingUrl}

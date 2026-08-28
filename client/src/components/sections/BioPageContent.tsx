@@ -5,6 +5,8 @@ import { stats, testimonials } from '@/data/marketing';
 import { Container } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { StatsBand } from '@/components/sections/StatsBand';
+import { ProviderTrustLinks } from '@/components/sections/BookingProfiles';
+import type { BookingProfiles } from '@/lib/cms-resolve';
 
 /**
  * /bio page — layout, type, and imagery from the live Elementor template
@@ -18,6 +20,7 @@ export function BioPageContent({
   bookingUrl,
   phone,
   email,
+  bookingProfiles,
 }: {
   overlay?: {
     name?: string;
@@ -33,6 +36,7 @@ export function BioPageContent({
   bookingUrl?: string;
   phone?: string | null;
   email?: string | null;
+  bookingProfiles?: BookingProfiles;
 } = {}) {
   const featured = (cmsTestimonials?.length ? cmsTestimonials : testimonials).slice(0, 3);
   const bookHref = bookingUrl || site.booking.page;
@@ -66,6 +70,11 @@ export function BioPageContent({
               <div className="mt-8 flex justify-center">
                 <SwapButton href={bookHref}>{providerPage.consultation.cta.label}</SwapButton>
               </div>
+              {bookingProfiles && (
+                <div className="flex justify-center">
+                  <ProviderTrustLinks profiles={bookingProfiles} />
+                </div>
+              )}
             </aside>
 
             <div className="min-w-0">

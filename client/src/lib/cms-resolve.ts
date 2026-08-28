@@ -83,6 +83,7 @@ export type ResolvedContent = {
     isPrimary: boolean;
   }[];
   telehealthStates: TelehealthState[];
+  bookingProfiles: BookingProfiles;
   seoByPath: Record<
     string,
     {
@@ -433,6 +434,136 @@ function mapSettings(cms: PublicCmsPayload | null) {
     logoUrl: typeof row.logo_url === 'string' && row.logo_url ? siteAssetSrc(row.logo_url) : null,
     practicePhone: typeof row.practice_phone === 'string' && row.practice_phone ? row.practice_phone : null,
     practiceEmail: typeof row.practice_email === 'string' && row.practice_email ? row.practice_email : null,
+  };
+}
+
+export type BookingProfiles = {
+  zocdoc: {
+    enabled: boolean;
+    bookingUrl: string | null;
+    profileUrl: string | null;
+    ctaLabel: string;
+    description: string | null;
+    ratingEnabled: boolean;
+    rating: number | null;
+    reviewCount: number | null;
+    ratingVerifiedAt: string | null;
+  };
+  psychologyToday: {
+    enabled: boolean;
+    profileUrl: string | null;
+    contactUrl: string | null;
+    ctaLabel: string;
+    description: string | null;
+  };
+  display: {
+    homepage: boolean;
+    bookingPage: boolean;
+    bioPage: boolean;
+    reviewsPage: boolean;
+  };
+};
+
+const DEFAULT_BOOKING_PROFILES: BookingProfiles = {
+  zocdoc: {
+    enabled: false,
+    bookingUrl: null,
+    profileUrl: null,
+    ctaLabel: 'Book through Zocdoc',
+    description: null,
+    ratingEnabled: false,
+    rating: null,
+    reviewCount: null,
+    ratingVerifiedAt: null,
+  },
+  psychologyToday: {
+    enabled: false,
+    profileUrl: null,
+    contactUrl: null,
+    ctaLabel: 'View our Psychology Today profile',
+    description: null,
+  },
+  display: {
+    homepage: false,
+    bookingPage: true,
+    bioPage: false,
+    reviewsPage: true,
+  },
+};
+
+/** Only ever returns an https:// URL — blocks javascript:, malformed, and non-https values. */
+function safeHttpsUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || !/^https:\/\//i.test(trimmed)) return null;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === 'https:' ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
+function safeLabel(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+function safeNote(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/** 0–5, exclusive of 0 — a real rating is never zero on Zocdoc's own scale. */
+function safeRating(value: unknown): number | null {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) && n > 0 && n <= 5 ? n : null;
+}
+
+function safeCount(value: unknown): number | null {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) && n >= 0 && Number.isInteger(n) ? n : null;
+}
+
+/**
+ * Reads the owner-managed Zocdoc / Psychology Today integration config from
+ * the generic site_sections store (page_key "global", section_key
+ * "booking_profiles") — no dedicated table needed. Every value defaults to
+ * "off" / null; nothing here is ever fabricated when the owner hasn't
+ * entered it.
+ */
+function mapBookingProfiles(cms: PublicCmsPayload | null): BookingProfiles {
+  const content = sectionContent(cms, 'global', 'booking_profiles');
+  if (!content) return DEFAULT_BOOKING_PROFILES;
+
+  const zocdoc = asRecord(content.zocdoc) ?? {};
+  const pt = asRecord(content.psychology_today) ?? {};
+  const display = asRecord(content.display) ?? {};
+  const ratingEnabled = zocdoc.rating_enabled === true;
+
+  return {
+    zocdoc: {
+      enabled: zocdoc.enabled === true,
+      bookingUrl: safeHttpsUrl(zocdoc.booking_url),
+      profileUrl: safeHttpsUrl(zocdoc.profile_url),
+      ctaLabel: safeLabel(zocdoc.cta_label, DEFAULT_BOOKING_PROFILES.zocdoc.ctaLabel),
+      description: safeNote(zocdoc.description),
+      ratingEnabled,
+      rating: ratingEnabled ? safeRating(zocdoc.rating) : null,
+      reviewCount: ratingEnabled ? safeCount(zocdoc.review_count) : null,
+      ratingVerifiedAt: ratingEnabled ? safeNote(zocdoc.rating_verified_at) : null,
+    },
+    psychologyToday: {
+      enabled: pt.enabled === true,
+      profileUrl: safeHttpsUrl(pt.profile_url),
+      contactUrl: safeHttpsUrl(pt.contact_url),
+      ctaLabel: safeLabel(pt.cta_label, DEFAULT_BOOKING_PROFILES.psychologyToday.ctaLabel),
+      description: safeNote(pt.description),
+    },
+    display: {
+      homepage: display.homepage === true,
+      bookingPage: display.booking_page !== false,
+      bioPage: display.bio_page === true,
+      reviewsPage: display.reviews_page !== false,
+    },
   };
 }
 
@@ -788,6 +919,7 @@ export const getResolvedContent = cache(async (): Promise<ResolvedContent> => {
     provider: mapProvider(cms),
     locations: mapLocations(cms),
     telehealthStates: mapTelehealthStates(cms),
+    bookingProfiles: mapBookingProfiles(cms),
     posts: mapPosts(cms),
     fees: mapFees(cms),
     serviceDetails: mapServiceDetails(cms),
