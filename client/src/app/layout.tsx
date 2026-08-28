@@ -11,7 +11,7 @@ import { SiteHeader } from '@/components/layout/SiteHeader';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { AnalyticsBeacon } from '@/components/seo/AnalyticsBeacon';
 import { homeGraph } from '@/lib/schema';
-import { DEFAULT_OG_IMAGE } from '@/lib/seo';
+import { DEFAULT_OG_IMAGE, withBrand } from '@/lib/seo';
 
 /* Self-hosted via next/font — no runtime request to Google. Only the weights
    the design system actually uses are loaded. */
@@ -32,10 +32,14 @@ const sourceSans = Source_Sans_3({
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: {
-    default: 'Telehealth Mental Health Care | PMHNP Online Therapy & Medication Management',
-    template: `%s | ${site.name}`,
-  },
+  // No `template` here — every page sets an explicit `title: { absolute }`
+  // via lib/seo.ts's pageMetadata(), which brands the title exactly once
+  // (see withBrand()). A template on this segment previously applied only
+  // to routes other than the homepage (page.tsx shares this exact segment
+  // with layout.tsx, so Next never applied the template to it), which is
+  // what let CMS-entered titles already containing the brand name end up
+  // double-branded everywhere except "/".
+  title: withBrand('Telehealth Mental Health Care | PMHNP Online Therapy & Medication Management'),
   description: site.description,
   applicationName: site.name,
   authors: [{ name: 'Lourdie Chachoute, PMHNP-BC' }],

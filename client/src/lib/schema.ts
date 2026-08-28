@@ -1,6 +1,7 @@
 import { site } from '@/data/site';
 import { provider } from '@/data/provider';
-import type { Faq, Service, ServiceSummary, BlogPost } from '@/types/content';
+import { DEFAULT_OG_IMAGE } from '@/lib/seo';
+import type { Faq, Service, ServiceSummary } from '@/types/content';
 
 /**
  * JSON-LD builders.
@@ -10,6 +11,13 @@ import type { Faq, Service, ServiceSummary, BlogPost } from '@/types/content';
  * ("LifeWell Family Health &amp; Psychiatry"), the homepage typed as an
  * Article authored by the site developer, and a primaryImageOfPage declaring
  * 200x200 for a file that is actually 150x150.
+ *
+ * Organization, Person and WebSite are defined in full exactly once, by
+ * homeGraph() (injected on every page via the root layout). Every other
+ * graph below references them by @id only — Google explicitly supports
+ * resolving @id references across multiple JSON-LD <script> blocks on the
+ * same page, so the graph stays fully connected without redeclaring the
+ * same entities on every route.
  */
 
 const ORG_ID = `${site.url}/#organization`;
@@ -38,7 +46,7 @@ export function organizationNode() {
       width: 354,
       height: 63,
     },
-    image: abs('/images/og/default.png'),
+    image: abs(DEFAULT_OG_IMAGE.url),
     priceRange: '$$',
     medicalSpecialty: ['Psychiatric', 'PrimaryCare'],
     address: {
@@ -137,7 +145,14 @@ export function breadcrumbNode(trail: { name: string; href: string }[]) {
 
 /* ----------------------------------------------------------- per page --- */
 
-/** Homepage: WebPage + MedicalBusiness + WebSite. Never Article. */
+/**
+ * Homepage entities: MedicalBusiness + Person + WebSite + WebPage.
+ *
+ * Injected on EVERY page via the root layout (not just "/") so Organization,
+ * Person and WebSite are declared in full exactly once, site-wide. Every
+ * other graph function below links to these by @id instead of redeclaring
+ * them.
+ */
 export function homeGraph() {
   return graph([
     organizationNode(),
@@ -154,8 +169,6 @@ export function pageGraph(
   trail?: { name: string; href: string }[]
 ) {
   return graph([
-    organizationNode(),
-    websiteNode(),
     webPageNode(path, name, description),
     ...(trail ? [breadcrumbNode(trail)] : []),
   ]);
@@ -163,9 +176,6 @@ export function pageGraph(
 
 export function providerPageGraph(description: string) {
   return graph([
-    organizationNode(),
-    providerNode(),
-    websiteNode(),
     {
       ...webPageNode('/bio', `${provider.name}, ${provider.credentials}`, description),
       '@type': 'ProfilePage',
@@ -181,8 +191,6 @@ export function providerPageGraph(description: string) {
 export function serviceGraph(service: Service, description: string) {
   const url = abs(`/services/${service.slug}`);
   return graph([
-    organizationNode(),
-    websiteNode(),
     webPageNode(`/services/${service.slug}`, service.title, description),
     {
       '@type': 'MedicalWebPage',
@@ -216,8 +224,6 @@ export function serviceGraph(service: Service, description: string) {
 
 export function serviceListGraph(summaries: ServiceSummary[], description: string) {
   return graph([
-    organizationNode(),
-    websiteNode(),
     webPageNode('/our-services', 'Comprehensive Online Mental Health Services', description),
     {
       '@type': 'ItemList',
@@ -246,8 +252,6 @@ export function serviceListGraph(summaries: ServiceSummary[], description: strin
 /** FAQPage — only emitted where the questions are genuinely visible on-page. */
 export function faqGraph(faqs: Faq[], description: string) {
   return graph([
-    organizationNode(),
-    websiteNode(),
     webPageNode('/faqs', 'Frequently Asked Questions', description),
     {
       '@type': 'FAQPage',
@@ -265,38 +269,71 @@ export function faqGraph(faqs: Faq[], description: string) {
   ]);
 }
 
+export interface ArticleSchemaInput {
+  /** Defaults to 'Article'. Use 'BlogPosting' for informal blog content. */
+  type?: 'Article' | 'BlogPosting';
+  /** Root-relative path where this article actually renders, e.g. '/blog/my-post' or '/my-post'. */
+  path: string;
+  title: string;
+  description: string;
+  /** Omit width/height when the real dimensions of an uploaded image aren't known. */
+  image?: { url: string; width?: number; height?: number } | null;
+  publishedAt?: string | null;
+  modifiedAt?: string | null;
+  /**
+   * Real byline text from the CMS, if the post has one. When omitted, the
+   * article is attributed to the practice's own provider (the sole
+   * clinician who reviews and publishes site content) rather than left
+   * unattributed — never a fabricated name.
+   */
+  authorName?: string | null;
+  breadcrumb: { name: string; href: string }[];
+}
+
 /**
- * Article schema for blog posts. Authored by the clinician — the source site
- * attributed health content to "Mohidul Islam" (the developer) and "admin".
+ * Article/BlogPosting schema for blog posts. Authored by the clinician —
+ * the source site attributed health content to "Mohidul Islam" (the
+ * developer) and "admin".
+ *
+ * `path` must match the route the article actually renders at. Article
+ * schema was previously hardcoded to `/blog/${slug}` regardless of caller,
+ * which was wrong for the static app/[slug] system (root-level URLs like
+ * /managing-anxiety-in-everyday-life) — harmless only because every one of
+ * those posts was still unpublished placeholder content.
  */
-export function articleGraph(post: BlogPost) {
-  const url = abs(`/blog/${post.slug}`);
+export function articleGraph(input: ArticleSchemaInput) {
+  const url = abs(input.path);
+  const author =
+    input.authorName && input.authorName.trim()
+      ? { '@type': 'Person', name: input.authorName.trim() }
+      : { '@id': PROVIDER_ID };
+
   return graph([
-    organizationNode(),
-    providerNode(),
-    websiteNode(),
-    webPageNode(`/blog/${post.slug}`, post.title, post.excerpt),
+    webPageNode(input.path, input.title, input.description),
     {
-      '@type': 'Article',
+      '@type': input.type ?? 'Article',
       '@id': `${url}#article`,
-      headline: post.title,
-      description: post.excerpt,
-      ...(post.image
-        ? { image: { '@type': 'ImageObject', url: abs(post.image), width: 1920, height: 1080 } }
+      headline: input.title,
+      description: input.description,
+      ...(input.image
+        ? {
+            image: {
+              '@type': 'ImageObject',
+              url: abs(input.image.url),
+              ...(input.image.width ? { width: input.image.width } : {}),
+              ...(input.image.height ? { height: input.image.height } : {}),
+            },
+          }
         : {}),
-      datePublished: post.publishedAt,
-      dateModified: post.modifiedAt ?? post.publishedAt,
-      author: { '@id': PROVIDER_ID },
+      ...(input.publishedAt ? { datePublished: input.publishedAt } : {}),
+      dateModified: input.modifiedAt ?? input.publishedAt ?? undefined,
+      author,
       publisher: { '@id': ORG_ID },
       isPartOf: { '@id': `${url}#webpage` },
       mainEntityOfPage: { '@id': `${url}#webpage` },
       inLanguage: site.language,
     },
-    breadcrumbNode([
-      { name: 'Home', href: '/' },
-      { name: 'Blog', href: '/blog' },
-      { name: post.title, href: `/blog/${post.slug}` },
-    ]),
+    breadcrumbNode(input.breadcrumb),
   ]);
 }
 

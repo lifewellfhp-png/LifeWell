@@ -70,7 +70,18 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     <>
       {/* Article schema only where a real article exists. */}
       {!post.needsClientContent && (
-        <JsonLd data={articleGraph(post)} id={`post-${slug}-schema`} />
+        <JsonLd
+          data={articleGraph({
+            path: `/${slug}`,
+            title: post.title,
+            description: post.excerpt || post.title,
+            image: post.image ? { url: post.image, width: 1920, height: 1080 } : null,
+            publishedAt: post.publishedAt,
+            modifiedAt: post.modifiedAt,
+            breadcrumb: crumbs,
+          })}
+          id={`post-${slug}-schema`}
+        />
       )}
 
       <Section tone="raised" spacing="sm" as="article">

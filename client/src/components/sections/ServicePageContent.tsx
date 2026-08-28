@@ -9,6 +9,7 @@ import { serviceCategories } from '@/data/service-catalog';
 import { getService } from '@/data/services';
 import { getResolvedContent } from '@/lib/cms-resolve';
 import { site } from '@/data/site';
+import { provider } from '@/data/provider';
 
 /**
  * Individual /services/[slug] template — live Elementor service layout:
@@ -39,6 +40,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
     .filter(Boolean);
   const bodyParagraphs = cmsParagraphs.length ? cmsParagraphs : service?.intro ?? [];
   const bookHref = cms.booking.page || site.booking.page;
+  const providerName = cms.provider?.name || provider.name;
 
   return (
     <div className="bg-white">
@@ -120,6 +122,29 @@ export async function ServicePageContent({ slug }: { slug: string }) {
                   Book an Appointment
                 </SwapButton>
               </div>
+            </div>
+
+            <div className="mt-6 rounded-[20px] border border-[#E1E8EE] px-6 py-6">
+              <p className="text-[15px] leading-[1.5] text-[#374151]">
+                This service is provided by{' '}
+                <Link
+                  href="/bio"
+                  className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
+                >
+                  {providerName}
+                </Link>
+                .
+              </p>
+              <p className="mt-3 text-[15px] leading-[1.5] text-[#374151]">
+                Questions about cost?{' '}
+                <Link
+                  href="/fees-insurance"
+                  className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
+                >
+                  View fees &amp; insurance
+                </Link>
+                .
+              </p>
             </div>
           </aside>
         </div>

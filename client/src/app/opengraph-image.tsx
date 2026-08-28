@@ -46,18 +46,18 @@ export default function OpengraphImage() {
           <div
             style={{
               marginTop: 24,
-              fontSize: 66,
+              fontSize: 62,
               lineHeight: 1.1,
               color: '#374151',
               fontWeight: 500,
               maxWidth: 900,
             }}
           >
-            Compassionate Telehealth Mental Care You Can Trust
+            Personalized Mental Health Care for Mind and Body
           </div>
           <div style={{ marginTop: 26, fontSize: 30, color: '#5b6675', maxWidth: 820 }}>
-            Personalized psychiatric support from a dedicated PMHNP — all from the comfort of your
-            home.
+            Compassionate, evidence-based psychiatric care — available through secure telehealth
+            and in-person visits in Orlando.
           </div>
         </div>
 

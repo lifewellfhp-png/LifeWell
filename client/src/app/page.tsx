@@ -73,7 +73,7 @@ export default async function HomePage() {
         steps={cms.steps}
       />
       <StatsBand stats={cms.stats} bookingUrl={cms.booking.page} />
-      <InsuranceGrid showCta={false} showDisclaimer={false} carriers={cms.insurance} />
+      <InsuranceGrid showCta={true} showDisclaimer={false} carriers={cms.insurance} />
       <Testimonials testimonials={cms.testimonials} />
       <VideosSection videos={cms.videos} />
       <ContactCTA bookingUrl={cms.booking.page} bookingLabel={cms.booking.label} />
