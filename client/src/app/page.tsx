@@ -11,8 +11,10 @@ import { InsuranceGrid } from '@/components/sections/InsuranceGrid';
 import { Testimonials } from '@/components/sections/Testimonials';
 import { ContactCTA } from '@/components/sections/CTASection';
 import { VideosSection } from '@/components/sections/VideosSection';
+import { TrustStrip } from '@/components/sections/TrustStrip';
 
 import { site } from '@/data/site';
+import { provider as staticProvider } from '@/data/provider';
 import { cmsMetadata } from '@/lib/cms-seo';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
@@ -43,6 +45,10 @@ export default async function HomePage() {
         bookingUrl={cms.booking.page}
         bookingLabel={cms.booking.label}
         bookingProfiles={cms.bookingProfiles}
+      />
+      <TrustStrip
+        provider={cms.provider ?? staticProvider}
+        states={cms.telehealthStates}
       />
       <WelcomeSection welcome={cms.welcome} />
 
