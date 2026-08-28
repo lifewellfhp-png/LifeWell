@@ -56,6 +56,26 @@ const nextConfig: NextConfig = {
 
       // Empty taxonomy carried over from the WordPress install.
       { source: '/category/uncategorized', destination: '/blog', permanent: true },
+
+      // Resource Hub CMS migration: these 3 articles moved from static
+      // root-level routes into the CMS-backed /blog/[slug] route. Redirecting
+      // (rather than dropping the old route) preserves any indexed links or
+      // bookmarks at the original URL with a single canonical destination.
+      {
+        source: '/understanding-anxiety-symptoms-and-when-to-seek-help',
+        destination: '/blog/understanding-anxiety-symptoms-and-when-to-seek-help',
+        permanent: true,
+      },
+      {
+        source: '/adult-adhd-what-to-know-about-evaluation-and-treatment',
+        destination: '/blog/adult-adhd-what-to-know-about-evaluation-and-treatment',
+        permanent: true,
+      },
+      {
+        source: '/what-happens-during-a-psychiatric-evaluation',
+        destination: '/blog/what-happens-during-a-psychiatric-evaluation',
+        permanent: true,
+      },
     ];
   },
 };
