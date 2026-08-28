@@ -6,14 +6,17 @@ import Image from 'next/image';
 /**
  * Hero background media.
  *
- * The poster image is always rendered and is the LCP element, so the hero
- * paints immediately rather than waiting on the video. The 1.1 MB loop is
- * layered on top only once it can play, and is skipped entirely for visitors
- * who prefer reduced motion — for them the poster is the finished state, and
- * the video is never requested.
+ * A CMS image takes precedence when available. Otherwise the static poster is
+ * rendered as the LCP element and the 1.1 MB loop is layered on top only once
+ * it can play, with reduced-motion visitors staying on the poster.
  */
-export function HeroMedia() {
+export function HeroMedia({
+  image,
+}: {
+  image?: { src: string; alt: string };
+}) {
   const [allowMotion, setAllowMotion] = useState(false);
+  const cmsImage = image && isUsableImageSrc(image.src) ? image : null;
 
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -23,19 +26,42 @@ export function HeroMedia() {
     return () => query.removeEventListener('change', apply);
   }, []);
 
-  return (
-    <>
+  const heroImage = cmsImage ? (
+    cmsImage.src.startsWith('http') ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={cmsImage.src}
+        alt={cmsImage.alt}
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-[68%_center]"
+      />
+    ) : (
       <Image
-        src="/images/sections/home-hero-poster.jpg"
-        alt=""
+        src={cmsImage.src}
+        alt={cmsImage.alt}
         fill
         priority
         fetchPriority="high"
         sizes="100vw"
         className="-z-20 object-cover object-[68%_center]"
       />
+    )
+  ) : (
+    <Image
+      src="/images/sections/home-hero-poster.jpg"
+      alt=""
+      fill
+      priority
+      fetchPriority="high"
+      sizes="100vw"
+      className="-z-20 object-cover object-[68%_center]"
+    />
+  );
 
-      {allowMotion && (
+  return (
+    <>
+      {heroImage}
+
+      {!cmsImage && allowMotion && (
         <video
           className="absolute inset-0 -z-20 h-full w-full object-cover object-[68%_center]"
           poster="/images/sections/home-hero-poster.jpg"
@@ -53,4 +79,15 @@ export function HeroMedia() {
       )}
     </>
   );
+}
+
+function isUsableImageSrc(src: string): boolean {
+  if (!src || /^(data:|blob:|\/\/)/i.test(src)) return false;
+  if (src.startsWith('/')) return src.length > 1;
+  try {
+    const url = new URL(src);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }

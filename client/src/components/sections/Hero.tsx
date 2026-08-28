@@ -37,7 +37,7 @@ export function Hero({
       aria-labelledby="hero-heading"
       className="relative isolate flex min-h-[100svh] max-h-none items-center overflow-hidden md:min-h-[850px] min-[1181px]:min-h-[950px]"
     >
-      <HeroMedia />
+      <HeroMedia image={data.image} />
 
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-black/50" />
 
