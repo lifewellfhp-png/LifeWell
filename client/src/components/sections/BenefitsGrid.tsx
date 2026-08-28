@@ -33,11 +33,11 @@ export function BenefitsGrid({
           align="center"
         />
 
-        <ul className="mt-10 flex list-none flex-col gap-2.5 min-[1181px]:mt-16">
+        <ul className="mt-8 flex list-none flex-col gap-2 min-[1181px]:mt-16">
           {items.map((benefit, i) => (
             <li key={benefit.title}>
-              <article className="group flex min-h-[140px] items-center gap-[15px] overflow-hidden rounded-[30px] bg-[#EEF3F7] px-5 py-5 transition-colors duration-500 hover:bg-[var(--lw-accent)] max-[767px]:flex-col max-[767px]:items-start sm:px-[30px] sm:py-[30px]">
-                <div className="relative flex h-[88px] w-[88px] shrink-0 items-center justify-center">
+              <article className="group flex min-h-[120px] items-center gap-[15px] overflow-hidden rounded-[30px] bg-[#EEF3F7] px-5 py-4 transition-colors duration-500 hover:bg-[var(--lw-accent)] max-[767px]:flex-col max-[767px]:items-start sm:px-[30px] sm:py-[24px]">
+                <div className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center sm:h-[88px] sm:w-[88px]">
                   <span
                     aria-hidden="true"
                     className="font-heading text-[22px] font-normal leading-none tracking-[-1px] text-[#4A8F55] transition-opacity duration-500 group-hover:opacity-0 sm:text-[24px] min-[1181px]:text-[30px]"

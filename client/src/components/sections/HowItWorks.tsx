@@ -59,8 +59,8 @@ export function HowItWorks({
           </p>
         </div>
 
-        <div className="mt-12 grid items-center gap-10 lg:mt-16 lg:grid-cols-2 lg:gap-x-[60px] min-[1181px]:gap-x-20">
-          <div className="relative overflow-hidden rounded-[30px]">
+        <div className="mt-10 grid items-center gap-8 lg:mt-16 lg:grid-cols-2 lg:gap-x-[60px] min-[1181px]:gap-x-20">
+          <div className="relative h-[280px] overflow-hidden rounded-[30px] sm:h-auto">
             <Image
               src={howItWorks.image.src}
               alt=""
@@ -68,7 +68,7 @@ export function HowItWorks({
               height={howItWorks.image.height}
               loading="lazy"
               sizes="(min-width: 1024px) 44vw, 92vw"
-              className="w-full object-cover"
+              className="h-full w-full object-cover sm:h-auto"
             />
             <div className="absolute left-4 top-4 z-10 max-w-[min(100%-2rem,280px)] rounded-[20px] bg-white/20 p-4 shadow-[0_8px_32px_rgb(0_0_0_/_0.18)] ring-1 ring-white/35 backdrop-blur-[18px] sm:left-6 sm:top-6 sm:max-w-[300px] sm:p-5">
               <p className="font-heading text-[20px] font-normal leading-snug text-white sm:text-[24px]">
@@ -85,10 +85,10 @@ export function HowItWorks({
             </div>
           </div>
 
-          <ol className="flex list-none flex-col gap-5">
+          <ol className="flex list-none flex-col gap-4">
             {steps.map((step, i) => (
               <li key={step.title}>
-                <article className="flex items-start gap-5 rounded-[20px] bg-white px-5 py-6 shadow-[0_4px_24px_rgb(62_127_177_/_0.08)] sm:items-center sm:gap-6 sm:px-7 sm:py-7">
+                <article className="flex items-start gap-5 rounded-[20px] bg-white px-5 py-5 shadow-[0_4px_24px_rgb(62_127_177_/_0.08)] sm:items-center sm:gap-6 sm:px-7 sm:py-7">
                   <span
                     aria-hidden="true"
                     className="w-10 shrink-0 text-center font-heading text-[36px] font-normal leading-none text-[var(--lw-accent)] sm:w-12 sm:text-[42px] min-[1181px]:text-[48px]"
@@ -112,7 +112,7 @@ export function HowItWorks({
         </div>
 
         {showCta && (
-          <div className="mt-12 flex justify-center min-[1181px]:mt-16">
+          <div className="mt-10 flex justify-center min-[1181px]:mt-16">
             <SwapButton href={bookHref}>{howItWorks.cta.label}</SwapButton>
           </div>
         )}
