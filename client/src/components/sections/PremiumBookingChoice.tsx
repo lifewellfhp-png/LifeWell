@@ -1,15 +1,23 @@
+import Image from 'next/image';
 import { Container, Section } from '@/components/ui/Section';
 import { LongArrow, SwapButton } from '@/components/ui/SwapButton';
 import type { BookingProfiles } from '@/lib/cms-resolve';
 
 /**
- * Premium booking-page choice cards. No official Zocdoc / Psychology Today
- * logo file is embedded here — this workspace has no verified, licensed copy
- * of either brand's mark, and approximating one would risk trademark misuse.
- * PlatformWordmark is a plain LifeWell-styled text label instead (nominative
- * use of the platform's name, not a reproduction of its logo). Swap in an
- * official asset via Media once the owner supplies one under their brand
- * usage terms.
+ * Premium booking-page choice cards.
+ *
+ * Psychology Today: uses the platform's own officially-hosted SVG
+ * (cdn2.psychologytoday.com/theme-assets/logos/logo-psychology-today-blue.svg,
+ * downloaded unmodified to client/public/brands/psychology-today.svg).
+ *
+ * Zocdoc: no logo file is embedded. Every zocdoc.com brand/press page
+ * (about/downloads, about/press, about/download/full-logo) returned HTTP 403
+ * to automated fetches during this task — Zocdoc's own site blocks
+ * non-browser requests, so no official asset could be verified here. Per
+ * instruction, this does not fall back to the third-party logotyp.us mirror
+ * or an AI-generated mark; Zocdoc keeps the plain LifeWell-styled text
+ * wordmark below until the owner supplies a verified official file (see
+ * https://www.zocdoc.com/about/downloads/, fetched in a real browser).
  */
 
 const externalLinkProps = {
@@ -22,6 +30,19 @@ function PlatformWordmark({ name }: { name: string }) {
     <span className="inline-flex w-fit items-center rounded-[8px] bg-[#EEF3F7] px-3.5 py-1.5 text-[13px] font-bold tracking-tight text-[var(--lw-primary)]">
       {name}
     </span>
+  );
+}
+
+/** Official Psychology Today wordmark — decorative alt, since the adjacent "Psychology Today" heading already names the platform for screen readers. */
+function PsychologyTodayLogo() {
+  return (
+    <Image
+      src="/brands/psychology-today.svg"
+      alt=""
+      width={180}
+      height={36}
+      className="h-6 w-auto object-contain sm:h-7"
+    />
   );
 }
 
@@ -165,7 +186,7 @@ export function TrustedPlatformsSection({ profiles }: { profiles: BookingProfile
           {ptUrl && (
             <div className={cardClass}>
               <div className="flex justify-center">
-                <PlatformWordmark name="Psychology Today" />
+                <PsychologyTodayLogo />
               </div>
               <h3 className="mt-4 font-heading text-[20px] font-normal text-[var(--lw-primary)]">Psychology Today</h3>
               <p className="mt-2 text-[15px] text-[#374151]">
