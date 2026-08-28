@@ -10,28 +10,16 @@ import type { BookingProfiles } from '@/lib/cms-resolve';
  * (cdn2.psychologytoday.com/theme-assets/logos/logo-psychology-today-blue.svg,
  * downloaded unmodified to client/public/brands/psychology-today.svg).
  *
- * Zocdoc: no logo file is embedded. Every zocdoc.com brand/press page
- * (about/downloads, about/press, about/download/full-logo) returned HTTP 403
- * to automated fetches during this task — Zocdoc's own site blocks
- * non-browser requests, so no official asset could be verified here. Per
- * instruction, this does not fall back to the third-party logotyp.us mirror
- * or an AI-generated mark; Zocdoc keeps the plain LifeWell-styled text
- * wordmark below until the owner supplies a verified official file (see
- * https://www.zocdoc.com/about/downloads/, fetched in a real browser).
+ * Zocdoc: uses the official "Logo and Wordmark" lockup the owner downloaded
+ * directly from Zocdoc's brand portal (1_Lockup_RGB/On_LightBG_RGB/
+ * logo_lockup_positive_rgb.svg), copied unmodified to
+ * client/public/brands/zocdoc.svg.
  */
 
 const externalLinkProps = {
   target: '_blank' as const,
   rel: 'noopener noreferrer' as const,
 };
-
-function PlatformWordmark({ name }: { name: string }) {
-  return (
-    <span className="inline-flex w-fit items-center rounded-[8px] bg-[#EEF3F7] px-3.5 py-1.5 text-[13px] font-bold tracking-tight text-[var(--lw-primary)]">
-      {name}
-    </span>
-  );
-}
 
 /** Official Psychology Today wordmark — decorative alt, since the adjacent "Psychology Today" heading already names the platform for screen readers. */
 function PsychologyTodayLogo() {
@@ -41,6 +29,19 @@ function PsychologyTodayLogo() {
       alt=""
       width={180}
       height={36}
+      className="h-6 w-auto object-contain sm:h-7"
+    />
+  );
+}
+
+/** Official Zocdoc lockup (mark + wordmark) — decorative alt, since adjacent heading text always names Zocdoc explicitly. */
+function ZocdocLogo() {
+  return (
+    <Image
+      src="/brands/zocdoc.svg"
+      alt=""
+      width={1098}
+      height={422}
       className="h-6 w-auto object-contain sm:h-7"
     />
   );
@@ -103,7 +104,7 @@ export function BookingChoiceGrid({
 
           {zocdocUrl && (
             <div className={cardClass}>
-              <PlatformWordmark name="Zocdoc" />
+              <ZocdocLogo />
               <h3 className="mt-5 font-heading text-[24px] font-normal leading-[1.2] text-[var(--lw-primary)] sm:text-[28px]">
                 Book through Zocdoc
               </h3>
@@ -157,7 +158,7 @@ export function TrustedPlatformsSection({ profiles }: { profiles: BookingProfile
           {zocdocUrl && (
             <div className={cardClass}>
               <div className="flex justify-center">
-                <PlatformWordmark name="Zocdoc" />
+                <ZocdocLogo />
               </div>
               <h3 className="mt-4 font-heading text-[20px] font-normal text-[var(--lw-primary)]">Zocdoc Reviews</h3>
               {showRatingNumbers && rating !== null && reviewCount !== null ? (
