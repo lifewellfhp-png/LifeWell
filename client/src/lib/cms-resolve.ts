@@ -96,6 +96,7 @@ export type ResolvedContent = {
     excerpt?: string | null;
     coverImageUrl?: string | null;
     authorName?: string | null;
+    category?: string | null;
     publishedAt?: string | null;
     body?: string | null;
   }[];
@@ -546,6 +547,7 @@ function mapPosts(cms: PublicCmsPayload | null) {
     excerpt?: string | null;
     cover_image_url?: string | null;
     author_name?: string | null;
+    category?: string | null;
     published_at?: string | null;
     body?: string | null;
   }[];
@@ -557,6 +559,7 @@ function mapPosts(cms: PublicCmsPayload | null) {
       excerpt: r.excerpt ?? null,
       coverImageUrl: r.cover_image_url ? siteAssetSrc(String(r.cover_image_url)) : null,
       authorName: r.author_name ?? null,
+      category: r.category ?? null,
       publishedAt: r.published_at ?? null,
       body: r.body ?? null,
     }));

@@ -35,7 +35,7 @@ export async function getPublicContent(_req: Request, res: Response): Promise<vo
     sb.from('testimonials').select('*').eq('published', true).order('sort_order'),
     sb.from('faqs').select('*').eq('published', true).order('sort_order'),
     sb.from('locations').select('*').eq('published', true),
-    sb.from('blog_posts').select('id, slug, title, excerpt, cover_image_url, author_name, published_at, seo_title, seo_description').eq('published', true).order('published_at', { ascending: false }),
+    sb.from('blog_posts').select('id, slug, title, excerpt, cover_image_url, author_name, category, published_at, seo_title, seo_description').eq('published', true).order('published_at', { ascending: false }),
     sb.from('videos').select('*').eq('published', true).order('sort_order'),
     sb.from('site_sections').select('*').eq('published', true).order('updated_at', { ascending: false }),
     sb.from('booking_settings').select('*').eq('active', true),

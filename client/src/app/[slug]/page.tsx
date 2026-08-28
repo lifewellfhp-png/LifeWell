@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { Container, Section } from '@/components/ui/Section';
 import { Button } from '@/components/ui/Button';
 import { Breadcrumbs } from '@/components/sections/PageHero';
+import { ArticleDisclaimer } from '@/components/sections/ArticleDisclaimer';
 import { CmsCta } from '@/components/CmsCta';
 import { JsonLd } from '@/components/seo/JsonLd';
 
 import { getPost, postSlugs } from '@/data/blog';
-import { serviceSummaries } from '@/data/service-catalog';
+import { serviceSummaries, getServiceSummary } from '@/data/service-catalog';
 import { provider } from '@/data/provider';
 import { formatDate, isoDate } from '@/lib/utils';
 import { pageMetadata } from '@/lib/seo';
@@ -158,6 +159,23 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
               </div>
             )}
           </div>
+
+          {!post.needsClientContent && (
+            <>
+              <ArticleDisclaimer />
+              {post.relatedServiceSlug && getServiceSummary(post.relatedServiceSlug) && (
+                <p className="mt-6 text-md text-text-secondary">
+                  Related service:{' '}
+                  <Link
+                    href={getServiceSummary(post.relatedServiceSlug)!.href}
+                    className="font-semibold text-text-link"
+                  >
+                    {getServiceSummary(post.relatedServiceSlug)!.title}
+                  </Link>
+                </p>
+              )}
+            </>
+          )}
 
           {post.tags.length > 0 && (
             <ul className="mt-11 flex list-none flex-wrap gap-2 border-t border-border-subtle pt-8">

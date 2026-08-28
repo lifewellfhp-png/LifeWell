@@ -1,6 +1,7 @@
 import { site } from '@/data/site';
 import { provider } from '@/data/provider';
 import { DEFAULT_OG_IMAGE } from '@/lib/seo';
+import { telehealthStates, type TelehealthState } from '@/data/telehealth-states';
 import type { Faq, Service, ServiceSummary } from '@/types/content';
 
 /**
@@ -26,6 +27,12 @@ const PROVIDER_ID = `${site.url}/#provider`;
 
 const abs = (path: string) =>
   path.startsWith('http') ? path : `${site.url}${path.startsWith('/') ? path : `/${path}`}`;
+
+/**
+ * Every state the provider is authorized to treat patients in via telehealth
+ * (plus Florida's in-person option). Single source: data/telehealth-states.ts.
+ */
+const allStatesServed = telehealthStates.map((s) => ({ '@type': 'State' as const, name: s.name }));
 
 /* --------------------------------------------------------- core nodes --- */
 
@@ -57,10 +64,7 @@ export function organizationNode() {
       postalCode: site.address.zip,
       addressCountry: site.address.country,
     },
-    areaServed: {
-      '@type': 'State',
-      name: site.address.regionName,
-    },
+    areaServed: allStatesServed,
     availableService: { '@id': `${site.url}/our-services#services` },
     openingHoursSpecification: site.hoursSpec.map((h) => ({
       '@type': 'OpeningHoursSpecification',
@@ -207,7 +211,7 @@ export function serviceGraph(service: Service, description: string) {
       serviceType: service.title,
       url,
       provider: { '@id': ORG_ID },
-      areaServed: { '@type': 'State', name: site.address.regionName },
+      areaServed: allStatesServed,
       availableChannel: {
         '@type': 'ServiceChannel',
         serviceUrl: abs('/book-telehealth-mental-health-appointment'),
@@ -265,6 +269,47 @@ export function faqGraph(faqs: Faq[], description: string) {
     breadcrumbNode([
       { name: 'Home', href: '/' },
       { name: 'FAQs', href: '/faqs' },
+    ]),
+  ]);
+}
+
+/**
+ * /telehealth/[state] page graph. Scoped to the one state the page is
+ * actually about — distinct from the sitewide Organization-level
+ * `areaServed` (which lists all authorized states) and from the general
+ * services catalog. Never implies a physical office outside Florida.
+ */
+export function telehealthStateGraph(state: TelehealthState, description: string) {
+  const url = abs(`/telehealth/${state.slug}`);
+  return graph([
+    webPageNode(`/telehealth/${state.slug}`, `Psychiatric Care for ${state.name} Residents`, description),
+    {
+      '@type': 'Service',
+      '@id': `${url}#service`,
+      name: `Telehealth Psychiatric Care — ${state.name}`,
+      description,
+      serviceType: 'Psychiatric care',
+      url,
+      provider: { '@id': ORG_ID },
+      areaServed: { '@type': 'State', name: state.name },
+      availableChannel: {
+        '@type': 'ServiceChannel',
+        serviceUrl: abs('/book-telehealth-mental-health-appointment'),
+        name: 'Telehealth appointment',
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${url}#faq`,
+      mainEntity: state.faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.question,
+        acceptedAnswer: { '@type': 'Answer', text: f.answer },
+      })),
+    },
+    breadcrumbNode([
+      { name: 'Home', href: '/' },
+      { name: state.name, href: `/telehealth/${state.slug}` },
     ]),
   ]);
 }

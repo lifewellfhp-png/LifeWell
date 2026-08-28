@@ -9,7 +9,7 @@ import { providerPageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
 const DESCRIPTION =
-  'Meet Lourdie Chachoute, FNP-C, PMHNP-BC — a dual-certified Family and Psychiatric-Mental Health Nurse Practitioner with over 15 years of clinical experience, providing telehealth psychiatric care.';
+  'Meet Lourdie Chachoute, FNP-C, PMHNP-BC — a dual-certified Family and Psychiatric-Mental Health Nurse Practitioner with over 15 years of clinical experience, providing telehealth and in-person psychiatric care in Orlando, FL.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();

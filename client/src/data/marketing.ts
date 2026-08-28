@@ -241,6 +241,11 @@ export const faqs: Faq[] = [
     answer:
       'Yes. Appointments can be rescheduled or canceled according to the cancellation policy. Please contact us in advance to make changes.',
   },
+  {
+    question: 'Can a psychiatric nurse practitioner help with sleep problems?',
+    answer:
+      'Yes. Sleep disturbances are often connected to anxiety, depression, and other mental health concerns. As part of a psychiatric evaluation, we assess sleep along with your other symptoms and include it in your personalized treatment and medication management plan.',
+  },
 ];
 
 /* -------------------------------------------------------- cta / news ---- */

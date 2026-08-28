@@ -143,6 +143,8 @@ create table if not exists blog_posts (
   body text,
   cover_image_url text,
   author_name text,
+  category text,
+  related_service_slug text,
   published boolean not null default false,
   published_at timestamptz,
   seo_title text,

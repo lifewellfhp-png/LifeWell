@@ -611,5 +611,194 @@ export const generatedPosts: BlogPost[] = [
       }
     ],
     "wpId": 1406
+  },
+  {
+    "slug": "understanding-anxiety-symptoms-and-when-to-seek-help",
+    "title": "Understanding Anxiety: Symptoms and When to Seek Help",
+    "excerpt": "Occasional worry is a normal part of life, but persistent or overwhelming anxiety can be a sign it's time to talk with a psychiatric provider. Here's what to look for.",
+    "category": "Anxiety",
+    "tags": ["anxiety", "mental health", "psychiatric care"],
+    "publishedAt": "2026-08-28T00:00:00Z",
+    "modifiedAt": "2026-08-28T00:00:00Z",
+    "image": null,
+    "needsClientContent": false,
+    "demoSignals": [],
+    "relatedServiceSlug": "treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "Everyone feels anxious sometimes — before a big presentation, a difficult conversation, or an important decision. That kind of worry is a normal, even useful, part of life. Anxiety becomes a different matter when it's persistent, disproportionate to the situation, or when it starts interfering with your work, relationships, or day-to-day functioning."
+      },
+      {
+        "type": "heading",
+        "text": "Common symptoms of anxiety"
+      },
+      {
+        "type": "text",
+        "text": "Anxiety shows up differently for different people, but common signs include:"
+      },
+      {
+        "type": "list",
+        "items": [
+          "Persistent worry that's hard to control or that lasts most days for weeks or longer",
+          "Restlessness, feeling on edge, or difficulty relaxing",
+          "Trouble concentrating, or your mind going blank",
+          "Muscle tension, headaches, or a racing heart",
+          "Sleep problems — trouble falling asleep, staying asleep, or restless sleep",
+          "Avoiding situations, people, or responsibilities because they trigger worry",
+          "Irritability that feels out of proportion to what's actually happening"
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "When anxiety may need professional support"
+      },
+      {
+        "type": "text",
+        "text": "Not every anxious moment calls for treatment. It's worth talking with a psychiatric provider when anxiety is frequent, hard to control, or is affecting your sleep, work, relationships, or physical health — even if you're not sure it \"counts\" as a problem. You don't need to wait until anxiety becomes severe to ask for help."
+      },
+      {
+        "type": "heading",
+        "text": "How psychiatric care can help"
+      },
+      {
+        "type": "text",
+        "text": "A psychiatric evaluation looks at your symptoms, history, and day-to-day life to understand what's driving your anxiety and how it's affecting you. From there, care may include medication management when appropriate, along with practical lifestyle guidance and coping strategies — tailored to your specific situation rather than a one-size-fits-all plan. If ongoing talk therapy would also be helpful, your provider can discuss that as part of a coordinated plan."
+      },
+      {
+        "type": "heading",
+        "text": "Getting started"
+      },
+      {
+        "type": "text",
+        "text": "If anxiety has been affecting your daily life, a psychiatric evaluation is a reasonable first step. Appointments are available by secure telehealth or in person at our Orlando office."
+      }
+    ],
+    "wpId": 900001
+  },
+  {
+    "slug": "adult-adhd-what-to-know-about-evaluation-and-treatment",
+    "title": "Adult ADHD: What to Know About Evaluation and Treatment",
+    "excerpt": "ADHD often goes undiagnosed into adulthood. Here's what the common signs look like, what a psychiatric evaluation involves, and how treatment is approached.",
+    "category": "ADHD",
+    "tags": ["ADHD", "adult ADHD", "psychiatric evaluation"],
+    "publishedAt": "2026-08-28T00:00:00Z",
+    "modifiedAt": "2026-08-28T00:00:00Z",
+    "image": null,
+    "needsClientContent": false,
+    "demoSignals": [],
+    "relatedServiceSlug": "treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "ADHD is often thought of as a childhood condition, but many adults live for years with undiagnosed ADHD — sometimes finding out only after a child or family member is diagnosed and the symptoms start to sound familiar."
+      },
+      {
+        "type": "heading",
+        "text": "Common signs of adult ADHD"
+      },
+      {
+        "type": "text",
+        "text": "Adult ADHD can look different from the hyperactivity often associated with children. Common signs include:"
+      },
+      {
+        "type": "list",
+        "items": [
+          "Trouble focusing or staying on task, especially with routine or tedious work",
+          "Frequently losing track of time, deadlines, or appointments",
+          "Difficulty organizing tasks or managing multiple responsibilities",
+          "Restlessness or feeling mentally \"on the go\"",
+          "Impulsivity in decisions, spending, or conversations",
+          "A pattern of starting projects with enthusiasm but struggling to finish them",
+          "Feeling like you have to work much harder than others to keep up"
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "What a psychiatric evaluation for ADHD involves"
+      },
+      {
+        "type": "text",
+        "text": "An evaluation typically includes a detailed conversation about your current symptoms, how long they've been present, and how they affect your work, relationships, and daily life. Because ADHD symptoms can overlap with anxiety, depression, and other conditions, your provider will also ask about your broader mental health history to understand the full picture before recommending a treatment approach."
+      },
+      {
+        "type": "heading",
+        "text": "Treatment options"
+      },
+      {
+        "type": "text",
+        "text": "Treatment is individualized. For many adults, it includes medication management, paired with practical strategies for organization, time management, and daily routines. Your provider will work with you to find an approach that fits your symptoms, goals, and any other health conditions you're managing."
+      },
+      {
+        "type": "heading",
+        "text": "Getting started"
+      },
+      {
+        "type": "text",
+        "text": "If ADHD symptoms are affecting your work or daily life, a psychiatric evaluation can help clarify what's going on and what treatment options make sense. Appointments are available by secure telehealth or in person at our Orlando office."
+      }
+    ],
+    "wpId": 900002
+  },
+  {
+    "slug": "what-happens-during-a-psychiatric-evaluation",
+    "title": "What Happens During a Psychiatric Evaluation",
+    "excerpt": "Not sure what to expect from your first psychiatric evaluation? Here's a clear walkthrough of how the appointment works, from preparation to your treatment plan.",
+    "category": "Psychiatric Care & Evaluations",
+    "tags": ["psychiatric evaluation", "getting started", "telehealth"],
+    "publishedAt": "2026-08-28T00:00:00Z",
+    "modifiedAt": "2026-08-28T00:00:00Z",
+    "image": null,
+    "needsClientContent": false,
+    "demoSignals": [],
+    "relatedServiceSlug": "psychiatric-evaluations",
+    "blocks": [
+      {
+        "type": "text",
+        "text": "Booking your first psychiatric evaluation can feel like a big step, especially if you're not sure what to expect. Here's a straightforward look at how the appointment typically works."
+      },
+      {
+        "type": "heading",
+        "text": "Before your appointment"
+      },
+      {
+        "type": "text",
+        "text": "It helps to come prepared, though nothing here is required:"
+      },
+      {
+        "type": "list",
+        "items": [
+          "A general list of the symptoms or concerns you'd like to discuss",
+          "Any medications or supplements you currently take, including dosages",
+          "A brief mental health and medical history, including past diagnoses or treatment",
+          "Questions you have about treatment options"
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "During the evaluation"
+      },
+      {
+        "type": "text",
+        "text": "Your provider will ask about your current symptoms, when they started, and how they're affecting your daily life — work, relationships, sleep, and overall functioning. You'll also be asked about your broader health and mental health history. This is a conversation, not a test: there are no right or wrong answers, and the goal is to understand your full picture before recommending next steps."
+      },
+      {
+        "type": "heading",
+        "text": "After the evaluation"
+      },
+      {
+        "type": "text",
+        "text": "Based on the evaluation, your provider will discuss a personalized plan with you, which may include medication management, lifestyle guidance, and a schedule for follow-up visits to monitor how treatment is working and make adjustments as needed."
+      },
+      {
+        "type": "heading",
+        "text": "Telehealth evaluations"
+      },
+      {
+        "type": "text",
+        "text": "A psychiatric evaluation by telehealth works the same way as an in-person visit — you'll just need a private space, a stable internet connection, and a computer, tablet, or smartphone."
+      }
+    ],
+    "wpId": 900003
   }
 ];

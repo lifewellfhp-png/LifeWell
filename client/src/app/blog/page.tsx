@@ -15,7 +15,7 @@ import { getResolvedContent } from '@/lib/cms-resolve';
 import { CmsCta } from '@/components/CmsCta';
 
 const DESCRIPTION =
-  'Mental health and wellness articles from LifeWell Family Health & Psychiatry — practical guidance on anxiety, depression, ADHD, sleep and living well.';
+  'The LifeWell Wellness Resource Hub — practical, evidence-informed guidance on anxiety, depression, ADHD, sleep, and whole-person mental health from LifeWell Family Health & Psychiatry.';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -23,7 +23,7 @@ export const revalidate = 0;
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Blog — Mental Health & Wellness Insights',
+    title: 'Wellness Resource Hub — Mental Health & Wellness Insights',
     description: DESCRIPTION,
     path: '/blog',
     noIndex: cms.posts.length === 0,
@@ -37,7 +37,7 @@ export default async function BlogIndexPage() {
     slug: post.slug,
     title: post.title,
     excerpt: post.excerpt || '',
-    category: null as string | null,
+    category: post.category ?? null,
     image: post.coverImageUrl,
     publishedAt: post.publishedAt,
     href: `/blog/${post.slug}`,
@@ -46,16 +46,16 @@ export default async function BlogIndexPage() {
   return (
     <>
       <JsonLd
-        data={pageGraph('/blog', 'Blog', DESCRIPTION, [
+        data={pageGraph('/blog', 'Wellness Resource Hub', DESCRIPTION, [
           { name: 'Home', href: '/' },
-          { name: 'Blog', href: '/blog' },
+          { name: 'Wellness Resource Hub', href: '/blog' },
         ])}
         id="blog-schema"
       />
 
       <InnerPageHero
-        title="Mental Health & Wellness"
-        accent="Insights"
+        title="Wellness"
+        accent="Resource Hub"
         lead="Practical, evidence-informed guidance on mental health, written by a board-certified psychiatric nurse practitioner."
         leadSize="subhead"
       />

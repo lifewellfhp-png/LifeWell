@@ -20,9 +20,9 @@ export const serviceCategories: Record<ServiceCategory, { label: string; shortLa
 
 const SUMMARY: Record<string, string> = {
   'psychiatric-evaluations':
-    'I provide thorough psychiatric evaluations through secure telehealth services to assess your symptoms, understand your mental health history, and develop a personalized treatment plan that supports your long-term emotional and psychological well-being.',
+    'I provide thorough psychiatric evaluations through secure telehealth, or in person at my Orlando office, to assess your symptoms, understand your mental health history, and develop a personalized treatment plan that supports your long-term emotional and psychological well-being.',
   'medication-management':
-    'I provide ongoing psychiatric medication management through secure telehealth services to ensure your treatment is safe, effective, and tailored to your individual mental health needs.',
+    'I provide ongoing psychiatric medication management through secure telehealth, or in person at my Orlando office, to ensure your treatment is safe, effective, and tailored to your individual mental health needs.',
   'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd':
     'I provide personalized, evidence-based treatment through secure telehealth services to help you manage symptoms, restore emotional balance, and achieve long-term mental wellness.',
   'psychiatric-follow-up-visits-telehealth':

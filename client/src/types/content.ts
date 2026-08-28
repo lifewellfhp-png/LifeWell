@@ -71,6 +71,8 @@ export interface BlogPost {
   demoSignals: string[];
   blocks: ArticleBlock[];
   wpId: number;
+  /** Service slug to link at the end of the article, if relevant. */
+  relatedServiceSlug?: string;
 }
 
 /* -------------------------------------------------------------- legal --- */

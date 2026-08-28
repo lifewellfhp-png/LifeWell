@@ -1,14 +1,17 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Container, Section } from '@/components/ui/Section';
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { Breadcrumbs } from '@/components/sections/PageHero';
+import { ArticleDisclaimer } from '@/components/sections/ArticleDisclaimer';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { CmsCta } from '@/components/CmsCta';
 import { pageMetadata } from '@/lib/seo';
 import { articleGraph } from '@/lib/schema';
 import { fetchPublicBlogPost } from '@/lib/cms';
+import { getServiceSummary } from '@/data/service-catalog';
 import { formatDate, isoDate } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -61,6 +64,9 @@ export default async function BlogPostPage({ params }: Props) {
   const authorName = str(post.author_name);
   const publishedAt = str(post.published_at);
   const coverImage = str(post.cover_image_url);
+  const category = str(post.category);
+  const relatedServiceSlug = str(post.related_service_slug);
+  const relatedService = relatedServiceSlug ? getServiceSummary(relatedServiceSlug) : undefined;
 
   const crumbs = [
     { name: 'Home', href: '/' },
@@ -89,6 +95,12 @@ export default async function BlogPostPage({ params }: Props) {
       <Section tone="base">
         <Container>
           <Breadcrumbs items={crumbs} />
+
+          {category && (
+            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.1em] text-brand-primary-solid">
+              {category}
+            </p>
+          )}
 
           {(authorName || publishedAt) && (
             <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-border-subtle py-5 text-sm text-text-secondary">
@@ -124,6 +136,22 @@ export default async function BlogPostPage({ params }: Props) {
           <article className="mx-auto mt-9 max-w-[70ch] whitespace-pre-wrap text-[16px] leading-[1.7] text-[#374151] sm:text-[18px]">
             {body || excerpt || 'This article is being prepared.'}
           </article>
+
+          <div className="mx-auto max-w-[70ch]">
+            <ArticleDisclaimer />
+
+            {relatedService && (
+              <p className="mt-6 text-[15px] leading-[1.5] text-[#374151]">
+                Related service:{' '}
+                <Link
+                  href={relatedService.href}
+                  className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
+                >
+                  {relatedService.title}
+                </Link>
+              </p>
+            )}
+          </div>
         </Container>
       </Section>
       <CmsCta />

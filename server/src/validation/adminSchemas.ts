@@ -92,6 +92,8 @@ export const blogCreate = z.object({
   body: z.string().max(100000).optional().nullable(),
   cover_image_url: z.string().optional().nullable(),
   author_name: z.string().max(120).optional().nullable(),
+  category: z.string().max(80).optional().nullable(),
+  related_service_slug: z.string().max(160).optional().nullable(),
   published: z.boolean().default(true),
   published_at: z.string().datetime().optional().nullable(),
   seo_title: z.string().max(200).optional().nullable(),

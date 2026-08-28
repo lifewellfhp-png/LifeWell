@@ -83,4 +83,8 @@ alter table site_settings enable row level security;
 alter table services add column if not exists image_url text;
 alter table services add column if not exists category text;
 
+-- P2B: Wellness Resource Hub taxonomy + article-to-service linking.
+alter table blog_posts add column if not exists category text;
+alter table blog_posts add column if not exists related_service_slug text;
+
 notify pgrst, 'reload schema';
