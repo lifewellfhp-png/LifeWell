@@ -3,10 +3,10 @@ import type { Benefit, Step, Testimonial, Faq, Stat, InsuranceCarrier } from '@/
 /* --------------------------------------------------------------- hero --- */
 
 export const hero = {
-  badge: 'Now accepting new patients | Secure & confidential virtual visits',
-  heading: 'Compassionate Telehealth Mental Care You Can Trust',
+  badge: 'Now Accepting New Patients | Telehealth & Orlando Appointments',
+  heading: 'Personalized Mental Health Care for Mind and Body',
   subheading:
-    'Personalized psychiatric support from a dedicated PMHNP — all from the comfort of your home.',
+    'Compassionate, evidence-based psychiatric care with a whole-person approach — available through secure telehealth and in-person visits in Orlando.',
   image: {
     src: '/images/sections/lifewell.avif',
     width: 1180,
@@ -20,8 +20,8 @@ export const hero = {
 export const welcome = {
   heading: 'Welcome to LifeWell Family Health & Psychiatry',
   body: [
-    "At LifeWell Family Health & Psychiatry, we believe that true wellness is a harmonious balance of emotional resilience and physical vitality. Located in Orlando's Avalon Park area, our practice is dedicated to delivering bespoke, evidence-based care tailored to the distinct needs of every individual and family we serve. We understand that modern life demands flexibility without ever compromising on quality. That is why we proudly offer a seamless blend of in-person clinical visits and secure, confidential telehealth sessions, ensuring exceptional psychiatric and family healthcare is always accessible on your terms.",
-    'Our comprehensive clinical expertise encompasses: Advanced management for anxiety, depression, and ADHD Targeted support for trauma recovery and sleep disorders Psychiatric evaluations and thoughtful medication management Chronic disease support and integrated women’s health care Every treatment pathway is thoughtfully curated to provide a safe, sanctuary-like environment where you feel deeply heard, profoundly supported, and empowered to achieve lifelong wellness.',
+    "At LifeWell Family Health & Psychiatry, care is centered on the whole person — mind and body. We provide personalized, evidence-based psychiatric care with the flexibility of secure telehealth and in-person visits in Orlando.",
+    "Services include psychiatric evaluations, medication management, and support for anxiety, depression, ADHD, trauma-related symptoms, sleep concerns, and other mental health needs. Every care plan is designed to help you feel heard, supported, and confident in your next steps.",
   ],
   cta: { label: 'Learn More About the Provider', href: '/bio' },
   image: {
@@ -103,7 +103,7 @@ export const howItWorks = {
   eyebrow: 'How It Works',
   heading: 'How My Simple Telehealth Process Works',
   body: 'Getting started is simple. Follow these three easy steps to begin your mental wellness journey.',
-  cta: { label: 'Start Your Journey' },
+  cta: { label: 'Book an Appointment' },
   image: { src: '/images/sections/How-It-Works.avif', width: 633, height: 570 },
 };
 
@@ -125,24 +125,10 @@ export const steps: Step[] = [
   },
 ];
 
-/** Booking-page wording differs slightly from the homepage; both preserved. */
-export const bookingSteps: Step[] = [
-  {
-    title: 'Book Your Appointment',
-    description:
-      'Schedule your visit online using our secure booking system. Choose a date and time that works best for you.',
-  },
-  {
-    title: 'Attend Your Virtual Session',
-    description:
-      'Meet with your provider through a secure telehealth platform from the comfort and privacy of your home.',
-  },
-  {
-    title: 'Begin Your Personalized Care Plan',
-    description:
-      'Receive a tailored treatment plan, medication management (if needed), and ongoing support to help you move forward with confidence.',
-  },
-];
+/**
+ * Trust indicators displayed on the homepage.
+ * These values reflect current provider credentials and secure online access.
+ */
 
 /* ---------------------------------------------------------- insurance --- */
 
@@ -187,23 +173,9 @@ export const insuranceCarriers: InsuranceCarrier[] = [
 
 /* -------------------------------------------------------------- stats --- */
 
-/**
- * Values read from the source markup's `data-to-value` attributes — the
- * counters were configured but never fired, which is why the live site renders
- * every figure as 0.
- *
- * "15 Years of Experience" and "1 Licensed Provider" corroborate the bio copy.
- * The 5,000-session and 98%-satisfaction figures are marketing claims that
- * cannot be verified from any public source; they are carried over from the
- * client's own configuration and flagged for confirmation — see README.
- *
- * The source labelled the provider count "Licensed Therapists".
- */
 export const stats: Stat[] = [
-  { value: 5000, suffix: '+', label: 'Online Sessions Completed', requiresVerification: true },
-  { value: 1, suffix: '+', label: 'Licensed Therapists', requiresVerification: false },
+  { value: 1, suffix: '', label: 'Licensed Provider', requiresVerification: false },
   { value: 15, suffix: '+', label: 'Years of Experience', requiresVerification: false },
-  { value: 98, suffix: '%', label: 'Client Satisfaction Rate', requiresVerification: true },
   { value: 24, suffix: '/7', label: 'Secure Online Access', requiresVerification: false },
 ];
 
@@ -218,7 +190,7 @@ export const testimonialsSection = {
 
 /**
  * Only testimonials with real content are included. The source site also
- * published four Lorem-ipsum placeholders ("This is item #01…" attributed to
+ * published four Lorem-ipsum placeholders ("This is item #01..." attributed to
  * "Jon Doe" / "Jane Doe") across the homepage and testimonials page; those are
  * omitted rather than reproduced.
  *
@@ -232,24 +204,6 @@ export const testimonials: Testimonial[] = [
     quote:
       'Extremely present and responsive team of providers. You can feel they are here to help you improve your quality of life, whether that is working to find a medication with them or continuing therapy and alternative life changes outside of this practice.',
     author: 'Mary Mayers',
-    rating: 5,
-  },
-  {
-    quote:
-      'Working with my therapist has completely changed how I handle stress and anxiety. For the first time in years, I feel like I have practical tools that genuinely help me stay grounded. Every session gives me clarity and a sense of calm I didn’t think was possible.',
-    author: 'Elisa Smith',
-    rating: 5,
-  },
-  {
-    quote:
-      'I came to therapy feeling lost and unsure of how to move forward after a difficult period in my life. My therapist created such a safe space where I could express myself without fear or judgment. Over time, I gained confidence, learned new coping skills, and began to see possibilities again.',
-    author: 'Sofia Taylor',
-    rating: 5,
-  },
-  {
-    quote:
-      'At first, I wasn’t sure if therapy would help me. But each session opened my eyes to patterns I didn’t even realize were affecting my life. I’ve learned to set healthier boundaries, manage my thoughts better, and treat myself with more compassion.',
-    author: 'Marco Davies',
     rating: 5,
   },
 ];
@@ -293,7 +247,7 @@ export const faqs: Faq[] = [
 
 export const primaryCta = {
   heading: 'Start Your Mental Wellness Journey Today',
-  body: 'Getting help shouldn’t be complicated. Book your secure online appointment in just a few clicks.',
+  body: 'Getting help shouldn\'t be complicated. Book your secure online appointment in just a few clicks.',
 };
 
 export const contactCta = {

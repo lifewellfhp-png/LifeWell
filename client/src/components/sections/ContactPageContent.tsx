@@ -29,7 +29,7 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
   const hours = contact?.hours?.length ? contact.hours : contactPage.hours;
   const street = contact?.street || site.address.street;
   const cityLine =
-    contact?.cityLine || `${site.address.city}, ${site.address.region} ${site.address.postalCode}`;
+    contact?.cityLine || `${site.address.city}, ${site.address.state} ${site.address.zip}`;
   const mapSrc = contact?.mapSrc || contactPage.mapSrc;
   const bookingUrl = contact?.bookingUrl || site.booking.page;
   const phoneHref = telHref(phone);
@@ -179,7 +179,7 @@ function ContactHero({
           </ul>
 
           <div>
-            <SwapButton href={bookingUrl}>Book a Session</SwapButton>
+            <SwapButton href={bookingUrl}>Book an Appointment</SwapButton>
           </div>
 
           <a href={phoneHref} className="no-underline">

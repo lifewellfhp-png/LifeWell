@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { api } from '@/lib/api';
 
 type SectionRow = {
@@ -13,15 +14,24 @@ type SectionRow = {
   updated_at?: string;
 };
 
-type HeroForm = { badge: string; headline: string; subhead: string };
-type WelcomeForm = { heading: string; body: string };
+type HeroForm = { badge: string; headline: string; subhead: string; image: string };
+type WelcomeForm = { heading: string; body: string; ctaLabel: string; ctaHref: string; image: string };
 type IntroForm = { eyebrow: string; heading: string; body: string; cta: string };
 type TextForm = { heading: string; body: string; eyebrow: string };
+type StatItem = { value: string; suffix: string; label: string; hidden: boolean };
 
-const emptyHero: HeroForm = { badge: '', headline: '', subhead: '' };
-const emptyWelcome: WelcomeForm = { heading: '', body: '' };
+const emptyHero: HeroForm = { badge: '', headline: '', subhead: '', image: '' };
+const emptyWelcome: WelcomeForm = { heading: '', body: '', ctaLabel: '', ctaHref: '', image: '' };
 const emptyIntro: IntroForm = { eyebrow: '', heading: '', body: '', cta: '' };
 const emptyHow: TextForm = { heading: '', body: '', eyebrow: '' };
+const emptyStat: StatItem = { value: '', suffix: '', label: '', hidden: false };
+
+/** Kept in sync with the approved defaults in client/src/data/marketing.ts. */
+const APPROVED_STATS: StatItem[] = [
+  { value: '1', suffix: '', label: 'Licensed Provider', hidden: false },
+  { value: '15', suffix: '+', label: 'Years of Experience', hidden: false },
+  { value: '24', suffix: '/7', label: 'Secure Online Access', hidden: false },
+];
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;
@@ -50,6 +60,7 @@ export function HomepageCopy() {
   const [benefitsItems, setBenefitsItems] = useState<unknown[]>([]);
   const [how, setHow] = useState<TextForm>(emptyHow);
   const [howSteps, setHowSteps] = useState<unknown[]>([]);
+  const [statsItems, setStatsItems] = useState<StatItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -72,11 +83,13 @@ export function HomepageCopy() {
     const servicesRow = byLatest('services');
     const benefitsRow = byLatest('benefits');
     const howRow = byLatest('how_it_works');
+    const statsRow = byLatest('stats');
     nextIds.hero = heroRow?.id ?? null;
     nextIds.welcome = welcomeRow?.id ?? null;
     nextIds.services = servicesRow?.id ?? null;
     nextIds.benefits = benefitsRow?.id ?? null;
     nextIds.how_it_works = howRow?.id ?? null;
+    nextIds.stats = statsRow?.id ?? null;
     setIds(nextIds);
 
     if (heroRow) {
@@ -85,11 +98,18 @@ export function HomepageCopy() {
         badge: String(c.badge || ''),
         headline: String(c.headline || c.heading || ''),
         subhead: String(c.subhead || c.subheading || ''),
+        image: String(c.image || ''),
       });
     }
     if (welcomeRow) {
       const c = asRecord(welcomeRow.content);
-      setWelcome({ heading: String(c.heading || ''), body: bodyText(c.body) });
+      setWelcome({
+        heading: String(c.heading || ''),
+        body: bodyText(c.body),
+        ctaLabel: String(c.ctaLabel || ''),
+        ctaHref: String(c.ctaHref || ''),
+        image: String(c.image || ''),
+      });
     }
     if (servicesRow) {
       const c = asRecord(servicesRow.content);
@@ -114,6 +134,49 @@ export function HomepageCopy() {
       });
       setHowSteps(Array.isArray(c.steps) ? c.steps : []);
     }
+    if (statsRow) {
+      const c = asRecord(statsRow.content);
+      const rawItems = Array.isArray(c.items) ? c.items : [];
+      setStatsItems(
+        rawItems.map((item) => {
+          const row = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+          return {
+            value: row.value != null ? String(row.value) : '',
+            suffix: typeof row.suffix === 'string' ? row.suffix : '',
+            label: typeof row.label === 'string' ? row.label : '',
+            hidden: Boolean(row.hidden),
+          };
+        })
+      );
+    } else {
+      setStatsItems([]);
+    }
+  }
+
+  function moveStat(index: number, dir: -1 | 1) {
+    setStatsItems((items) => {
+      const next = [...items];
+      const target = index + dir;
+      if (target < 0 || target >= next.length) return items;
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+
+  function updateStat(index: number, patch: Partial<StatItem>) {
+    setStatsItems((items) => items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+  }
+
+  function removeStat(index: number) {
+    setStatsItems((items) => items.filter((_, i) => i !== index));
+  }
+
+  function addStat() {
+    setStatsItems((items) => [...items, { ...emptyStat }]);
+  }
+
+  function resetStatsToApproved() {
+    setStatsItems(APPROVED_STATS.map((s) => ({ ...s })));
   }
 
   useEffect(() => {
@@ -146,10 +209,14 @@ export function HomepageCopy() {
         badge: hero.badge,
         headline: hero.headline,
         subhead: hero.subhead,
+        image: hero.image,
       }),
       saveSection(ids.welcome ?? null, 'welcome', 'Welcome', {
         heading: welcome.heading,
         body: welcomeBody,
+        ctaLabel: welcome.ctaLabel,
+        ctaHref: welcome.ctaHref,
+        image: welcome.image,
       }),
       saveSection(ids.services ?? null, 'services', 'Services intro', {
         eyebrow: services.eyebrow,
@@ -166,6 +233,16 @@ export function HomepageCopy() {
         heading: how.heading,
         body: how.body,
         steps: howSteps,
+      }),
+      saveSection(ids.stats ?? null, 'stats', 'Stats band', {
+        items: statsItems
+          .filter((s) => s.label.trim())
+          .map((s) => ({
+            value: Number(s.value) || 0,
+            suffix: s.suffix,
+            label: s.label,
+            hidden: s.hidden,
+          })),
       }),
     ]);
     setSaving(false);
@@ -200,6 +277,20 @@ export function HomepageCopy() {
         <label htmlFor="hero-subhead">Hero subheading</label>
         <textarea id="hero-subhead" rows={3} value={hero.subhead} onChange={(e) => setHero({ ...hero, subhead: e.target.value })} />
       </div>
+      <div className="field">
+        <label htmlFor="hero-image">Hero image URL (from Media)</label>
+        <input
+          id="hero-image"
+          value={hero.image}
+          placeholder="/images/sections/lifewell.avif or uploaded media URL"
+          onChange={(e) => setHero({ ...hero, image: e.target.value })}
+        />
+      </div>
+      <p className="muted">
+        The hero&apos;s booking button always uses the site-wide booking label and destination —
+        set those on the <a href="/booking">Booking</a> and <a href="/appearance">Appearance</a>
+        pages so every &quot;book now&quot; button on the site stays in sync.
+      </p>
 
       <h3>Welcome</h3>
       <div className="field">
@@ -218,6 +309,120 @@ export function HomepageCopy() {
           value={welcome.body}
           onChange={(e) => setWelcome({ ...welcome, body: e.target.value })}
         />
+      </div>
+      <div className="field">
+        <label htmlFor="welcome-image">Welcome image URL (from Media)</label>
+        <input
+          id="welcome-image"
+          value={welcome.image}
+          placeholder="/images/sections/lifewell.avif or uploaded media URL"
+          onChange={(e) => setWelcome({ ...welcome, image: e.target.value })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="welcome-cta-label">Welcome button label</label>
+        <input
+          id="welcome-cta-label"
+          value={welcome.ctaLabel}
+          placeholder="Learn More About the Provider"
+          onChange={(e) => setWelcome({ ...welcome, ctaLabel: e.target.value })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="welcome-cta-href">Welcome button link</label>
+        <input
+          id="welcome-cta-href"
+          value={welcome.ctaHref}
+          placeholder="/bio"
+          onChange={(e) => setWelcome({ ...welcome, ctaHref: e.target.value })}
+        />
+      </div>
+
+      <h3>Stats band</h3>
+      <p className="muted" style={{ marginTop: 0 }}>
+        Only claims you can support should appear here — each figure needs no supporting evidence
+        beyond what is already true of the practice.
+      </p>
+      {statsItems.length === 0 ? (
+        <div className="empty" style={{ marginBottom: '0.75rem' }}>
+          No stats saved yet — the site is showing the built-in defaults (1 Licensed Provider, 15+
+          Years of Experience, 24/7 Secure Online Access).
+        </div>
+      ) : null}
+      {statsItems.map((stat, i) => (
+        <div
+          key={i}
+          className="field"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 2fr auto auto auto auto',
+            gap: '0.5rem',
+            alignItems: 'center',
+            marginBottom: '0.5rem',
+          }}
+        >
+          <input
+            aria-label={`Stat ${i + 1} value`}
+            placeholder="Value (e.g. 15)"
+            value={stat.value}
+            onChange={(e) => updateStat(i, { value: e.target.value })}
+          />
+          <input
+            aria-label={`Stat ${i + 1} suffix`}
+            placeholder="Suffix (e.g. +)"
+            value={stat.suffix}
+            onChange={(e) => updateStat(i, { suffix: e.target.value })}
+          />
+          <input
+            aria-label={`Stat ${i + 1} label`}
+            placeholder="Label (e.g. Years of Experience)"
+            value={stat.label}
+            onChange={(e) => updateStat(i, { label: e.target.value })}
+          />
+          <label className="check-label" style={{ whiteSpace: 'nowrap' }}>
+            <input
+              type="checkbox"
+              checked={!stat.hidden}
+              onChange={(e) => updateStat(i, { hidden: !e.target.checked })}
+            />
+            Visible
+          </label>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Move stat up"
+            disabled={i === 0}
+            onClick={() => moveStat(i, -1)}
+          >
+            <ArrowUp size={15} />
+          </button>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Move stat down"
+            disabled={i === statsItems.length - 1}
+            onClick={() => moveStat(i, 1)}
+          >
+            <ArrowDown size={15} />
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            aria-label="Remove stat"
+            onClick={() => removeStat(i)}
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+        <button type="button" className="btn btn-ghost" onClick={addStat}>
+          <Plus size={15} />
+          Add stat
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={resetStatsToApproved}>
+          Reset to approved defaults
+        </button>
       </div>
 
       <h3>Services band</h3>

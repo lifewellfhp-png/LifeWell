@@ -77,11 +77,15 @@ const INSURANCE = [
   ['Blue Cross Blue Shield of Florida', '/images/insurance/Blue-Cross-Blue-Shield-of-Florida.png'],
 ] as const;
 
+/**
+ * Only testimonials with real, substantiated content are seeded. Three
+ * additional placeholder reviews (attributed to "Elisa Smith", "Sofia
+ * Taylor", "Marco Davies") described the practice as providing direct
+ * psychotherapy, which the current service lineup does not represent, and
+ * are intentionally not seeded — see client/src/data/marketing.ts.
+ */
 const REVIEWS = [
   ['Mary Mayers', 'Extremely present and responsive team of providers. You can feel they are here to help you improve your quality of life, whether that is working to find a medication with them or continuing therapy and alternative life changes outside of this practice.'],
-  ['Elisa Smith', 'Working with my therapist has completely changed how I handle stress and anxiety. For the first time in years, I feel like I have practical tools that genuinely help me stay grounded. Every session gives me clarity and a sense of calm I didn’t think was possible.'],
-  ['Sofia Taylor', 'I came to therapy feeling lost and unsure of how to move forward after a difficult period in my life. My therapist created such a safe space where I could express myself without fear or judgment. Over time, I gained confidence, learned new coping skills, and began to see possibilities again.'],
-  ['Marco Davies', 'At first, I wasn’t sure if therapy would help me. But each session opened my eyes to patterns I didn’t even realize were affecting my life. I’ve learned to set healthier boundaries, manage my thoughts better, and treat myself with more compassion.'],
 ] as const;
 
 async function missingThenInsert(
@@ -192,9 +196,10 @@ export async function runLiveImport(): Promise<Record<string, number>> {
       title: 'Homepage hero',
       published: true,
       content: {
-        badge: 'Now accepting new patients | Secure & confidential virtual visits',
-        headline: 'Compassionate Telehealth Mental Care You Can Trust',
-        subhead: 'Personalized psychiatric support from a dedicated PMHNP — all from the comfort of your home.',
+        badge: 'Now Accepting New Patients | Telehealth & Orlando Appointments',
+        headline: 'Personalized Mental Health Care for Mind and Body',
+        subhead:
+          'Compassionate, evidence-based psychiatric care with a whole-person approach — available through secure telehealth and in-person visits in Orlando.',
       },
     },
     {
@@ -205,8 +210,8 @@ export async function runLiveImport(): Promise<Record<string, number>> {
       content: {
         heading: 'Welcome to LifeWell Family Health & Psychiatry',
         body: [
-          'At LifeWell Family Health & Psychiatry, I provide professional, compassionate, and confidential telehealth mental health care through secure and convenient virtual services. I am Lourdie Chachoute, NP, APRN, PMHNP-BC, a dual-certified Family Nurse Practitioner and Psychiatric-Mental Health Nurse Practitioner with over 15 years of diverse clinical experience.',
-          'My approach focuses on personalized treatment, thoughtful medication management, and holistic care that supports both emotional and physical well-being. I specialize in treating anxiety, depression, ADHD, trauma-related conditions, sleep disorders, and mood concerns, while also integrating women’s health and chronic disease support. I develop individualized treatment plans designed to help you feel heard, supported, and empowered on your journey toward long-term mental wellness.',
+          'At LifeWell Family Health & Psychiatry, care is centered on the whole person — mind and body. We provide personalized, evidence-based psychiatric care with the flexibility of secure telehealth and in-person visits in Orlando.',
+          'Services include psychiatric evaluations, medication management, and support for anxiety, depression, ADHD, trauma-related symptoms, sleep concerns, and other mental health needs. Every care plan is designed to help you feel heard, supported, and confident in your next steps.',
         ],
       },
     },
@@ -298,10 +303,8 @@ export async function runLiveImport(): Promise<Record<string, number>> {
       published: true,
       content: {
         items: [
-          { value: 5000, suffix: '+', label: 'Online Sessions Completed' },
-          { value: 1, suffix: '+', label: 'Licensed Therapists' },
+          { value: 1, suffix: '', label: 'Licensed Provider' },
           { value: 15, suffix: '+', label: 'Years of Experience' },
-          { value: 98, suffix: '%', label: 'Client Satisfaction Rate' },
           { value: 24, suffix: '/7', label: 'Secure Online Access' },
         ],
       },
@@ -364,7 +367,8 @@ export async function runLiveImport(): Promise<Record<string, number>> {
   if (!hasLocation) {
     const { error } = await sb.from('locations').insert({
       name: 'LifeWell Family Health & Psychiatry',
-      address_line1: '3564 Avalon Park E Blvd Ste. 1-A837',
+      address_line1: '3680 Avalon Park E Blvd',
+      address_line2: 'Suite 310',
       city: 'Orlando',
       state: 'FL',
       postal_code: '32828',
@@ -383,7 +387,7 @@ export async function runLiveImport(): Promise<Record<string, number>> {
   const { data: booking } = await sb.from('booking_settings').select('id').limit(1);
   if (!booking?.length) {
     const { error } = await sb.from('booking_settings').insert({
-      label: 'Book a Session',
+      label: 'Book an Appointment',
       booking_url:
         'https://ehr.charmtracker.com/publicCal.sas?method=getCal&digest=26a1a06adbd537c481b1d04dd4f7172a298949fe2840a1731b54d620355c17e76ee57013c1a537e61871e728dd80f5a6c2fe0580a6189219',
       provider: 'charmhealth',

@@ -11,7 +11,7 @@ import { site } from '@/data/site';
 
 /**
  * Live “Start Your Mental Wellness Journey” band: rounded photo with
- * left-aligned split heading + booking button, then a 5-column stats row.
+ * left-aligned split heading + booking button, then a 3-column stats row.
  */
 export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: string }) {
   const bookHref = bookingUrl ?? site.booking.page;
@@ -46,13 +46,13 @@ export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: s
                 {primaryCta.body}
               </p>
               <div className="mt-8">
-                <SwapButton href={bookHref}>Book Your Session</SwapButton>
+                <SwapButton href={bookHref}>Book an Appointment</SwapButton>
               </div>
             </div>
           </div>
         </div>
 
-        <dl className="mt-12 grid grid-cols-2 sm:grid-cols-3 lg:mt-16 lg:grid-cols-5">
+        <dl className="mt-12 grid grid-cols-2 sm:grid-cols-3 lg:mt-16 lg:grid-cols-3">
           {stats.map((stat) => (
             <div
               key={stat.label}

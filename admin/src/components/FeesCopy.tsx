@@ -24,10 +24,12 @@ function bodyText(value: unknown) {
 export function FeesCopy() {
   const [introId, setIntroId] = useState<string | null>(null);
   const [selfPayId, setSelfPayId] = useState<string | null>(null);
+  const [insuranceId, setInsuranceId] = useState<string | null>(null);
   const [introHeading, setIntroHeading] = useState('');
   const [introBody, setIntroBody] = useState('');
   const [selfPayHeading, setSelfPayHeading] = useState('');
   const [selfPayBody, setSelfPayBody] = useState('');
+  const [insuranceDisclaimer, setInsuranceDisclaimer] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -45,8 +47,10 @@ export function FeesCopy() {
         .sort((a, b) => Date.parse(b.updated_at || '') - Date.parse(a.updated_at || ''))[0];
     const intro = latest('intro');
     const selfPay = latest('self_pay');
+    const insurance = latest('insurance');
     setIntroId(intro?.id ?? null);
     setSelfPayId(selfPay?.id ?? null);
+    setInsuranceId(insurance?.id ?? null);
     if (intro) {
       const c = asRecord(intro.content);
       setIntroHeading(String(c.heading || ''));
@@ -56,6 +60,10 @@ export function FeesCopy() {
       const c = asRecord(selfPay.content);
       setSelfPayHeading(String(c.heading || ''));
       setSelfPayBody(bodyText(c.body));
+    }
+    if (insurance) {
+      const c = asRecord(insurance.content);
+      setInsuranceDisclaimer(String(c.disclaimer || ''));
     }
   }
 
@@ -74,7 +82,7 @@ export function FeesCopy() {
     setSaving(true);
     setError(null);
     setMessage(null);
-    const [introRes, selfPayRes] = await Promise.all([
+    const [introRes, selfPayRes, insuranceRes] = await Promise.all([
       saveSection(introId, 'intro', 'Fees intro', { heading: introHeading, body: introBody }),
       saveSection(selfPayId, 'self_pay', 'Self-pay', {
         heading: selfPayHeading,
@@ -83,10 +91,11 @@ export function FeesCopy() {
           .map((p) => p.trim())
           .filter(Boolean),
       }),
+      saveSection(insuranceId, 'insurance', 'Insurance disclaimer', { disclaimer: insuranceDisclaimer }),
     ]);
     setSaving(false);
-    if (!introRes.success || !selfPayRes.success) {
-      setError(introRes.message || selfPayRes.message || 'Save failed');
+    if (!introRes.success || !selfPayRes.success || !insuranceRes.success) {
+      setError(introRes.message || selfPayRes.message || insuranceRes.message || 'Save failed');
       return;
     }
     setMessage('Saved. Refresh /fees-insurance on the public site to see the copy.');
@@ -117,6 +126,20 @@ export function FeesCopy() {
       <div className="field">
         <label htmlFor="fees-selfpay-body">Self-pay body (blank line between paragraphs)</label>
         <textarea id="fees-selfpay-body" rows={5} value={selfPayBody} onChange={(e) => setSelfPayBody(e.target.value)} />
+      </div>
+      <div className="field">
+        <label htmlFor="fees-insurance-disclaimer">Insurance coverage disclaimer</label>
+        <textarea
+          id="fees-insurance-disclaimer"
+          rows={2}
+          value={insuranceDisclaimer}
+          placeholder="Coverage varies by plan and state — please contact us to verify your benefits before scheduling."
+          onChange={(e) => setInsuranceDisclaimer(e.target.value)}
+        />
+        <p className="muted" style={{ marginTop: '0.25rem' }}>
+          Shown under the accepted-plans logos on this page. Keep this so visitors know coverage
+          isn&apos;t guaranteed and should be verified.
+        </p>
       </div>
       <button type="submit" className="btn btn-primary" disabled={saving}>
         {saving ? 'Saving…' : 'Save fees text'}

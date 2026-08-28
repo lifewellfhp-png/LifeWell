@@ -23,7 +23,7 @@ const empty: Settings = {
   accent_color: '#5FAF6B',
   heading_font: 'Lora',
   body_font: 'Source Sans 3',
-  header_cta_label: 'Get Started',
+  header_cta_label: 'Book an Appointment',
   header_cta_url: '/book-telehealth-mental-health-appointment#charm-calendar',
   logo_url: '',
   practice_phone: '',

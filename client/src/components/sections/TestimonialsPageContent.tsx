@@ -93,7 +93,7 @@ export function TestimonialsPageContent({
         accent="Toward Emotional Wellness"
         after=""
         body={testimonialsCta.body}
-        cta="Book Your Appointment Today"
+        cta="Book an Appointment"
       />
     </div>
   );

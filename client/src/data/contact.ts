@@ -32,5 +32,5 @@ export const contactPage = {
     alt: 'Contact Telehealth Mental Health Provider',
   },
   mapSrc:
-    'https://maps.google.com/maps?q=3564+Avalon+Park+E+Blvd+Ste.+1-A837,+Orlando,+FL+32828&z=15&output=embed',
+    'https://maps.google.com/maps?q=3680+Avalon+Park+E+Blvd+Suite+310,+Orlando,+FL+32828&z=15&output=embed',
 };

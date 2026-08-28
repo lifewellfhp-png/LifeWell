@@ -17,6 +17,7 @@ export function InsuranceGrid({
   title = 'Insurance &',
   accent = 'Self-Pay Options',
   body = insuranceSection.body,
+  disclaimer = insuranceSection.disclaimer,
   carriers = staticCarriers,
 }: {
   showCta?: boolean;
@@ -24,6 +25,7 @@ export function InsuranceGrid({
   title?: string;
   accent?: string;
   body?: string;
+  disclaimer?: string;
   carriers?: InsuranceCarrier[];
 }) {
   return (
@@ -50,7 +52,7 @@ export function InsuranceGrid({
 
         {showDisclaimer && (
           <p className="mx-auto mt-8 max-w-[70ch] text-center text-sm text-text-secondary">
-            {insuranceSection.disclaimer}
+            {disclaimer}
           </p>
         )}
 

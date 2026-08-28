@@ -13,6 +13,7 @@ import {
   additionalInfo,
   feesFaqs,
 } from '@/data/pricing';
+import { insuranceSection } from '@/data/marketing';
 import { site } from '@/data/site';
 import { formatPrice } from '@/lib/utils';
 import type { Faq, InsuranceCarrier } from '@/types/content';
@@ -29,6 +30,7 @@ export function FeesPageContent({
   introBody = feesIntro.body,
   selfPayHeading = selfPay.heading,
   selfPayBody = selfPay.body,
+  insuranceDisclaimer = insuranceSection.disclaimer,
 }: {
   carriers?: InsuranceCarrier[];
   faqs?: Faq[];
@@ -37,6 +39,7 @@ export function FeesPageContent({
   introBody?: string;
   selfPayHeading?: string;
   selfPayBody?: string[];
+  insuranceDisclaimer?: string;
 } = {}) {
   const bookHref = bookingUrl || site.booking.page;
   return (
@@ -96,7 +99,7 @@ export function FeesPageContent({
                     </p>
                   )}
                   <div className="mt-5">
-                    <SwapButton href={bookHref}>Book a Session</SwapButton>
+                    <SwapButton href={bookHref}>Book an Appointment</SwapButton>
                   </div>
                 </article>
               </li>
@@ -141,7 +144,7 @@ export function FeesPageContent({
                     ))}
                   </ul>
                   <div className="mt-6">
-                    <SwapButton href={bookHref}>Book a Session</SwapButton>
+                    <SwapButton href={bookHref}>Book an Appointment</SwapButton>
                   </div>
                 </article>
               </li>
@@ -171,10 +174,11 @@ export function FeesPageContent({
 
       <InsuranceGrid
         showCta={false}
-        showDisclaimer={false}
+        showDisclaimer={true}
         title="Accepted"
         accent="Insurance Plans"
         body="We believe in transparent and accessible care. We accept select insurance plans."
+        disclaimer={insuranceDisclaimer}
         carriers={carriers}
       />
 

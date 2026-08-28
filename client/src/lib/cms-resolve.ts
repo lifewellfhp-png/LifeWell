@@ -5,6 +5,7 @@ import {
   faqs as staticFaqs,
   testimonials as staticTestimonials,
   insuranceCarriers as staticInsurance,
+  insuranceSection as staticInsuranceSection,
   hero as staticHero,
   welcome as staticWelcome,
   benefits as staticBenefits,
@@ -103,6 +104,7 @@ export type ResolvedContent = {
     introBody: string;
     selfPayHeading: string;
     selfPayBody: string[];
+    insuranceDisclaimer: string;
   };
   serviceDetails: {
     slug: string;
@@ -293,8 +295,9 @@ function mapHero(cms: PublicCmsPayload | null): ResolvedHero {
     (typeof content.subheading === 'string' && content.subheading.trim()) ||
     '';
   const badge = typeof content.badge === 'string' ? content.badge : '';
+  const imageUrl = typeof content.image === 'string' && content.image.trim() ? content.image.trim() : '';
 
-  if (!headline && !subhead && !badge) return staticHero;
+  if (!headline && !subhead && !badge && !imageUrl) return staticHero;
 
   let headingPrimary = headline || staticHero.heading;
   let headingAccent = '';
@@ -312,6 +315,7 @@ function mapHero(cms: PublicCmsPayload | null): ResolvedHero {
     badge: badge || staticHero.badge,
     headingPrimary,
     headingAccent,
+    image: imageUrl ? { ...staticHero.image, src: siteAssetSrc(imageUrl) } : staticHero.image,
   };
 }
 
@@ -323,12 +327,20 @@ function mapWelcome(cms: PublicCmsPayload | null): typeof staticWelcome {
     : typeof content.body === 'string'
       ? [content.body]
       : null;
+  const ctaLabel = typeof content.ctaLabel === 'string' && content.ctaLabel.trim() ? content.ctaLabel.trim() : null;
+  const ctaHref = typeof content.ctaHref === 'string' && content.ctaHref.trim() ? content.ctaHref.trim() : null;
+  const imageUrl = typeof content.image === 'string' && content.image.trim() ? content.image.trim() : null;
 
-  if (!heading && !body) return staticWelcome;
+  if (!heading && !body && !ctaLabel && !ctaHref && !imageUrl) return staticWelcome;
   return {
     ...staticWelcome,
     heading: heading || staticWelcome.heading,
     body: body?.length ? body : staticWelcome.body,
+    cta: {
+      label: ctaLabel || staticWelcome.cta.label,
+      href: ctaHref || staticWelcome.cta.href,
+    },
+    image: imageUrl ? { ...staticWelcome.image, src: siteAssetSrc(imageUrl) } : staticWelcome.image,
   };
 }
 
@@ -394,7 +406,7 @@ const DEFAULT_SETTINGS = {
   accentColor: '#5FAF6B',
   headingFont: 'Lora',
   bodyFont: 'Source Sans 3',
-  headerCtaLabel: 'Get Started',
+  headerCtaLabel: 'Book an Appointment',
   headerCtaUrl: '/book-telehealth-mental-health-appointment#charm-calendar',
   logoUrl: null as string | null,
   practicePhone: null as string | null,
@@ -612,7 +624,7 @@ function mapStats(cms: PublicCmsPayload | null): Stat[] {
     .map((item) => {
       if (!item || typeof item !== 'object') return null;
       const row = item as Record<string, unknown>;
-      if (typeof row.label !== 'string') return null;
+      if (typeof row.label !== 'string' || row.hidden === true) return null;
       return {
         value: Number(row.value) || 0,
         suffix: typeof row.suffix === 'string' ? row.suffix : '',
@@ -627,6 +639,7 @@ function mapStats(cms: PublicCmsPayload | null): Stat[] {
 function mapFees(cms: PublicCmsPayload | null) {
   const intro = sectionContent(cms, 'fees', 'intro') ?? {};
   const selfPay = sectionContent(cms, 'fees', 'self_pay') ?? {};
+  const insurance = sectionContent(cms, 'fees', 'insurance') ?? {};
   const introBody =
     typeof intro.body === 'string' && intro.body.trim()
       ? intro.body
@@ -644,6 +657,10 @@ function mapFees(cms: PublicCmsPayload | null) {
     selfPayHeading:
       typeof selfPay.heading === 'string' && selfPay.heading.trim() ? selfPay.heading : staticSelfPay.heading,
     selfPayBody: selfPayBody.length ? selfPayBody : staticSelfPay.body,
+    insuranceDisclaimer:
+      typeof insurance.disclaimer === 'string' && insurance.disclaimer.trim()
+        ? insurance.disclaimer
+        : staticInsuranceSection.disclaimer,
   };
 }
 export const getResolvedContent = cache(async (): Promise<ResolvedContent> => {

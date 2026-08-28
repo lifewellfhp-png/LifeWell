@@ -31,14 +31,14 @@ export const site = {
   },
 
   address: {
-    type: 'Mailing address',
-    street: '3564 Avalon Park E Blvd Ste. 1-A837',
+    street: '3680 Avalon Park E Blvd',
+    suite: 'Suite 310',
     city: 'Orlando',
-    region: 'FL',
+    state: 'FL',
     regionName: 'Florida',
-    postalCode: '32828',
+    zip: '32828',
     country: 'US',
-    full: '3564 Avalon Park E Blvd Ste. 1-A837, Orlando, FL 32828',
+    full: '3680 Avalon Park E Blvd, Suite 310, Orlando, FL 32828',
   },
 
   /**
@@ -78,7 +78,7 @@ export const site = {
   booking: {
     url: 'https://ehr.charmtracker.com/publicCal.sas?method=getCal&digest=26a1a06adbd537c481b1d04dd4f7172a298949fe2840a1731b54d620355c17e76ee57013c1a537e61871e728dd80f5a6c2fe0580a6189219',
     page: '/book-telehealth-mental-health-appointment#charm-calendar',
-    label: 'Book a Session',
+    label: 'Book an Appointment',
     /** Retained for reference; not linked from the UI. */
     alternateSystem: 'https://lourdie-chachoute.clientsecure.me',
   },

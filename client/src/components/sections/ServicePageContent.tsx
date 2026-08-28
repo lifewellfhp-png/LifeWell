@@ -89,7 +89,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
                 ))}
                 <div className="mt-7">
                   <SwapButton href={bookHref}>
-                    {title.length > 42 ? 'Start Your Care Today' : `Schedule Your ${title} Today`}
+                    {'Book an Appointment'}
                   </SwapButton>
                 </div>
               </div>
@@ -109,7 +109,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
 
             <div className="mt-10 rounded-[20px] bg-[#EEF3F7] px-6 py-8">
               <h2 className="font-heading text-[22px] font-medium italic leading-[1.3] tracking-[-1px] text-[var(--lw-accent)] sm:text-[24px]">
-                Schedule Your Consultation Today
+                Book an Appointment
               </h2>
               <p className="mt-4 text-[16px] leading-[1.45] text-[#374151]">
                 Take the first step toward better mental health with secure and personalized
@@ -117,7 +117,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
               </p>
               <div className="mt-6">
                 <SwapButton href={bookHref} size="sm">
-                  Start Your Care Today
+                  Book an Appointment
                 </SwapButton>
               </div>
             </div>

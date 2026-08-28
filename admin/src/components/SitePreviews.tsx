@@ -57,7 +57,7 @@ export function AppearancePreview({
           <span>Services</span>
           <span>Contact Us</span>
         </nav>
-        <span className="site-mock-cta">{ctaLabel || 'Get Started'}</span>
+        <span className="site-mock-cta">{ctaLabel || 'Book an Appointment'}</span>
       </header>
       <section className="site-mock-hero">
         <h3>
@@ -65,7 +65,7 @@ export function AppearancePreview({
           <em style={{ color: 'var(--mock-accent)' }}>Mental Health Care</em>
         </h3>
         <p>This is how headings, the header button, and the footer band will look.</p>
-        <span className="site-mock-cta">{ctaLabel || 'Get Started'}</span>
+        <span className="site-mock-cta">{ctaLabel || 'Book an Appointment'}</span>
       </section>
       <footer className="site-mock-footer">
         <strong>Stay Updated on Mental Health &amp; Wellness</strong>

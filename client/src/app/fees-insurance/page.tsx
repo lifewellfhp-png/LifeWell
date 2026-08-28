@@ -45,6 +45,7 @@ export default async function FeesInsurancePage() {
         introBody={cms.fees.introBody}
         selfPayHeading={cms.fees.selfPayHeading}
         selfPayBody={cms.fees.selfPayBody}
+        insuranceDisclaimer={cms.fees.insuranceDisclaimer}
       />
     </>
   );

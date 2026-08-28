@@ -309,7 +309,7 @@ create table if not exists site_settings (
   accent_color text not null default '#5FAF6B',
   heading_font text not null default 'Lora',
   body_font text not null default 'Source Sans 3',
-  header_cta_label text not null default 'Get Started',
+  header_cta_label text not null default 'Book an Appointment',
   header_cta_url text not null default '/book-telehealth-mental-health-appointment',
   logo_url text,
   practice_phone text,

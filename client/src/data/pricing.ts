@@ -19,8 +19,8 @@ export const feesIntro = {
 export const feesClosing = {
   headingLead: 'Start Your Mental Wellness',
   headingAccent: 'Journey Today',
-  body: 'Getting help shouldn’t be complicated. Book your secure online appointment in just a few clicks.',
-  cta: 'Book Your Session',
+  body: "Getting help shouldn't be complicated. Book your secure online appointment in just a few clicks.",
+  cta: 'Book an Appointment',
   image: {
     src: '/images/sections/Mental-Health-Fees-and-Insurance.avif',
     width: 633,

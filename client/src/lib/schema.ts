@@ -45,8 +45,8 @@ export function organizationNode() {
       '@type': 'PostalAddress',
       streetAddress: site.address.street,
       addressLocality: site.address.city,
-      addressRegion: site.address.region,
-      postalCode: site.address.postalCode,
+      addressRegion: site.address.state,
+      postalCode: site.address.zip,
       addressCountry: site.address.country,
     },
     areaServed: {

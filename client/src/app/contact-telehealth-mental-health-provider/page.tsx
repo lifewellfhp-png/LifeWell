@@ -36,7 +36,7 @@ export default async function ContactPage() {
   const street = loc?.street || site.address.street;
   const cityLine = loc
     ? [loc.city, loc.region, loc.postalCode].filter(Boolean).join(', ')
-    : `${site.address.city}, ${site.address.region} ${site.address.postalCode}`;
+    : `${site.address.city}, ${site.address.state} ${site.address.zip}`;
   const mapQuery = loc?.address || `${street}, ${cityLine}`;
 
   return (

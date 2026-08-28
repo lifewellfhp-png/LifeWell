@@ -20,8 +20,8 @@ export const provider: Provider = {
 
   bio: [
     'I am a dual-certified Family Nurse Practitioner and Psychiatric-Mental Health Nurse Practitioner dedicated to providing compassionate, holistic, and evidence-based care. My philosophy is simple: mental health is health. I believe true wellness requires caring for the whole person — mind and body — in a safe, respectful, and judgment-free environment where you feel heard and supported.',
-    'With over 15 years of diverse clinical experience in critical care, primary care, respiratory therapy, and mental health, I bring a well-rounded perspective to patient care. I specialize in diagnosing and treating anxiety, depression, ADHD, mood disorders, trauma-related conditions, and sleep disturbances. I also integrate women’s health support, weight management, and chronic disease management into my practice, allowing me to address both emotional and physical health needs in a coordinated way.',
-    'I earned my Bachelor of Science in Nursing from the University of Central Florida, my Master of Science in Nursing from South University, and a post-master’s certificate from Walden University. I am currently pursuing my Doctor of Nursing Practice degree to further enhance the quality of care I provide.',
+    "With over 15 years of diverse clinical experience in critical care, primary care, respiratory therapy, and mental health, I bring a well-rounded perspective to patient care. I specialize in diagnosing and treating anxiety, depression, ADHD, mood disorders, trauma-related conditions, and sleep disturbances. I also integrate women's health support, weight management, and chronic disease management into my practice, allowing me to address both emotional and physical health needs in a coordinated way.",
+    "I earned my Bachelor of Science in Nursing from the University of Central Florida, my Master of Science in Nursing from South University, and a post-master's certificate from Walden University. I am currently pursuing my Doctor of Nursing Practice degree to further enhance the quality of care I provide.",
     'My approach combines comprehensive evaluation, thoughtful medication management, lifestyle guidance, and patient education. I work collaboratively with you to develop a personalized treatment plan focused on resilience, balance, and long-term well-being.',
   ],
 
@@ -30,7 +30,7 @@ export const provider: Provider = {
   education: [
     'Bachelor of Science in Nursing (BSN) — University of Central Florida',
     'Master of Science in Nursing (MSN) — South University',
-    'Post-Master’s Certificate, Psychiatric-Mental Health Nurse Practitioner — Walden University',
+    "Post-Master's Certificate, Psychiatric-Mental Health Nurse Practitioner — Walden University",
     'Currently pursuing Doctor of Nursing Practice (DNP)',
   ],
 
@@ -49,7 +49,7 @@ export const provider: Provider = {
     'Trauma and PTSD care',
     'Sleep disorder management',
     'Medication management',
-    'Women’s health support',
+    "Women's health support",
     'Weight management',
     'Chronic disease management',
     'PMHNP telehealth psychiatric care',
@@ -93,14 +93,14 @@ export const providerPage = {
   consultation: {
     heading: 'Schedule Your Consultation Today',
     body: 'Take the first step toward better mental health with secure and personalized telehealth support tailored to your needs.',
-    cta: { label: 'Start Your Care Today', href: '/book-telehealth-mental-health-appointment#charm-calendar' },
+    cta: { label: 'Book an Appointment', href: '/book-telehealth-mental-health-appointment#charm-calendar' },
   },
   /** As published in the /bio/ credential rows. */
   educationBlurb:
-    'Bachelor of Science in Nursing (BSN), Master of Science in Nursing (MSN), Post-Master’s Certificate (Psychiatric-Mental Health Nurse Practitioner), Currently pursuing Doctor of Nursing Practice (DNP)',
+    "Bachelor of Science in Nursing (BSN), Master of Science in Nursing (MSN), Post-Master's Certificate (Psychiatric-Mental Health Nurse Practitioner), Currently pursuing Doctor of Nursing Practice (DNP)",
   boardBlurb: 'University of Central Florida, South University, Walden University',
   expertiseBlurb:
-    'Anxiety disorders treatment, Depression treatment, ADHD evaluation and management, Mood disorders (including bipolar disorder), Trauma and PTSD care, Sleep disorder management, Medication management, Women’s health support, Weight management, Chronic disease management, PMHNP telehealth psychiatric care',
+    "Anxiety disorders treatment, Depression treatment, ADHD evaluation and management, Mood disorders (including bipolar disorder), Trauma and PTSD care, Sleep disorder management, Medication management, Women's health support, Weight management, Chronic disease management, PMHNP telehealth psychiatric care",
   yearsBlurb: '15+',
   shifts: [
     { day: 'Monday', hours: '18:00-22:00' },

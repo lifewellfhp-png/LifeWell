@@ -32,7 +32,7 @@ export const headerNav: NavItem[] = [
 ];
 
 export const headerCta: NavLink = {
-  label: 'Get Started',
+  label: 'Book an Appointment',
   href: '/book-telehealth-mental-health-appointment#charm-calendar',
 };
 
