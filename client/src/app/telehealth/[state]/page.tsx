@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { TelehealthStatePageContent } from '@/components/sections/TelehealthStatePageContent';
 import { JsonLd } from '@/components/seo/JsonLd';
 
-import { getTelehealthState, telehealthStateSlugs } from '@/data/telehealth-states';
+import { telehealthStateSlugs } from '@/data/telehealth-states';
 import { cmsMetadata } from '@/lib/cms-seo';
 import { telehealthStateGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
@@ -22,14 +22,15 @@ export async function generateMetadata({
   params: Promise<{ state: string }>;
 }): Promise<Metadata> {
   const { state: slug } = await params;
-  const state = getTelehealthState(slug);
+  const cms = await getResolvedContent();
+  const state = cms.telehealthStates.find((s) => s.slug === slug);
   if (!state) return {};
 
-  const cms = await getResolvedContent();
   return cmsMetadata(cms, {
     title: state.metaTitle,
     description: state.metaDescription,
     path: `/telehealth/${slug}`,
+    image: state.ogImageUrl || state.heroImage ? { url: (state.ogImageUrl || state.heroImage?.src) as string } : undefined,
   });
 }
 
@@ -39,10 +40,9 @@ export default async function TelehealthStatePage({
   params: Promise<{ state: string }>;
 }) {
   const { state: slug } = await params;
-  const state = getTelehealthState(slug);
-  if (!state) notFound();
-
   const cms = await getResolvedContent();
+  const state = cms.telehealthStates.find((s) => s.slug === slug);
+  if (!state) notFound();
 
   return (
     <>
@@ -54,7 +54,6 @@ export default async function TelehealthStatePage({
         state={state}
         services={cms.serviceSummaries}
         bookingUrl={cms.booking.page}
-        providerName={cms.provider?.name}
       />
     </>
   );

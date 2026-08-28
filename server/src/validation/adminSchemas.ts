@@ -85,6 +85,37 @@ export const locationCreate = z.object({
 });
 export const locationUpdate = locationCreate.partial();
 
+export const telehealthStateCreate = z.object({
+  state_name: z.string().min(1).max(60),
+  state_code: z.string().min(2).max(2),
+  slug: z.string().min(1).max(60),
+  published: z.boolean().default(true),
+  badge: z.string().max(200).optional().nullable(),
+  heading: z.string().max(200).optional().nullable(),
+  subheading: z.string().max(300).optional().nullable(),
+  body: z.string().max(4000).optional().nullable(),
+  care_mode: z.string().max(200).optional().nullable(),
+  /** 'existing' = keep whatever Florida's current insurance/self-pay structure is. 'self_pay_only' = self-pay only, no insurance claims. */
+  insurance_mode: z.enum(['existing', 'self_pay_only']).default('self_pay_only'),
+  self_pay_enabled: z.boolean().default(false),
+  /** Never defaulted to a number — a real fee is only ever set by an admin entering one. */
+  self_pay_fee: z.number().positive().optional().nullable(),
+  self_pay_fee_label: z.string().max(120).optional().nullable(),
+  pricing_note: z.string().max(300).optional().nullable(),
+  hero_image_url: z.string().max(1000).optional().nullable(),
+  hero_image_alt: z.string().max(300).optional().nullable(),
+  primary_cta_label: z.string().max(80).optional().nullable(),
+  primary_cta_href: z.string().max(300).optional().nullable(),
+  secondary_cta_label: z.string().max(80).optional().nullable(),
+  secondary_cta_href: z.string().max(300).optional().nullable(),
+  faqs: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
+  seo_title: z.string().max(200).optional().nullable(),
+  seo_description: z.string().max(500).optional().nullable(),
+  og_image_url: z.string().max(1000).optional().nullable(),
+  sort_order: z.number().int().default(0),
+});
+export const telehealthStateUpdate = telehealthStateCreate.partial();
+
 export const blogCreate = z.object({
   slug: z.string().min(1).max(160),
   title: z.string().min(1).max(300),

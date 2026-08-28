@@ -25,6 +25,7 @@ const ALL_MODULES = [
   'testimonials',
   'faqs',
   'locations',
+  'telehealth_states',
   'blog',
   'media',
   'videos',

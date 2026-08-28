@@ -5,40 +5,55 @@ import { ServicesGrid } from '@/components/sections/ServicesGrid';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { telehealthStates, type TelehealthState } from '@/data/telehealth-states';
 import type { ServiceSummary } from '@/types/content';
-import { provider } from '@/data/provider';
+
+const DEFAULT_PRICING_NOTE = 'Contact us for current self-pay pricing.';
+
+function formatFee(fee: number, label: string | null): string {
+  const amount = `$${fee % 1 === 0 ? fee.toFixed(0) : fee.toFixed(2)}`;
+  return label ? `${amount} ${label}` : amount;
+}
 
 /**
  * /telehealth/[state] — telehealth-availability landing page for a single
- * authorized state. Florida's version additionally covers the real Orlando
- * office; Massachusetts and Arizona are presented as telehealth-only, with
- * no address, map, or implied physical presence.
+ * authorized state, resolved from the CMS (see cms-resolve.ts) with a
+ * static fallback. Florida's version additionally covers the real Orlando
+ * office; Massachusetts and Arizona are telehealth-only, self-pay-only —
+ * whether a state has a physical office is intentionally NOT a CMS field
+ * (see the note on TelehealthState), so no admin edit can imply a fake
+ * MA/AZ location.
  */
 export function TelehealthStatePageContent({
   state,
   services,
   bookingUrl,
-  providerName,
 }: {
   state: TelehealthState;
   services: ServiceSummary[];
   bookingUrl: string;
-  providerName?: string;
 }) {
+  const inPersonAvailable = state.code === 'FL';
   const otherStates = telehealthStates.filter((s) => s.slug !== state.slug);
-  const [firstIntro, ...restIntro] = state.intro;
+  const bodyParagraphs = state.body;
 
   return (
     <div className="bg-white">
       <InnerPageHero
-        title={state.headingLead}
-        accent={state.headingAccent}
-        lead={firstIntro}
+        image={state.heroImage ?? undefined}
+        imageSide="left"
+        title={state.heading}
+        lead={state.subheading}
         leadSize="subhead"
-      />
+      >
+        {state.badge && (
+          <p className="mt-6 text-[12px] font-light leading-[1.45] text-[#5b6675] sm:text-[14px]">
+            {state.badge}
+          </p>
+        )}
+      </InnerPageHero>
 
       <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[840px]">
-          {restIntro.map((paragraph) => (
+          {bodyParagraphs.map((paragraph) => (
             <p
               key={paragraph.slice(0, 40)}
               className="mt-5 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]"
@@ -49,28 +64,45 @@ export function TelehealthStatePageContent({
 
           <div className="mt-8 rounded-[20px] bg-[#EEF3F7] px-6 py-7 sm:px-8">
             <p className="text-[16px] leading-[1.5] text-[#374151] min-[1181px]:text-[18px]">
-              {state.licensureStatement}
+              {state.careMode}
             </p>
-            {!state.inPersonAvailable && (
+            {!inPersonAvailable && (
               <p className="mt-3 text-[14px] leading-[1.5] text-[#5b6675]">
                 Care for {state.name} residents is telehealth-only. Our physical office is in
                 Orlando, Florida, and is not available for {state.name} appointments.
               </p>
             )}
+
+            {state.insuranceMode === 'self_pay_only' && state.selfPayEnabled && (
+              <p className="mt-4 text-[16px] font-semibold leading-[1.5] text-[var(--lw-primary)] min-[1181px]:text-[18px]">
+                {state.selfPayFee
+                  ? formatFee(state.selfPayFee, state.selfPayFeeLabel)
+                  : state.pricingNote || DEFAULT_PRICING_NOTE}
+              </p>
+            )}
           </div>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <SwapButton href={bookingUrl}>Book an Appointment</SwapButton>
-            <p className="self-center text-[15px] leading-[1.4] text-[#374151]">
-              Questions about cost?{' '}
+            <SwapButton href={bookingUrl}>{state.primaryCta.label}</SwapButton>
+            {state.insuranceMode === 'existing' ? (
+              <p className="self-center text-[15px] leading-[1.4] text-[#374151]">
+                Questions about cost?{' '}
+                <Link
+                  href={state.secondaryCta.href}
+                  className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
+                >
+                  {state.secondaryCta.label}
+                </Link>
+                .
+              </p>
+            ) : (
               <Link
-                href="/fees-insurance"
-                className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
+                href={state.secondaryCta.href}
+                className="self-center text-[15px] font-semibold leading-[1.4] text-[var(--lw-accent)] underline-offset-2 hover:underline"
               >
-                View fees &amp; insurance
+                {state.secondaryCta.label}
               </Link>
-              .
-            </p>
+            )}
           </div>
         </div>
       </section>
@@ -105,16 +137,6 @@ export function TelehealthStatePageContent({
       <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[920px] rounded-[20px] border border-[#E1E8EE] px-6 py-8 sm:px-8">
           <p className="text-[15px] leading-[1.5] text-[#374151]">
-            Care in {state.name} is provided by{' '}
-            <Link
-              href="/bio"
-              className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
-            >
-              {providerName || provider.name}
-            </Link>
-            .
-          </p>
-          <p className="mt-4 text-[15px] leading-[1.5] text-[#374151]">
             Also serving:{' '}
             {otherStates.map((s, i) => (
               <span key={s.slug}>

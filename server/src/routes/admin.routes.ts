@@ -49,6 +49,8 @@ import {
   faqUpdate,
   locationCreate,
   locationUpdate,
+  telehealthStateCreate,
+  telehealthStateUpdate,
   blogCreate,
   blogUpdate,
   mediaCreate,
@@ -222,6 +224,17 @@ adminRouter.use(
     createSchema: locationCreate,
     updateSchema: locationUpdate,
     orderBy: { column: 'created_at', ascending: false },
+  })
+);
+
+adminRouter.use(
+  '/telehealth-states',
+  createCrudRouter({
+    table: 'telehealth_state_pages',
+    module: 'telehealth_states',
+    createSchema: telehealthStateCreate,
+    updateSchema: telehealthStateUpdate,
+    orderBy: { column: 'sort_order', ascending: true },
   })
 );
 

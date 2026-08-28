@@ -135,6 +135,37 @@ create table if not exists locations (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists telehealth_state_pages (
+  id uuid primary key default gen_random_uuid(),
+  state_name text not null,
+  state_code text not null unique,
+  slug text not null unique,
+  published boolean not null default true,
+  badge text,
+  heading text,
+  subheading text,
+  body text,
+  care_mode text,
+  insurance_mode text not null default 'self_pay_only' check (insurance_mode in ('existing', 'self_pay_only')),
+  self_pay_enabled boolean not null default false,
+  self_pay_fee numeric,
+  self_pay_fee_label text,
+  pricing_note text,
+  hero_image_url text,
+  hero_image_alt text,
+  primary_cta_label text,
+  primary_cta_href text,
+  secondary_cta_label text,
+  secondary_cta_href text,
+  faqs jsonb not null default '[]'::jsonb,
+  seo_title text,
+  seo_description text,
+  og_image_url text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists blog_posts (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
@@ -244,6 +275,7 @@ alter table insurance_plans enable row level security;
 alter table testimonials enable row level security;
 alter table faqs enable row level security;
 alter table locations enable row level security;
+alter table telehealth_state_pages enable row level security;
 alter table blog_posts enable row level security;
 alter table media_assets enable row level security;
 alter table videos enable row level security;

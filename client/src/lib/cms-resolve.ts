@@ -24,6 +24,7 @@ import {
 } from '@/data/service-catalog';
 import type { ServiceSummary } from '@/types/content';
 import { siteAssetSrc } from '@/lib/site-asset';
+import { telehealthStates as staticTelehealthStates, type TelehealthState } from '@/data/telehealth-states';
 
 export type ResolvedHero = typeof staticHero & {
   headingPrimary?: string;
@@ -81,6 +82,7 @@ export type ResolvedContent = {
     hours: string[];
     isPrimary: boolean;
   }[];
+  telehealthStates: TelehealthState[];
   seoByPath: Record<
     string,
     {
@@ -518,6 +520,93 @@ function mapLocations(cms: PublicCmsPayload | null) {
     }));
 }
 
+type TelehealthStateRow = {
+  state_code?: string;
+  slug?: string;
+  published?: boolean;
+  badge?: string | null;
+  heading?: string | null;
+  subheading?: string | null;
+  body?: string | null;
+  care_mode?: string | null;
+  insurance_mode?: 'existing' | 'self_pay_only' | null;
+  self_pay_enabled?: boolean | null;
+  self_pay_fee?: number | null;
+  self_pay_fee_label?: string | null;
+  pricing_note?: string | null;
+  hero_image_url?: string | null;
+  hero_image_alt?: string | null;
+  primary_cta_label?: string | null;
+  primary_cta_href?: string | null;
+  secondary_cta_label?: string | null;
+  secondary_cta_href?: string | null;
+  faqs?: unknown;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  og_image_url?: string | null;
+};
+
+function trimmedOrNull(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/**
+ * Merges each state's CMS row over its static fallback, field by field — a
+ * row missing (or leaving blank) any individual field falls back to the
+ * matching static value rather than the whole state reverting to fully
+ * static. A state with no CMS row at all uses its static entry untouched.
+ *
+ * `code`/`slug`/`inPersonAvailable`-equivalent identity is never taken from
+ * the CMS — only content fields are. See the safety note on
+ * TelehealthState in data/telehealth-states.ts.
+ */
+function mapTelehealthStates(cms: PublicCmsPayload | null): TelehealthState[] {
+  const rows = (cms?.telehealthStates ?? []) as TelehealthStateRow[];
+
+  return staticTelehealthStates.map((fallback) => {
+    const row = rows.find((r) => r.published !== false && r.state_code === fallback.code);
+    if (!row) return fallback;
+
+    const bodyText = trimmedOrNull(row.body);
+    const faqsRaw = Array.isArray(row.faqs) ? row.faqs : null;
+    const faqs = faqsRaw
+      ?.filter(
+        (f): f is { question: string; answer: string } =>
+          Boolean(f) && typeof f === 'object' && typeof (f as { question?: unknown }).question === 'string' && typeof (f as { answer?: unknown }).answer === 'string'
+      )
+      .map((f) => ({ question: f.question, answer: f.answer }));
+
+    return {
+      ...fallback,
+      badge: trimmedOrNull(row.badge) || fallback.badge,
+      heading: trimmedOrNull(row.heading) || fallback.heading,
+      subheading: trimmedOrNull(row.subheading) || fallback.subheading,
+      body: bodyText ? bodyText.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean) : fallback.body,
+      careMode: trimmedOrNull(row.care_mode) || fallback.careMode,
+      insuranceMode: row.insurance_mode ?? fallback.insuranceMode,
+      selfPayEnabled: row.self_pay_enabled ?? fallback.selfPayEnabled,
+      selfPayFee: typeof row.self_pay_fee === 'number' && row.self_pay_fee > 0 ? row.self_pay_fee : null,
+      selfPayFeeLabel: trimmedOrNull(row.self_pay_fee_label) ?? fallback.selfPayFeeLabel,
+      pricingNote: trimmedOrNull(row.pricing_note) ?? fallback.pricingNote,
+      heroImage: trimmedOrNull(row.hero_image_url)
+        ? { src: siteAssetSrc(row.hero_image_url as string), alt: trimmedOrNull(row.hero_image_alt) || fallback.name }
+        : fallback.heroImage,
+      primaryCta: {
+        label: trimmedOrNull(row.primary_cta_label) || fallback.primaryCta.label,
+        href: trimmedOrNull(row.primary_cta_href) || fallback.primaryCta.href,
+      },
+      secondaryCta: {
+        label: trimmedOrNull(row.secondary_cta_label) || fallback.secondaryCta.label,
+        href: trimmedOrNull(row.secondary_cta_href) || fallback.secondaryCta.href,
+      },
+      faqs: faqs?.length ? faqs : fallback.faqs,
+      metaTitle: trimmedOrNull(row.seo_title) || fallback.metaTitle,
+      metaDescription: trimmedOrNull(row.seo_description) || fallback.metaDescription,
+      ogImageUrl: trimmedOrNull(row.og_image_url) ?? fallback.ogImageUrl,
+    } satisfies TelehealthState;
+  });
+}
+
 function mapSeo(cms: PublicCmsPayload | null) {
   const rows = (cms?.seo ?? []) as {
     path?: string;
@@ -698,6 +787,7 @@ export const getResolvedContent = cache(async (): Promise<ResolvedContent> => {
     settings: mapSettings(cms),
     provider: mapProvider(cms),
     locations: mapLocations(cms),
+    telehealthStates: mapTelehealthStates(cms),
     posts: mapPosts(cms),
     fees: mapFees(cms),
     serviceDetails: mapServiceDetails(cms),

@@ -44,6 +44,7 @@ export async function getPublicContent(_req: Request, res: Response): Promise<vo
     testimonials,
     faqs,
     locations,
+    telehealthStates,
     posts,
     videos,
     sections,
@@ -58,6 +59,10 @@ export async function getPublicContent(_req: Request, res: Response): Promise<vo
     resolveTable('testimonials', sb.from('testimonials').select('*').eq('published', true).order('sort_order')),
     resolveTable('faqs', sb.from('faqs').select('*').eq('published', true).order('sort_order')),
     resolveTable('locations', sb.from('locations').select('*').eq('published', true)),
+    resolveTable(
+      'telehealth_state_pages',
+      sb.from('telehealth_state_pages').select('*').eq('published', true).order('sort_order')
+    ),
     resolveTable(
       'blog_posts',
       sb
@@ -92,6 +97,7 @@ export async function getPublicContent(_req: Request, res: Response): Promise<vo
       testimonials,
       faqs,
       locations,
+      telehealthStates,
       posts,
       videos,
       sections,

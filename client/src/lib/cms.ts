@@ -14,6 +14,7 @@ export type PublicCmsPayload = {
   testimonials: unknown[];
   faqs: unknown[];
   locations: unknown[];
+  telehealthStates: unknown[];
   posts: unknown[];
   videos: unknown[];
   sections: unknown[];
