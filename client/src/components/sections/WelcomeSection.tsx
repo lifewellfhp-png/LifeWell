@@ -41,7 +41,7 @@ export function WelcomeSection({ welcome = staticWelcome }: { welcome?: typeof s
   return (
     <Section tone="base" aria-labelledby="welcome-heading">
       <Container>
-        <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-x-[80px] lg:gap-y-12">
+        <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-x-[80px] lg:gap-y-10">
           <div className="overflow-hidden rounded-[12px]">
             <Image
               src={welcome.image.src}
@@ -57,7 +57,7 @@ export function WelcomeSection({ welcome = staticWelcome }: { welcome?: typeof s
           <div>
             <WelcomeHeading heading={welcome.heading} />
 
-            <div className="mt-6 space-y-4 sm:mt-8 sm:space-y-5">
+            <div className="mt-6 space-y-3 sm:mt-8 sm:space-y-4">
               {welcome.body.map((paragraph) => (
                 <p
                   key={paragraph.slice(0, 40)}

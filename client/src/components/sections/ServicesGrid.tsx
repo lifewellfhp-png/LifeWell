@@ -46,7 +46,7 @@ export function ServiceCard({
       </div>
 
       <div
-        className="relative z-10 -mt-10 flex flex-1 flex-col gap-5 rounded-[20px] px-5 py-[30px] sm:px-[30px]"
+        className="relative z-10 -mt-10 flex flex-1 flex-col gap-4 rounded-[20px] px-5 py-6 sm:px-[30px] sm:py-7"
         style={{ backgroundColor: tone }}
       >
         <h3 className="text-[20px] font-medium italic leading-[1.3] tracking-[-1px] text-[var(--lw-accent)] sm:text-[24px] min-[1181px]:text-[26px]">
@@ -58,13 +58,13 @@ export function ServiceCard({
           </Link>
         </h3>
 
-        <p className="line-clamp-3 text-[12px] leading-[1.5] text-[#374151] sm:text-[14px] min-[1181px]:text-[16px]">
+        <p className="line-clamp-2 text-[12px] leading-[1.5] text-[#374151] sm:text-[14px] min-[1181px]:text-[16px]">
           {service.description}
         </p>
 
         <span
           aria-hidden="true"
-          className="mt-auto inline-flex items-center gap-[7px] text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] transition-colors duration-300 group-hover:text-[var(--lw-primary)] sm:text-[12px] min-[1181px]:text-[13px]"
+          className="mt-auto inline-flex items-center gap-[7px] text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] underline decoration-[var(--lw-accent)]/40 underline-offset-4 transition-colors duration-300 group-hover:text-[var(--lw-primary)] group-hover:decoration-[var(--lw-primary)] sm:text-[12px] min-[1181px]:text-[13px]"
         >
           Learn More
           <ArrowIcon className="transition-transform duration-300 group-hover:translate-x-[5px]" />

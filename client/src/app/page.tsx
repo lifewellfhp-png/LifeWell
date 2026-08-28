@@ -57,8 +57,7 @@ export default async function HomePage() {
           <SectionHeading
             eyebrow={cms.servicesIntro.eyebrow}
             eyebrowVariant="badge"
-            title="How I"
-            accent="Help"
+            title={cms.servicesIntro.heading}
             description={cms.servicesIntro.body}
             descriptionClassName="mt-6 max-w-[42ch] text-[18px] leading-[1.35] text-[#374151] sm:text-[20px] min-[1181px]:text-[22px]"
             id="services-heading"
