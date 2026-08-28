@@ -32,6 +32,7 @@ Thumbs.db
 client/test-results/
 client/playwright-report/
 client/hero-shots/
+.qa-shots/
 
 # Next.js
 .vercel
