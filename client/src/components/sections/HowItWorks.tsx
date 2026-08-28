@@ -79,7 +79,7 @@ export function HowItWorks({
               </p>
               <div className="mt-4">
                 <SwapButton href={site.crisis.phoneHref} size="sm">
-                  Request a Call
+                  Call or Text 988
                 </SwapButton>
               </div>
             </div>

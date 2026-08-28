@@ -3,6 +3,7 @@ import { site } from '@/data/site';
 import type { ResolvedHero, BookingProfiles } from '@/lib/cms-resolve';
 import { HeroMedia } from './HeroMedia';
 import { OutlineButton, SwapButton } from '@/components/ui/SwapButton';
+import Link from 'next/link';
 
 /**
  * Homepage hero — tokens from the live Elementor kit:
@@ -56,7 +57,13 @@ export function Hero({
 
           <div className="mt-8 flex flex-col items-stretch gap-4 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
             <SwapButton href={bookHref}>{bookLabel}</SwapButton>
-            <OutlineButton href="/our-services">View All Services</OutlineButton>
+            <OutlineButton href="/fees-insurance">Insurance &amp; Pricing</OutlineButton>
+            <Link
+              href="/our-services"
+              className="inline-flex min-h-[44px] items-center justify-center px-2 text-[15px] font-semibold text-white underline decoration-white/60 underline-offset-4 transition-colors hover:text-white sm:min-h-[51px] sm:text-[16px]"
+            >
+              Explore Services
+            </Link>
           </div>
 
           {zocdocUrl && (
