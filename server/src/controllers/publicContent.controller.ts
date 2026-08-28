@@ -1,11 +1,34 @@
 import type { Request, Response } from 'express';
 import { getSupabase, supabaseConfigured } from '../lib/supabase.js';
 import { badRequest } from '../utils/errors.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Public read APIs for the marketing site.
  * Only published / active content is returned.
  */
+
+type QueryResult<T> = { data: T[] | null; error: { message: string } | null };
+
+/**
+ * Resolves one table's query independently. A schema mismatch or other
+ * per-table failure (for example, a migration that hasn't been applied to
+ * this environment yet) degrades to an empty result for that section only —
+ * it must never take down the entire public content payload the way a
+ * shared Promise.all + single thrown error previously did. When every
+ * section fails, callers still see it via cmsLive() falling back to static
+ * defaults; a single broken section should not force the same fallback for
+ * content that loaded fine.
+ */
+async function resolveTable<T>(label: string, query: PromiseLike<QueryResult<T>>): Promise<T[]> {
+  const { data, error } = await query;
+  if (error) {
+    logger.error(`public content: ${label} query failed`, { message: error.message });
+    return [];
+  }
+  return data ?? [];
+}
+
 export async function getPublicContent(_req: Request, res: Response): Promise<void> {
   if (!supabaseConfigured()) {
     res.json({ success: true, data: null, source: 'unconfigured' });
@@ -26,54 +49,55 @@ export async function getPublicContent(_req: Request, res: Response): Promise<vo
     sections,
     booking,
     seo,
-    settings,
+    settingsResult,
   ] = await Promise.all([
-    sb.from('announcements').select('*').eq('active', true).order('sort_order'),
-    sb.from('services').select('*').eq('published', true).order('sort_order'),
-    sb.from('providers').select('*').eq('published', true).order('sort_order'),
-    sb.from('insurance_plans').select('*').eq('published', true).order('sort_order'),
-    sb.from('testimonials').select('*').eq('published', true).order('sort_order'),
-    sb.from('faqs').select('*').eq('published', true).order('sort_order'),
-    sb.from('locations').select('*').eq('published', true),
-    sb.from('blog_posts').select('id, slug, title, excerpt, cover_image_url, author_name, category, published_at, seo_title, seo_description').eq('published', true).order('published_at', { ascending: false }),
-    sb.from('videos').select('*').eq('published', true).order('sort_order'),
-    sb.from('site_sections').select('*').eq('published', true).order('updated_at', { ascending: false }),
-    sb.from('booking_settings').select('*').eq('active', true),
-    sb.from('seo_meta').select('*'),
-    sb.from('site_settings').select('*').eq('id', 'default'),
+    resolveTable('announcements', sb.from('announcements').select('*').eq('active', true).order('sort_order')),
+    resolveTable('services', sb.from('services').select('*').eq('published', true).order('sort_order')),
+    resolveTable('providers', sb.from('providers').select('*').eq('published', true).order('sort_order')),
+    resolveTable('insurance_plans', sb.from('insurance_plans').select('*').eq('published', true).order('sort_order')),
+    resolveTable('testimonials', sb.from('testimonials').select('*').eq('published', true).order('sort_order')),
+    resolveTable('faqs', sb.from('faqs').select('*').eq('published', true).order('sort_order')),
+    resolveTable('locations', sb.from('locations').select('*').eq('published', true)),
+    resolveTable(
+      'blog_posts',
+      sb
+        .from('blog_posts')
+        .select('id, slug, title, excerpt, cover_image_url, author_name, published_at, seo_title, seo_description')
+        .eq('published', true)
+        .order('published_at', { ascending: false })
+    ),
+    resolveTable('videos', sb.from('videos').select('*').eq('published', true).order('sort_order')),
+    resolveTable('site_sections', sb.from('site_sections').select('*').eq('published', true).order('updated_at', { ascending: false })),
+    resolveTable('booking_settings', sb.from('booking_settings').select('*').eq('active', true)),
+    resolveTable('seo_meta', sb.from('seo_meta').select('*')),
+    (async () => {
+      const { data, error } = await sb.from('site_settings').select('*').eq('id', 'default');
+      if (error) {
+        logger.error('public content: site_settings query failed', { message: error.message });
+        return null;
+      }
+      return Array.isArray(data) ? (data[0] ?? null) : (data ?? null);
+    })(),
   ]);
-
-  const firstError = [
-    announcements, services, providers, insurance, testimonials, faqs,
-    locations, posts, videos, sections, booking, seo,
-  ].find((r) => r.error)?.error;
-
-  if (firstError) throw badRequest(firstError.message);
-
-  const settingsRow = settings.error
-    ? null
-    : Array.isArray(settings.data)
-      ? settings.data[0] ?? null
-      : settings.data ?? null;
 
   res.setHeader('Cache-Control', 'no-store');
   res.json({
     success: true,
     source: 'cms',
     data: {
-      announcements: announcements.data ?? [],
-      services: services.data ?? [],
-      providers: providers.data ?? [],
-      insurance: insurance.data ?? [],
-      testimonials: testimonials.data ?? [],
-      faqs: faqs.data ?? [],
-      locations: locations.data ?? [],
-      posts: posts.data ?? [],
-      videos: videos.data ?? [],
-      sections: sections.data ?? [],
-      booking: booking.data ?? [],
-      seo: seo.data ?? [],
-      settings: settingsRow,
+      announcements,
+      services,
+      providers,
+      insurance,
+      testimonials,
+      faqs,
+      locations,
+      posts,
+      videos,
+      sections,
+      booking,
+      seo,
+      settings: settingsResult,
     },
   });
 }
