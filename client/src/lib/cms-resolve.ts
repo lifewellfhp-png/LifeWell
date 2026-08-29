@@ -16,7 +16,12 @@ import {
   servicesSection as staticServicesSection,
 } from '@/data/marketing';
 import { site as staticSite } from '@/data/site';
-import { feesFaqs as staticFeesFaqs, feesIntro as staticFeesIntro, selfPay as staticSelfPay } from '@/data/pricing';
+import {
+  feesFaqs as staticFeesFaqs,
+  feesIntro as staticFeesIntro,
+  psychiatricStatePricing as staticPsychiatricStatePricing,
+  selfPay as staticSelfPay,
+} from '@/data/pricing';
 import {
   homeServiceSummaries as staticHomeServices,
   serviceSummaries as staticServiceSummaries,
@@ -116,6 +121,7 @@ export type ResolvedContent = {
     selfPayHeading: string;
     selfPayBody: string[];
     insuranceDisclaimer: string;
+    psychiatricStatePricing: typeof staticPsychiatricStatePricing;
   };
   serviceDetails: {
     slug: string;
@@ -930,6 +936,27 @@ function mapFees(cms: PublicCmsPayload | null) {
     : typeof selfPay.body === 'string' && selfPay.body.trim()
       ? selfPay.body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
       : staticSelfPay.body;
+  const psychiatricStatePricing = Array.isArray(selfPay.psychiatricStatePricing)
+    ? selfPay.psychiatricStatePricing
+      .map((item) => {
+        if (!item || typeof item !== 'object') return null;
+        const row = item as Record<string, unknown>;
+        if (
+          typeof row.state !== 'string' ||
+          typeof row.initialFee !== 'number' ||
+          typeof row.followUpFee !== 'number'
+        ) {
+          return null;
+        }
+        return {
+          state: row.state,
+          selfPayOnly: row.selfPayOnly === true,
+          initialFee: row.initialFee,
+          followUpFee: row.followUpFee,
+        };
+      })
+      .filter((item): item is typeof staticPsychiatricStatePricing[number] => Boolean(item))
+    : staticPsychiatricStatePricing;
   return {
     introHeading: typeof intro.heading === 'string' && intro.heading.trim() ? intro.heading : staticFeesIntro.heading,
     introBody,
@@ -940,6 +967,10 @@ function mapFees(cms: PublicCmsPayload | null) {
       typeof insurance.disclaimer === 'string' && insurance.disclaimer.trim()
         ? insurance.disclaimer
         : staticInsuranceSection.disclaimer,
+    psychiatricStatePricing:
+      psychiatricStatePricing.length === staticPsychiatricStatePricing.length
+        ? psychiatricStatePricing
+        : staticPsychiatricStatePricing,
   };
 }
 export const getResolvedContent = cache(async (): Promise<ResolvedContent> => {

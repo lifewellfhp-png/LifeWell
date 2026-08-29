@@ -43,8 +43,8 @@ export default async function FeesInsurancePage() {
         bookingUrl={cms.booking.page}
         introHeading={cms.fees.introHeading}
         introBody={cms.fees.introBody}
-        selfPayHeading={cms.fees.selfPayHeading}
         selfPayBody={cms.fees.selfPayBody}
+        psychiatricStatePricing={cms.fees.psychiatricStatePricing}
         insuranceDisclaimer={cms.fees.insuranceDisclaimer}
       />
     </>

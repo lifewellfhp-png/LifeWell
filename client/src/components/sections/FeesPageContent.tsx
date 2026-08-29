@@ -8,8 +8,7 @@ import {
   feesClosing,
   selfPay,
   pricingTiers,
-  packagesSection,
-  pricingPackages,
+  psychiatricStatePricing as staticPsychiatricStatePricing,
   additionalInfo,
   feesFaqs,
 } from '@/data/pricing';
@@ -28,8 +27,8 @@ export function FeesPageContent({
   bookingUrl,
   introHeading = feesIntro.heading,
   introBody = feesIntro.body,
-  selfPayHeading = selfPay.heading,
   selfPayBody = selfPay.body,
+  psychiatricStatePricing = staticPsychiatricStatePricing,
   insuranceDisclaimer = insuranceSection.disclaimer,
 }: {
   carriers?: InsuranceCarrier[];
@@ -37,8 +36,8 @@ export function FeesPageContent({
   bookingUrl?: string;
   introHeading?: string;
   introBody?: string;
-  selfPayHeading?: string;
   selfPayBody?: string[];
+  psychiatricStatePricing?: { state: string; selfPayOnly: boolean; initialFee: number; followUpFee: number }[];
   insuranceDisclaimer?: string;
 } = {}) {
   const bookHref = bookingUrl || site.booking.page;
@@ -49,10 +48,8 @@ export function FeesPageContent({
       <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
           <h2 className="mx-auto max-w-[18ch] text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
-            <span className="text-[var(--lw-accent)]">{selfPayHeading.replace(/ Options$/, '')} </span>
-            <span className="italic tracking-normal text-[var(--lw-primary)]">
-              {selfPayHeading.endsWith('Options') ? 'Options' : ''}
-            </span>
+            <span className="text-[var(--lw-accent)]">Psychiatric </span>
+            <span className="italic tracking-normal text-[var(--lw-primary)]">Self-Pay Pricing</span>
           </h2>
           <div className="mx-auto mt-6 max-w-[70ch] space-y-4 text-center">
             {selfPayBody.map((p) => (
@@ -63,7 +60,36 @@ export function FeesPageContent({
           </div>
 
           <ul className="mt-12 grid list-none gap-10 lg:mt-16 lg:grid-cols-3 lg:gap-[30px]">
-            {pricingTiers.map((tier) => (
+            {(psychiatricStatePricing || []).map((pricing) => (
+              <li key={pricing.state}>
+                <article className="flex h-full flex-col rounded-[20px] bg-[#EEF3F7] p-6 sm:p-8">
+                  <h3 className="font-heading text-[26px] font-normal leading-[1.15] text-[var(--lw-accent)] sm:text-[30px]">
+                    {pricing.state}
+                  </h3>
+                  {pricing.selfPayOnly ? (
+                    <p className="mt-3 text-[12px] font-semibold uppercase tracking-[1px] text-[var(--lw-primary)]">
+                      Self-Pay Only
+                    </p>
+                  ) : null}
+                  <p className="mt-6 font-heading text-[22px] text-[var(--lw-primary)] sm:text-[24px]">
+                    Initial Psychiatric Evaluation: {formatPrice(pricing.initialFee)}
+                  </p>
+                  <p className="mt-3 font-heading text-[22px] text-[var(--lw-primary)] sm:text-[24px]">
+                    Follow-Up Medication Management: {formatPrice(pricing.followUpFee)}
+                  </p>
+                  <div className="mt-auto pt-6">
+                    <SwapButton href={bookHref}>Book an Appointment</SwapButton>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+          <h2 className="mx-auto mt-20 max-w-[18ch] text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+            <span className="text-[var(--lw-accent)]">Other </span>
+            <span className="italic tracking-normal text-[var(--lw-primary)]">Self-Pay Services</span>
+          </h2>
+          <ul className="mt-12 grid list-none gap-10 lg:mt-16 lg:grid-cols-2 lg:gap-[30px]">
+            {pricingTiers.filter((tier) => tier.name !== 'Mental Health').map((tier) => (
               <li key={tier.name}>
                 <article className="flex h-full flex-col">
                   <h3 className="font-body text-[12px] font-semibold uppercase tracking-[1px] text-[#374151] sm:text-[13px] min-[1181px]:text-[15px]">
@@ -93,11 +119,6 @@ export function FeesPageContent({
                       </li>
                     ))}
                   </ul>
-                  {tier.freeConsult && (
-                    <p className="mt-5 text-[14px] font-bold leading-[1.45] text-[var(--lw-accent)] sm:text-[16px] min-[1181px]:text-[18px]">
-                      Special: Free 10-minute consultation available.
-                    </p>
-                  )}
                   <div className="mt-5">
                     <SwapButton href={bookHref}>Book an Appointment</SwapButton>
                   </div>
@@ -110,47 +131,6 @@ export function FeesPageContent({
 
       <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
-          <h2 className="mx-auto max-w-[16ch] text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
-            <span className="text-[var(--lw-accent)]">Weight Management Program </span>
-            <span className="italic tracking-normal text-[var(--lw-primary)]">Packages</span>
-          </h2>
-          <div className="mx-auto mt-6 max-w-[70ch] space-y-4 text-center">
-            {packagesSection.body.map((p) => (
-              <p key={p.slice(0, 32)} className="text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
-                {p}
-              </p>
-            ))}
-          </div>
-
-          <ul className="mt-12 grid list-none gap-10 md:grid-cols-2 lg:mt-16 lg:gap-10">
-            {pricingPackages.map((pkg) => (
-              <li key={pkg.name}>
-                <article className="flex h-full flex-col">
-                  <h3 className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:text-[24px] min-[1181px]:text-[30px]">
-                    {pkg.name}
-                  </h3>
-                  <p className="mt-4 font-heading text-[26px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-primary)] sm:text-[36px] min-[1181px]:text-[42px]">
-                    {pkg.priceRange}
-                  </p>
-                  <p className="mt-5 text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
-                    {pkg.description}
-                  </p>
-                  <ul className="mt-6 flex-1 space-y-2.5">
-                    {pkg.includes.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
-                        <CheckIcon />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-6">
-                    <SwapButton href={bookHref}>Book an Appointment</SwapButton>
-                  </div>
-                </article>
-              </li>
-            ))}
-          </ul>
-
           <div className="mt-16 max-w-[70ch] lg:mt-[80px]">
             <h2 className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:text-[24px] min-[1181px]:text-[30px]">
               {additionalInfo.heading}
@@ -177,7 +157,7 @@ export function FeesPageContent({
         showDisclaimer={true}
         title="Accepted"
         accent="Insurance Plans"
-        body="We believe in transparent and accessible care. We accept select insurance plans."
+        body="Florida insurance participation varies by plan and network. Massachusetts and Arizona psychiatric visits are self-pay only at this time."
         disclaimer={insuranceDisclaimer}
         carriers={carriers}
       />

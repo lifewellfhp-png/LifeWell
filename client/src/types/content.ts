@@ -164,6 +164,13 @@ export interface PricingPackage {
   includes: string[];
 }
 
+export interface PsychiatricStatePricing {
+  state: string;
+  selfPayOnly: boolean;
+  initialFee: number;
+  followUpFee: number;
+}
+
 /* --------------------------------------------------------- navigation --- */
 
 export interface NavLink {

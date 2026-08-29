@@ -11,6 +11,13 @@ type SectionRow = {
   updated_at?: string;
 };
 
+type PsychiatricStatePricing = {
+  state: string;
+  selfPayOnly: boolean;
+  initialFee: number;
+  followUpFee: number;
+};
+
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;
   return {};
@@ -30,6 +37,12 @@ export function FeesCopy() {
   const [selfPayHeading, setSelfPayHeading] = useState('');
   const [selfPayBody, setSelfPayBody] = useState('');
   const [insuranceDisclaimer, setInsuranceDisclaimer] = useState('');
+  const [selfPayContent, setSelfPayContent] = useState<Record<string, unknown>>({});
+  const [psychiatricPricing, setPsychiatricPricing] = useState<PsychiatricStatePricing[]>([
+    { state: 'Florida', selfPayOnly: false, initialFee: 300, followUpFee: 150 },
+    { state: 'Massachusetts', selfPayOnly: true, initialFee: 300, followUpFee: 175 },
+    { state: 'Arizona', selfPayOnly: true, initialFee: 325, followUpFee: 175 },
+  ]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -58,8 +71,20 @@ export function FeesCopy() {
     }
     if (selfPay) {
       const c = asRecord(selfPay.content);
+      setSelfPayContent(c);
       setSelfPayHeading(String(c.heading || ''));
       setSelfPayBody(bodyText(c.body));
+      if (Array.isArray(c.psychiatricStatePricing)) {
+        const pricing = c.psychiatricStatePricing.filter(
+          (item): item is PsychiatricStatePricing =>
+            Boolean(item) &&
+            typeof item === 'object' &&
+            typeof (item as Record<string, unknown>).state === 'string' &&
+            typeof (item as Record<string, unknown>).initialFee === 'number' &&
+            typeof (item as Record<string, unknown>).followUpFee === 'number'
+        );
+        if (pricing.length === 3) setPsychiatricPricing(pricing);
+      }
     }
     if (insurance) {
       const c = asRecord(insurance.content);
@@ -85,11 +110,13 @@ export function FeesCopy() {
     const [introRes, selfPayRes, insuranceRes] = await Promise.all([
       saveSection(introId, 'intro', 'Fees intro', { heading: introHeading, body: introBody }),
       saveSection(selfPayId, 'self_pay', 'Self-pay', {
+        ...selfPayContent,
         heading: selfPayHeading,
         body: selfPayBody
           .split(/\n\s*\n/)
           .map((p) => p.trim())
           .filter(Boolean),
+        psychiatricStatePricing: psychiatricPricing,
       }),
       saveSection(insuranceId, 'insurance', 'Insurance disclaimer', { disclaimer: insuranceDisclaimer }),
     ]);
@@ -115,6 +142,33 @@ export function FeesCopy() {
         <label htmlFor="fees-intro-heading">Intro heading</label>
         <input id="fees-intro-heading" value={introHeading} onChange={(e) => setIntroHeading(e.target.value)} />
       </div>
+      <h3>Psychiatric state pricing</h3>
+      <p className="muted">Initial and follow-up self-pay fees shown for psychiatric care.</p>
+      {psychiatricPricing.map((pricing, index) => (
+        <div key={pricing.state} style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: '0.75rem' }}>
+          <strong>{pricing.state}{pricing.selfPayOnly ? ' — Self-pay only' : ''}</strong>
+          <input
+            aria-label={`${pricing.state} initial fee`}
+            type="number"
+            value={pricing.initialFee}
+            onChange={(e) =>
+              setPsychiatricPricing((current) =>
+                current.map((item, itemIndex) => (itemIndex === index ? { ...item, initialFee: Number(e.target.value) } : item))
+              )
+            }
+          />
+          <input
+            aria-label={`${pricing.state} follow-up fee`}
+            type="number"
+            value={pricing.followUpFee}
+            onChange={(e) =>
+              setPsychiatricPricing((current) =>
+                current.map((item, itemIndex) => (itemIndex === index ? { ...item, followUpFee: Number(e.target.value) } : item))
+              )
+            }
+          />
+        </div>
+      ))}
       <div className="field">
         <label htmlFor="fees-intro-body">Intro body</label>
         <textarea id="fees-intro-body" rows={4} value={introBody} onChange={(e) => setIntroBody(e.target.value)} />

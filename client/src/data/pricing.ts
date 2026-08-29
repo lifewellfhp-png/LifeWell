@@ -1,4 +1,4 @@
-import type { PricingTier, PricingPackage } from '@/types/content';
+import type { PricingTier, PricingPackage, PsychiatricStatePricing } from '@/types/content';
 
 /**
  * Fees exactly as published on the source /fees-insurance/ page.
@@ -36,6 +36,12 @@ export const selfPay = {
     'Payment is due at the time services are provided. Fees vary depending on the type and duration of the appointment.',
   ],
 };
+
+export const psychiatricStatePricing: PsychiatricStatePricing[] = [
+  { state: 'Florida', selfPayOnly: false, initialFee: 300, followUpFee: 150 },
+  { state: 'Massachusetts', selfPayOnly: true, initialFee: 300, followUpFee: 175 },
+  { state: 'Arizona', selfPayOnly: true, initialFee: 325, followUpFee: 175 },
+];
 
 export const pricingTiers: PricingTier[] = [
   {
