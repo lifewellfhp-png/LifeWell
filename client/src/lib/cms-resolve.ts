@@ -39,6 +39,13 @@ export type ResolvedContent = {
   feesFaqs: Faq[];
   testimonials: Testimonial[];
   insurance: InsuranceCarrier[];
+  insuranceSection: {
+    heading: string;
+    body: string;
+    disclaimer: string;
+    ctaLabel: string;
+    ctaHref: string;
+  };
   homeServices: ServiceSummary[];
   serviceSummaries: ServiceSummary[];
   servicesIntro: { eyebrow: string; heading: string; body: string; cta: string };
@@ -228,6 +235,32 @@ function mapInsurance(cms: PublicCmsPayload | null, live: boolean): InsuranceCar
     }));
   if (live) return mapped;
   return mapped.length ? mapped : staticInsurance;
+}
+
+function mapInsuranceSection(cms: PublicCmsPayload | null) {
+  const content = sectionContent(cms, 'home', 'insurance') ?? {};
+  return {
+    heading:
+      typeof content.heading === 'string' && content.heading.trim()
+        ? content.heading
+        : 'Insurance & Self-Pay Options',
+    body:
+      typeof content.body === 'string' && content.body.trim()
+        ? content.body
+        : 'We offer self-pay options for all patients. Insurance participation is limited by state and plan. Massachusetts and Arizona visits are self-pay only at this time.',
+    disclaimer:
+      typeof content.disclaimer === 'string' && content.disclaimer.trim()
+        ? content.disclaimer
+        : 'Insurance coverage and network participation vary by plan. Please contact us to verify your benefits and eligibility before scheduling.',
+    ctaLabel:
+      typeof content.ctaLabel === 'string' && content.ctaLabel.trim()
+        ? content.ctaLabel
+        : 'View fees & insurance details',
+    ctaHref:
+      typeof content.ctaHref === 'string' && content.ctaHref.trim()
+        ? content.ctaHref
+        : '/fees-insurance',
+  };
 }
 
 function mapServiceSummaries(cms: PublicCmsPayload | null, live: boolean): ServiceSummary[] {
@@ -923,6 +956,7 @@ export const getResolvedContent = cache(async (): Promise<ResolvedContent> => {
     feesFaqs: mapFeesFaqs(cms, live),
     testimonials: mapTestimonials(cms, live),
     insurance: mapInsurance(cms, live),
+    insuranceSection: mapInsuranceSection(cms),
     homeServices: mapHomeServices(cms, live),
     serviceSummaries: mapServiceSummaries(cms, live),
     servicesIntro: mapServicesIntro(cms),

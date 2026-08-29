@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Container, Section } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
-import { insuranceCarriers as staticCarriers, insuranceSection } from '@/data/marketing';
+import { insuranceCarriers as staticCarriers } from '@/data/marketing';
 import type { InsuranceCarrier } from '@/types/content';
 
 /**
@@ -14,18 +14,24 @@ import type { InsuranceCarrier } from '@/types/content';
 export function InsuranceGrid({
   showCta = true,
   showDisclaimer = true,
-  title = 'Insurance &',
-  accent = 'Self-Pay Options',
-  body = insuranceSection.body,
-  disclaimer = insuranceSection.disclaimer,
+  heading = 'Insurance & Self-Pay Options',
+  title,
+  accent,
+  body = 'We offer self-pay options for all patients. Insurance participation is limited by state and plan. Massachusetts and Arizona visits are self-pay only at this time.',
+  disclaimer = 'Insurance coverage and network participation vary by plan. Please contact us to verify your benefits and eligibility before scheduling.',
+  ctaLabel = 'View fees & insurance details',
+  ctaHref = '/fees-insurance',
   carriers = staticCarriers,
 }: {
   showCta?: boolean;
   showDisclaimer?: boolean;
+  heading?: string;
   title?: string;
   accent?: string;
   body?: string;
   disclaimer?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
   carriers?: InsuranceCarrier[];
 }) {
   return (
@@ -40,8 +46,14 @@ export function InsuranceGrid({
             id="insurance-heading"
             className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]"
           >
-            <span className="text-[var(--lw-accent)]">{title} </span>
-            <span className="italic text-[var(--lw-primary)]">{accent}</span>
+            {title ? (
+              <>
+                <span className="text-[var(--lw-accent)]">{title} </span>
+                <span className="italic text-[var(--lw-primary)]">{accent}</span>
+              </>
+            ) : (
+              heading
+            )}
           </h2>
           <p className="mx-auto mt-5 max-w-[46rem] text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
             {body}
@@ -58,7 +70,7 @@ export function InsuranceGrid({
 
         {showCta && (
           <div className="mt-9 flex justify-center">
-            <SwapButton href="/fees-insurance">View fees &amp; insurance details</SwapButton>
+            <SwapButton href={ctaHref}>{ctaLabel}</SwapButton>
           </div>
         )}
       </Container>
