@@ -5,11 +5,16 @@
  *
  * Flow:
  *   1. Login to Admin API.
- *   2. Edit an existing service summary with a QA marker.
- *   3. Verify the marker on the public API and the live /our-services page.
- *   4. Run POST /api/admin/content/import-live.
- *   5. Verify the marker is STILL there (import must not overwrite edits).
- *   6. Revert the service summary to the original text.
+ *   2. Snapshot the current insurance_plans state.
+ *   3. Edit an existing service summary with a QA marker.
+ *   4. Verify the marker on the public API and the live /our-services page.
+ *   5. Run POST /api/admin/content/import-live.
+ *   6. Verify the marker is STILL there (import must not overwrite edits).
+ *   7. Verify insurance_plans is BYTE-IDENTICAL to the step-2 snapshot — the
+ *      import must have zero write authority over insurance (see
+ *      server/src/controllers/importLive.controller.ts; a stale hardcoded
+ *      seed list previously reintroduced obsolete payer records here).
+ *   8. Revert the service summary to the original text.
  *
  * Usage:
  *   ADMIN_EMAIL=... ADMIN_PASSWORD=... node scripts/test-admin-persistence.mjs
@@ -58,6 +63,22 @@ async function publicServiceSummary(slug) {
   return row ? String(row.summary || '') : null;
 }
 
+/** Normalized, id-sorted insurance snapshot for before/after comparison. */
+async function insuranceSnapshot(token) {
+  const res = await api('/api/admin/insurance', { token });
+  const rows = res.json?.data ?? [];
+  return rows
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      sort_order: r.sort_order,
+      published: r.published,
+      self_pay: r.self_pay,
+      logo_url: r.logo_url,
+    }))
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+}
+
 const login = await api('/api/admin/auth/login', {
   method: 'POST',
   body: { email: EMAIL, password: PASSWORD },
@@ -92,8 +113,11 @@ const pageHtml = await fetch(`${SITE}/our-services?qa=${stamp}`, {
 }).then((r) => r.text());
 ok('edit visible on live website', pageHtml.includes(marker));
 
+const insuranceBefore = await insuranceSnapshot(token);
+
 const imp = await api('/api/admin/content/import-live', { method: 'POST', token });
 ok('run restore-defaults import', imp.status === 200, imp.json?.message || `status ${imp.status}`);
+ok('import response has no insurance key', !('insurance' in (imp.json?.data ?? {})), JSON.stringify(imp.json?.data));
 
 await new Promise((r) => setTimeout(r, 3000));
 
@@ -102,6 +126,16 @@ ok(
   'edit SURVIVED the import (no overwrite)',
   Boolean(afterImport && afterImport.includes(marker)),
   afterImport === null ? 'service missing!' : afterImport.includes(marker) ? 'marker intact' : 'marker LOST'
+);
+
+const insuranceAfter = await insuranceSnapshot(token);
+const insuranceUnchanged = JSON.stringify(insuranceBefore) === JSON.stringify(insuranceAfter);
+ok(
+  'import-live did NOT mutate insurance_plans',
+  insuranceUnchanged,
+  insuranceUnchanged
+    ? `${insuranceAfter.length} rows unchanged`
+    : `MISMATCH: before=${insuranceBefore.length} rows, after=${insuranceAfter.length} rows`
 );
 
 const revert = await api(`/api/admin/services/${target.id}`, {

@@ -60,23 +60,6 @@ const FAQ_CATEGORIES = [
   'Fees',
 ] as const;
 
-const INSURANCE = [
-  ['Medicare', '/images/insurance/Medicare.png'],
-  ['Medicaid', '/images/insurance/Medicaid.png'],
-  ['Cigna', '/images/insurance/Cigna.png'],
-  ['Aetna', '/images/insurance/Aetna.png'],
-  ['UnitedHealthcare', '/images/insurance/UnitedHealthcare.png'],
-  ['Beacon', '/images/insurance/Beacon.png'],
-  ['Humana', '/images/insurance/Humana.png'],
-  ['Oxford', '/images/insurance/Oxford.png'],
-  ['Oscar Health', '/images/insurance/Oscar-Health.png'],
-  ['AvMed', '/images/insurance/AvMed.png'],
-  ['Carelon', '/images/insurance/Carelon.png'],
-  ['Optum', '/images/insurance/Optum.png'],
-  ['Magellan', '/images/insurance/Magellan.png'],
-  ['Blue Cross Blue Shield of Florida', '/images/insurance/Blue-Cross-Blue-Shield-of-Florida.png'],
-] as const;
-
 /**
  * Only testimonials with real, substantiated content are seeded. Three
  * additional placeholder reviews (attributed to "Elisa Smith", "Sofia
@@ -158,20 +141,10 @@ export async function runLiveImport(): Promise<Record<string, number>> {
     }))
   );
 
-  const { data: planRows, error: planErr } = await sb.from('insurance_plans').select('name');
-  if (planErr) throw badRequest(planErr.message);
-  counts.insurance = await missingThenInsert(
-    'insurance_plans',
-    'name',
-    (planRows || []).map((r) => String(r.name)),
-    INSURANCE.map(([name, logo_url], i) => ({
-      name,
-      logo_url,
-      published: true,
-      self_pay: false,
-      sort_order: i,
-    }))
-  );
+  // Insurance is intentionally NOT seeded here. Plans are fully Admin-managed
+  // CMS data (Admin → Insurance) and this import must have zero write
+  // authority over insurance_plans — a stale hardcoded seed list previously
+  // reintroduced obsolete payer records once the CMS names diverged from it.
 
   const { data: reviewRows, error: reviewErr } = await sb.from('testimonials').select('author_name');
   if (reviewErr) throw badRequest(reviewErr.message);
