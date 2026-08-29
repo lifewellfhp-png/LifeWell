@@ -1,17 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-hidden="true" focusable="false">
-  <path
-    d="M32 6c8.4 4.2 16.8 6.3 25.2 6.3V32c0 16-10.5 28.9-25.2 33.9C17.3 60.9 6.8 48 6.8 32V12.3C15.2 12.3 23.6 10.2 32 6z"
-    fill="#DCE4EC"
-    stroke="#8FA3B8"
-    stroke-width="2.5"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M20.5 32.8l7.2 7.2 15.8-16.9"
-    fill="none"
-    stroke="#5B7690"
-    stroke-width="3.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 100" role="img" aria-hidden="true" focusable="false">
+  <rect x="1" y="1" width="218" height="98" rx="16" fill="#EEF2F6" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <g transform="translate(110 24) scale(1)">
+    <path d="M0 -10c3.7 1.85 7.4 2.77 11.1 2.77V0.5c0 7-4.6 12.7-11.1 14.9C-6.5 13.2-11.1 7.5-11.1 0.5v-7.23C-7.4-6.73-3.7-7.65 0-9.5z" fill="#51697F" fill-opacity="0.16" stroke="#51697F" stroke-width="1.4" stroke-linejoin="round"/>
+    <path d="M-4.4 0.4l3 3 6-6.5" fill="none" stroke="#51697F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text
+    text-anchor="middle"
+    font-family="Arial, Helvetica, sans-serif"
+    font-weight="700"
+    font-size="13"
+    fill="#51697F"
+    letter-spacing="0.1"
+  ><tspan x="110" y="66.5">Insurance Plan</tspan></text>
 </svg>

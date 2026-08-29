@@ -138,7 +138,8 @@ function LogoCarousel({ carriers }: { carriers: InsuranceCarrier[] }) {
         className="flex items-center"
         style={{
           transform: `translateX(-${(slide * 100) / visible}%)`,
-          transition: instant ? 'none' : 'transform 500ms ease',
+          transition: instant ? 'none' : 'transform 650ms cubic-bezier(0.4, 0, 0.2, 1)',
+          willChange: 'transform',
         }}
       >
         {loop.map((carrier, i) => (
@@ -147,7 +148,7 @@ function LogoCarousel({ carriers }: { carriers: InsuranceCarrier[] }) {
             className="flex shrink-0 items-center justify-center px-3 sm:px-5"
             style={{ width: `${100 / visible}%` }}
           >
-            <div className="flex h-16 w-full max-w-[168px] items-center justify-center rounded-xl border border-[#E2E8F0] bg-white p-3 shadow-sm sm:h-20 sm:p-4">
+            <div className="aspect-[220/100] w-full max-w-[200px] sm:max-w-[220px]">
               <CarrierLogo carrier={carrier} />
             </div>
           </li>
@@ -164,8 +165,7 @@ function CarrierLogo({ carrier }: { carrier: InsuranceCarrier }) {
     setSrc((current) => (current === FALLBACK_LOGO ? current : FALLBACK_LOGO));
   };
 
-  const isFallback = src === FALLBACK_LOGO;
-  const className = `h-full w-full object-contain object-center ${isFallback ? 'max-h-8 max-w-8 opacity-80 sm:max-h-9 sm:max-w-9' : ''}`;
+  const className = 'h-full w-full object-contain object-center';
 
   return src.startsWith('http') ? (
     // eslint-disable-next-line @next/next/no-img-element
