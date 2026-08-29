@@ -929,8 +929,10 @@ function mapFees(cms: PublicCmsPayload | null) {
     typeof intro.body === 'string' && intro.body.trim()
       ? intro.body
       : Array.isArray(intro.body)
-        ? intro.body.filter((p): p is string => typeof p === 'string').join('\n\n')
-        : staticFeesIntro.body;
+          ? intro.body
+              .filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
+              .join('\n\n') || staticFeesIntro.body
+          : staticFeesIntro.body;
   const selfPayBody = Array.isArray(selfPay.body)
     ? selfPay.body.filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
     : typeof selfPay.body === 'string' && selfPay.body.trim()
