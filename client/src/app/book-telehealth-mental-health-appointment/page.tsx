@@ -58,7 +58,7 @@ export default async function BookPage() {
 
         <BookingChoiceGrid profiles={cms.bookingProfiles} calendarAnchor="#charm-calendar" />
 
-        <BookingCalendar src={cms.booking.url} label={cms.booking.label} />
+        <BookingCalendar src={cms.booking.url} />
 
         <TrustedPlatformsSection profiles={cms.bookingProfiles} />
 
