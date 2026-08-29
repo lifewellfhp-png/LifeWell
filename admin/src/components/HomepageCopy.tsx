@@ -53,13 +53,12 @@ function bodyText(value: unknown) {
 
 export function HomepageCopy() {
   const [ids, setIds] = useState<Record<string, string | null>>({});
+  const [loadedContent, setLoadedContent] = useState<Record<string, Record<string, unknown>>>({});
   const [hero, setHero] = useState<HeroForm>(emptyHero);
   const [welcome, setWelcome] = useState<WelcomeForm>(emptyWelcome);
   const [services, setServices] = useState<IntroForm>(emptyIntro);
   const [benefitsHeading, setBenefitsHeading] = useState('');
-  const [benefitsItems, setBenefitsItems] = useState<unknown[]>([]);
   const [how, setHow] = useState<TextForm>(emptyHow);
-  const [howSteps, setHowSteps] = useState<unknown[]>([]);
   const [statsItems, setStatsItems] = useState<StatItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -78,6 +77,7 @@ export function HomepageCopy() {
         .sort((a, b) => Date.parse(b.updated_at || '') - Date.parse(a.updated_at || ''))[0];
 
     const nextIds: Record<string, string | null> = {};
+    const nextContent: Record<string, Record<string, unknown>> = {};
     const heroRow = byLatest('hero');
     const welcomeRow = byLatest('welcome');
     const servicesRow = byLatest('services');
@@ -90,7 +90,13 @@ export function HomepageCopy() {
     nextIds.benefits = benefitsRow?.id ?? null;
     nextIds.how_it_works = howRow?.id ?? null;
     nextIds.stats = statsRow?.id ?? null;
+    for (const row of [heroRow, welcomeRow, servicesRow, benefitsRow, howRow, statsRow]) {
+      if (row?.section_key) {
+        nextContent[row.section_key] = asRecord(row.content);
+      }
+    }
     setIds(nextIds);
+    setLoadedContent(nextContent);
 
     if (heroRow) {
       const c = asRecord(heroRow.content);
@@ -123,7 +129,6 @@ export function HomepageCopy() {
     if (benefitsRow) {
       const c = asRecord(benefitsRow.content);
       setBenefitsHeading(String(c.heading || ''));
-      setBenefitsItems(Array.isArray(c.items) ? c.items : []);
     }
     if (howRow) {
       const c = asRecord(howRow.content);
@@ -132,7 +137,6 @@ export function HomepageCopy() {
         heading: String(c.heading || ''),
         body: String(c.body || ''),
       });
-      setHowSteps(Array.isArray(c.steps) ? c.steps : []);
     }
     if (statsRow) {
       const c = asRecord(statsRow.content);
@@ -190,8 +194,10 @@ export function HomepageCopy() {
     content: Record<string, unknown>
   ) {
     const payload = { page_key: 'home', section_key, title, published: true, content };
-    if (id) return api(`/api/admin/sections/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
-    return api('/api/admin/sections', { method: 'POST', body: JSON.stringify(payload) });
+    const mergedContent = { ...(loadedContent[section_key] ?? {}), ...content };
+    const mergedPayload = { ...payload, content: mergedContent };
+    if (id) return api(`/api/admin/sections/${id}`, { method: 'PATCH', body: JSON.stringify(mergedPayload) });
+    return api('/api/admin/sections', { method: 'POST', body: JSON.stringify(mergedPayload) });
   }
 
   async function onSubmit(e: FormEvent) {
@@ -226,13 +232,11 @@ export function HomepageCopy() {
       }),
       saveSection(ids.benefits ?? null, 'benefits', 'Why patients choose us', {
         heading: benefitsHeading,
-        items: benefitsItems,
       }),
       saveSection(ids.how_it_works ?? null, 'how_it_works', 'How it works', {
         eyebrow: how.eyebrow,
         heading: how.heading,
         body: how.body,
-        steps: howSteps,
       }),
       saveSection(ids.stats ?? null, 'stats', 'Stats band', {
         items: statsItems
