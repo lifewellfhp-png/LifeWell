@@ -107,10 +107,10 @@ export function NavBar({
         <ul className="flex w-full items-center justify-center gap-[3px]">
           {items.map((item) =>
             item.groups ? (
-              <MegaMenuItem key={item.href} item={item} pathname={pathname} />
+              <MegaMenuItem key={item.href} item={item} pathname={pathname} overlay={overlay} />
             ) : (
               <li key={item.href} className="shrink-0">
-                <TopLevelLink href={item.href} pathname={pathname}>
+                <TopLevelLink href={item.href} pathname={pathname} overlay={overlay}>
                   {item.label}
                 </TopLevelLink>
               </li>
@@ -191,10 +191,12 @@ const isActive = (pathname: string, href: string) =>
 function TopLevelLink({
   href,
   pathname,
+  overlay,
   children,
 }: {
   href: string;
   pathname: string;
+  overlay?: boolean;
   children: React.ReactNode;
 }) {
   const active = isActive(pathname, href);
@@ -207,7 +209,9 @@ function TopLevelLink({
         NAV_LINK,
         active
           ? 'bg-[var(--lw-primary)] text-white'
-          : 'text-[var(--lw-accent)] hover:bg-[var(--lw-primary)] hover:text-white'
+          : overlay
+            ? 'text-[var(--color-text-inverse)] hover:bg-[var(--lw-accent)] hover:text-white'
+            : 'text-[var(--lw-accent)] hover:bg-[var(--lw-primary)] hover:text-white'
       )}
     >
       {children}
@@ -222,7 +226,7 @@ function TopLevelLink({
  * and returns focus to the trigger. Focus leaving the subtree closes it, so
  * tabbing past the menu behaves predictably.
  */
-function MegaMenuItem({ item, pathname }: { item: NavItem; pathname: string }) {
+function MegaMenuItem({ item, pathname, overlay }: { item: NavItem; pathname: string; overlay?: boolean }) {
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState(110);
   const [mounted, setMounted] = useState(false);
@@ -347,7 +351,9 @@ function MegaMenuItem({ item, pathname }: { item: NavItem; pathname: string }) {
           'gap-[7px]',
           active || open
             ? 'bg-[var(--lw-primary)] text-white'
-            : 'text-[var(--lw-accent)] hover:bg-[var(--lw-primary)] hover:text-white'
+            : overlay
+              ? 'text-[var(--color-text-inverse)] hover:bg-[var(--lw-accent)] hover:text-white'
+              : 'text-[var(--lw-accent)] hover:bg-[var(--lw-primary)] hover:text-white'
         )}
       >
         {item.label}
