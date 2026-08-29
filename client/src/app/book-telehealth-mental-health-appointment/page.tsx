@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { JourneyCta } from '@/components/sections/JourneyCta';
 import { HowItWorks } from '@/components/sections/HowItWorks';
 import { BookingCalendar } from '@/components/sections/BookingCalendar';
+import { BookingTrustStrip } from '@/components/sections/BookingTrustStrip';
 import {
   BookingPageHeader,
   BookingChoiceGrid,
@@ -50,6 +51,10 @@ export default async function BookPage() {
 
       <div className="bg-white">
         <BookingPageHeader profiles={cms.bookingProfiles} />
+
+        <div className="-mt-4 mb-10 sm:-mt-6 sm:mb-14">
+          <BookingTrustStrip provider={cms.provider} states={cms.telehealthStates} />
+        </div>
 
         <BookingChoiceGrid profiles={cms.bookingProfiles} calendarAnchor="#charm-calendar" />
 
