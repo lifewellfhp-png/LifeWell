@@ -12,11 +12,13 @@ import Image from 'next/image';
  */
 export function HeroMedia({
   image,
+  hasCmsImage,
 }: {
   image?: { src: string; alt: string };
+  hasCmsImage?: boolean;
 }) {
   const [allowMotion, setAllowMotion] = useState(false);
-  const cmsImage = image && isUsableImageSrc(image.src) ? image : null;
+  const cmsImage = hasCmsImage && image && isUsableImageSrc(image.src) ? image : null;
 
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');

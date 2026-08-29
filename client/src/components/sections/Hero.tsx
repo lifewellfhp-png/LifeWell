@@ -37,9 +37,12 @@ export function Hero({
       aria-labelledby="hero-heading"
       className="relative isolate flex min-h-[100svh] max-h-none items-center overflow-hidden md:min-h-[850px] min-[1181px]:min-h-[950px]"
     >
-      <HeroMedia image={data.image} />
+      <HeroMedia image={data.image} hasCmsImage={data.hasCmsImage} />
 
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-black/50" />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-black/70 via-black/50 to-black/20"
+      />
 
       <div className="relative w-full px-4 pb-14 pt-[calc(88px+env(safe-area-inset-top))] sm:px-[30px] sm:pb-20 sm:pt-[calc(120px+env(safe-area-inset-top))] lg:px-[70px] lg:py-[100px] min-[1601px]:px-10 min-[1601px]:pb-[100px] min-[1601px]:pt-[200px]">
         <div className="w-full max-w-[670px] md:w-1/2 md:max-w-none min-[1181px]:max-w-[670px]">

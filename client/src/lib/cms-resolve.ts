@@ -33,6 +33,10 @@ import { telehealthStates as staticTelehealthStates, type TelehealthState } from
 export type ResolvedHero = typeof staticHero & {
   headingPrimary?: string;
   headingAccent?: string;
+  /** True only when the owner has actually set a hero image in the CMS —
+   * distinct from `image`, which always carries a safe value (CMS image or
+   * the static fallback) so existing consumers never see an empty src. */
+  hasCmsImage?: boolean;
 };
 
 export type ResolvedContent = {
@@ -357,6 +361,7 @@ function mapHero(cms: PublicCmsPayload | null): ResolvedHero {
     badge: badge || staticHero.badge,
     headingPrimary,
     headingAccent,
+    hasCmsImage: Boolean(imageUrl),
     image: imageUrl ? { ...staticHero.image, src: siteAssetSrc(imageUrl) } : staticHero.image,
   };
 }
