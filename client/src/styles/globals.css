@@ -32,6 +32,11 @@
   --color-brand-accent-strong: #3d7a47; /* white text -> 5.16:1 */
   --color-brand-accent-hover: #336840;
   --color-brand-accent-soft: #eaf4ec;
+  /* Same hue tinted for dark photographic grounds, matched in lightness to
+     --color-brand-primary-on-dark so both halves of a split hero heading
+     read with comparable weight. #5FAF6B has the same hero-scrim contrast
+     failure as the primary hue, so the hero heading uses this instead. */
+  --color-brand-accent-on-dark: #a3e0b8;
 
   /* ---- Text ---- */
   --color-text-primary: #374151;
