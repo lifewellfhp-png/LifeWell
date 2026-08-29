@@ -6,12 +6,11 @@ import type { Stat } from '@/types/content';
 import { Container } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { formatCount } from '@/lib/utils';
-import { primaryCta } from '@/data/marketing';
 import { site } from '@/data/site';
 
 /**
  * Live “Start Your Mental Wellness Journey” band: rounded photo with
- * left-aligned split heading + booking button, then a 3-column stats row.
+ * left-aligned split heading + booking button, followed by optional stats.
  */
 export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: string }) {
   const bookHref = bookingUrl ?? site.booking.page;
@@ -43,7 +42,7 @@ export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: s
                 <span className="text-[var(--lw-primary)]"> Journey Today</span>
               </h2>
               <p className="mt-5 max-w-[42ch] font-heading text-[16px] font-normal italic leading-[1.45] text-[#374151] sm:text-[18px]">
-                {primaryCta.body}
+                Getting started is simple. Choose an available appointment time that works for you.
               </p>
               <div className="mt-8">
                 <SwapButton href={bookHref}>Book an Appointment</SwapButton>
@@ -52,25 +51,27 @@ export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: s
           </div>
         </div>
 
-        <dl className="mt-12 grid grid-cols-2 sm:grid-cols-3 lg:mt-16 lg:grid-cols-3">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="px-4 py-6 text-center sm:px-6 lg:border-l lg:border-[#E1E8EE] lg:first:border-l-0"
-            >
-              <dt className="sr-only">{stat.label}</dt>
-              <dd>
-                <Counter value={stat.value} suffix={stat.suffix} />
-                <span
-                  aria-hidden="true"
-                  className="mt-2 block font-body text-[13px] font-normal leading-snug text-[#374151] sm:text-[14px] min-[1181px]:text-[15px]"
-                >
-                  {stat.label}
-                </span>
-              </dd>
-            </div>
-          ))}
-        </dl>
+        {stats.length > 0 ? (
+          <dl className="mt-12 grid grid-cols-2 sm:grid-cols-3 lg:mt-16 lg:grid-cols-3">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="px-4 py-6 text-center sm:px-6 lg:border-l lg:border-[#E1E8EE] lg:first:border-l-0"
+              >
+                <dt className="sr-only">{stat.label}</dt>
+                <dd>
+                  <Counter value={stat.value} suffix={stat.suffix} />
+                  <span
+                    aria-hidden="true"
+                    className="mt-2 block font-body text-[13px] font-normal leading-snug text-[#374151] sm:text-[14px] min-[1181px]:text-[15px]"
+                  >
+                    {stat.label}
+                  </span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
       </Container>
     </section>
   );
