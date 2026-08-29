@@ -35,6 +35,20 @@ export function TelehealthStatePageContent({
   const otherStates = telehealthStates.filter((s) => s.slug !== state.slug);
   const bodyParagraphs = state.body;
 
+  /**
+   * Massachusetts and Arizona are authorized for psychiatric telehealth
+   * only (self-pay, no physical office) — Primary Care / FNP-scope
+   * services (weight management, annual physicals, chronic disease
+   * management, etc.) are not an approved offering there. Florida keeps
+   * the full catalog unchanged. Filtering by `category` — rather than a
+   * hardcoded slug list — means a future service is only ever shown to
+   * MA/AZ if it's explicitly tagged `psychiatric`; anything else (or an
+   * unrecognized category) is excluded by default.
+   */
+  const eligibleServices = inPersonAvailable
+    ? services
+    : services.filter((s) => s.category === 'psychiatric');
+
   return (
     <div className="bg-white">
       <InnerPageHero
@@ -114,10 +128,12 @@ export function TelehealthStatePageContent({
             <span className="italic text-[var(--lw-primary)]">{state.name}</span>
           </h2>
           <p className="mx-auto mt-5 max-w-[46rem] text-center text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
-            Every service below is available to {state.name} residents by secure telehealth.
+            {inPersonAvailable
+              ? `Every service below is available to ${state.name} residents by secure telehealth.`
+              : `Psychiatric services available to ${state.name} patients by telehealth.`}
           </p>
           <div className="mt-12">
-            <ServicesGrid services={services} columns={4} />
+            <ServicesGrid services={eligibleServices} columns={4} />
           </div>
         </div>
       </section>
