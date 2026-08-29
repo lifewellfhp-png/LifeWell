@@ -34,7 +34,7 @@ export function HeroMedia({
       <img
         src={cmsImage.src}
         alt={cmsImage.alt}
-        className="absolute inset-0 -z-20 h-full w-full object-cover object-[68%_center]"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
       />
     ) : (
       <Image
@@ -44,7 +44,7 @@ export function HeroMedia({
         priority
         fetchPriority="high"
         sizes="100vw"
-        className="-z-20 object-cover object-[68%_center]"
+        className="-z-20 object-cover object-[80%_center]"
       />
     )
   ) : (
@@ -55,7 +55,7 @@ export function HeroMedia({
       priority
       fetchPriority="high"
       sizes="100vw"
-      className="-z-20 object-cover object-[68%_center]"
+      className="-z-20 object-cover object-[80%_center]"
     />
   );
 
@@ -65,7 +65,7 @@ export function HeroMedia({
 
       {!cmsImage && allowMotion && (
         <video
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-[68%_center]"
+          className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
           poster="/images/sections/home-hero-poster.jpg"
           autoPlay
           muted
