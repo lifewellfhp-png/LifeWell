@@ -1,4 +1,5 @@
 import { Container, Section, SectionHeading } from '@/components/ui/Section';
+import { LazyEmbed } from '@/components/sections/LazyEmbed';
 
 function youtubeId(url: string): string | null {
   const match = url.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{6,})/);
@@ -36,25 +37,16 @@ export function VideosSection({
               <li key={video.url || video.title} className="min-w-0">
                 <div className="overflow-hidden rounded-[20px] bg-[#EEF3F7]">
                   {video.embedHtml ? (
-                    <div
-                      className="aspect-video [&_iframe]:h-full [&_iframe]:w-full"
-                      dangerouslySetInnerHTML={{ __html: video.embedHtml }}
-                    />
+                    <LazyEmbed html={video.embedHtml} className="aspect-video" />
                   ) : yt ? (
-                    <iframe
-                      title={video.title}
-                      src={`https://www.youtube-nocookie.com/embed/${yt}`}
-                      className="aspect-video w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
+                    <LazyEmbed
+                      html={`<iframe title="${video.title}" src="https://www.youtube-nocookie.com/embed/${yt}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`}
+                      className="aspect-video"
                     />
                   ) : vimeo ? (
-                    <iframe
-                      title={video.title}
-                      src={`https://player.vimeo.com/video/${vimeo}`}
-                      className="aspect-video w-full"
-                      allow="autoplay; fullscreen; picture-in-picture"
-                      allowFullScreen
+                    <LazyEmbed
+                      html={`<iframe title="${video.title}" src="https://player.vimeo.com/video/${vimeo}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`}
+                      className="aspect-video"
                     />
                   ) : video.provider === 'file' ? (
                     <video className="aspect-video w-full" controls src={video.url} />
