@@ -9,7 +9,7 @@ export function JourneyCta({
   title = 'Start',
   accent = 'Your Mental Wellness',
   after = 'Journey Today',
-  body = "Getting help shouldn't be complicated. Book your secure online appointment in just a few clicks.",
+  body = 'Getting started is simple. Choose an available appointment time that works for you.',
   cta = 'Book an Appointment',
   href = site.booking.page,
 }: {
