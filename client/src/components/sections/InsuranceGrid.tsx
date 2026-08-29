@@ -147,7 +147,9 @@ function LogoCarousel({ carriers }: { carriers: InsuranceCarrier[] }) {
             className="flex shrink-0 items-center justify-center px-3 sm:px-5"
             style={{ width: `${100 / visible}%` }}
           >
-            <CarrierLogo carrier={carrier} />
+            <div className="flex h-16 w-full max-w-[168px] items-center justify-center rounded-xl border border-[#E2E8F0] bg-white p-3 shadow-sm sm:h-20 sm:p-4">
+              <CarrierLogo carrier={carrier} />
+            </div>
           </li>
         ))}
       </ul>
@@ -162,7 +164,8 @@ function CarrierLogo({ carrier }: { carrier: InsuranceCarrier }) {
     setSrc((current) => (current === FALLBACK_LOGO ? current : FALLBACK_LOGO));
   };
 
-  const className = 'h-8 w-auto max-h-8 max-w-full object-contain object-center sm:h-9 sm:max-h-9';
+  const isFallback = src === FALLBACK_LOGO;
+  const className = `h-full w-full object-contain object-center ${isFallback ? 'max-h-8 max-w-8 opacity-80 sm:max-h-9 sm:max-w-9' : ''}`;
 
   return src.startsWith('http') ? (
     // eslint-disable-next-line @next/next/no-img-element
