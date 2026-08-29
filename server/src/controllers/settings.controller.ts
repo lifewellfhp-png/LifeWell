@@ -29,13 +29,24 @@ export async function updateSiteSettings(req: Request, res: Response): Promise<v
   const parsed = settingsUpdate.safeParse(req.body);
   if (!parsed.success) throw badRequest('Invalid site settings.');
 
-  const payload = {
+  // Zod omits keys the caller didn't send, so spreading parsed.data already
+  // gives true PATCH semantics for every field — an omitted key here never
+  // reaches the upsert payload, so Supabase leaves that column untouched.
+  // practice_email/inbox_email are the one exception: '' is an intentional
+  // "clear this field" value (see the schema's z.literal('') branch), which
+  // only makes sense to normalize to null when the caller actually sent the
+  // field — normalizing an *omitted* field would wrongly clear it.
+  const payload: Record<string, unknown> = {
     id: 'default',
     ...parsed.data,
-    practice_email: parsed.data.practice_email || null,
-    inbox_email: parsed.data.inbox_email || null,
     updated_at: new Date().toISOString(),
   };
+  if (Object.prototype.hasOwnProperty.call(parsed.data, 'practice_email')) {
+    payload.practice_email = parsed.data.practice_email || null;
+  }
+  if (Object.prototype.hasOwnProperty.call(parsed.data, 'inbox_email')) {
+    payload.inbox_email = parsed.data.inbox_email || null;
+  }
 
   const { data, error } = await getSupabase()
     .from('site_settings')
