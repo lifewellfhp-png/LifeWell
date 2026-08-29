@@ -3,11 +3,13 @@
 import { ResourceManager } from '@/components/ResourceManager';
 import { InsurancePreview } from '@/components/SitePreviews';
 import { FeesCopy } from '@/components/FeesCopy';
+import { HomepageInsuranceCopy } from '@/components/HomepageInsuranceCopy';
 import { publicAssetUrl } from '@/lib/site';
 
 export default function Page() {
   return (
     <div>
+      <HomepageInsuranceCopy />
       <FeesCopy />
       <ResourceManager
       title="Insurance"
