@@ -164,8 +164,8 @@ export function FeesCopy() {
     <form className="card card-pad" onSubmit={onSubmit} style={{ marginBottom: '1.25rem' }}>
       <h2>Fees page text</h2>
       <p className="muted" style={{ marginTop: 0 }}>
-        Intro and self-pay copy on /fees-insurance. Plan logos are in the table below. Dollar amounts stay in the site
-        template unless you change them in code.
+        Intro and self-pay copy on /fees-insurance. Plan logos are in the table below. Psychiatric state pricing is
+        managed here and overrides the site's fallback values when published.
       </p>
       {error ? <div className="error-banner">{error}</div> : null}
       {message ? <div className="ok-banner">{message}</div> : null}
