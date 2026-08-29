@@ -107,26 +107,57 @@ export function FeesCopy() {
     setSaving(true);
     setError(null);
     setMessage(null);
-    const [introRes, selfPayRes, insuranceRes] = await Promise.all([
-      saveSection(introId, 'intro', 'Fees intro', { heading: introHeading, body: introBody }),
-      saveSection(selfPayId, 'self_pay', 'Self-pay', {
-        ...selfPayContent,
-        heading: selfPayHeading,
-        body: selfPayBody
-          .split(/\n\s*\n/)
-          .map((p) => p.trim())
-          .filter(Boolean),
-        psychiatricStatePricing: psychiatricPricing,
-      }),
-      saveSection(insuranceId, 'insurance', 'Insurance disclaimer', { disclaimer: insuranceDisclaimer }),
-    ]);
-    setSaving(false);
-    if (!introRes.success || !selfPayRes.success || !insuranceRes.success) {
-      setError(introRes.message || selfPayRes.message || insuranceRes.message || 'Save failed');
-      return;
+    try {
+      const results = await Promise.allSettled([
+        saveSection(introId, 'intro', 'Fees intro', { heading: introHeading, body: introBody }),
+        saveSection(selfPayId, 'self_pay', 'Self-pay', {
+          ...selfPayContent,
+          heading: selfPayHeading,
+          body: selfPayBody
+            .split(/\n\s*\n/)
+            .map((p) => p.trim())
+            .filter(Boolean),
+          psychiatricStatePricing: psychiatricPricing,
+        }),
+        saveSection(insuranceId, 'insurance', 'Insurance disclaimer', { disclaimer: insuranceDisclaimer }),
+      ]);
+      const labels = ['Intro', 'Self-pay', 'Insurance'];
+      const failures = results.flatMap((result, index) => {
+        if (result.status === 'rejected') {
+          const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
+          return `${labels[index]}: ${reason}`;
+        }
+        if (!result.value.success) {
+          return `${labels[index]}: ${result.value.message || 'Request failed'}`;
+        }
+        return [];
+      });
+      if (failures.length > 0) {
+        setError(`Save incomplete. ${failures.join(' ')}`);
+        return;
+      }
+
+      const verification = await api<SectionRow[]>('/api/admin/sections');
+      if (!verification.success) {
+        setError(`Save completed but verification failed: ${verification.message || 'Could not reload CMS records.'}`);
+        return;
+      }
+      const selfPayExists = (verification.data || []).some(
+        (row) => row.page_key === 'fees' && row.section_key === 'self_pay'
+      );
+      if (!selfPayExists) {
+        setError('Save completed but the Self-pay CMS record could not be verified. Please try again.');
+        return;
+      }
+
+      await load();
+      setMessage('Saved and verified. Refresh /fees-insurance on the public site to see the copy.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unexpected save error';
+      setError(`Save failed: ${message}`);
+    } finally {
+      setSaving(false);
     }
-    setMessage('Saved. Refresh /fees-insurance on the public site to see the copy.');
-    await load();
   }
 
   return (
