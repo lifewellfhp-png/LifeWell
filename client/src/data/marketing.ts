@@ -145,30 +145,25 @@ export const insuranceSection = {
 };
 
 export const insuranceCarriers: InsuranceCarrier[] = [
-  { name: 'Medicare', logo: '/images/insurance/Medicare.png', width: 290, height: 114 },
+  { name: 'AVMED Florida Exchange', logo: '/images/insurance/AvMed.png', width: 219, height: 103 },
+  { name: 'BH Complete Commercial', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  { name: 'FL DSNP', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  { name: 'Florida Exchange', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  { name: 'Oscar Health Plan', logo: '/images/insurance/Oscar-Health.png', width: 416, height: 114 },
+  { name: 'UBH General', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  {
+    name: 'Veterans Affairs Coordinated Care Network Region 3',
+    logo: '/images/insurance/placeholder.svg',
+    width: 160,
+    height: 64,
+  },
+  { name: 'Oxford (Commercial)', logo: '/images/insurance/Oxford.png', width: 234, height: 103 },
+  { name: 'Aetna (Commercial)', logo: '/images/insurance/Aetna.png', width: 204, height: 103 },
+  { name: 'First Health (Coventry Health Care)', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  { name: 'Cigna (Commercial)', logo: '/images/insurance/Cigna.png', width: 187, height: 114 },
   { name: 'Medicaid', logo: '/images/insurance/Medicaid.png', width: 291, height: 103 },
-  { name: 'Cigna', logo: '/images/insurance/Cigna.png', width: 187, height: 114 },
-  { name: 'Aetna', logo: '/images/insurance/Aetna.png', width: 204, height: 103 },
-  {
-    name: 'UnitedHealthcare',
-    logo: '/images/insurance/UnitedHealthcare.png',
-    width: 538,
-    height: 114,
-  },
-  { name: 'Beacon', logo: '/images/insurance/Beacon.png', width: 234, height: 103 },
-  { name: 'Humana', logo: '/images/insurance/Humana.png', width: 266, height: 114 },
-  { name: 'Oxford', logo: '/images/insurance/Oxford.png', width: 234, height: 103 },
-  { name: 'Oscar Health', logo: '/images/insurance/Oscar-Health.png', width: 416, height: 114 },
-  { name: 'AvMed', logo: '/images/insurance/AvMed.png', width: 219, height: 103 },
-  { name: 'Carelon', logo: '/images/insurance/Carelon.png', width: 266, height: 114 },
-  { name: 'Optum', logo: '/images/insurance/Optum.png', width: 219, height: 103 },
-  { name: 'Magellan', logo: '/images/insurance/Magellan.png', width: 302, height: 114 },
-  {
-    name: 'Blue Cross Blue Shield of Florida',
-    logo: '/images/insurance/Blue-Cross-Blue-Shield-of-Florida.png',
-    width: 1002,
-    height: 103,
-  },
+  { name: 'Medicare', logo: '/images/insurance/Medicare.png', width: 290, height: 114 },
+  { name: 'UHC Medicare Advantage', logo: '/images/insurance/UnitedHealthcare.png', width: 538, height: 114 },
 ];
 
 /* -------------------------------------------------------------- stats --- */

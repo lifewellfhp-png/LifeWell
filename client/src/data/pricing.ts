@@ -38,9 +38,9 @@ export const selfPay = {
 };
 
 export const psychiatricStatePricing: PsychiatricStatePricing[] = [
-  { state: 'Florida', selfPayOnly: false, initialFee: 300, followUpFee: 150 },
-  { state: 'Massachusetts', selfPayOnly: true, initialFee: 300, followUpFee: 175 },
-  { state: 'Arizona', selfPayOnly: true, initialFee: 325, followUpFee: 175 },
+  { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 300, followUpFee: 150 },
+  { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 300, followUpFee: 175 },
+  { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 175 },
 ];
 
 export const pricingTiers: PricingTier[] = [

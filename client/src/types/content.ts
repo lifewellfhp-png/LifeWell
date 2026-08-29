@@ -167,6 +167,7 @@ export interface PricingPackage {
 export interface PsychiatricStatePricing {
   state: string;
   selfPayOnly: boolean;
+  slidingScaleAvailable: boolean;
   initialFee: number;
   followUpFee: number;
 }

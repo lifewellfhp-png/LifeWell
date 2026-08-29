@@ -5,7 +5,6 @@ import {
   faqs as staticFaqs,
   testimonials as staticTestimonials,
   insuranceCarriers as staticInsurance,
-  insuranceSection as staticInsuranceSection,
   hero as staticHero,
   welcome as staticWelcome,
   benefits as staticBenefits,
@@ -950,9 +949,14 @@ function mapFees(cms: PublicCmsPayload | null) {
         ) {
           return null;
         }
+        const staticState = staticPsychiatricStatePricing.find((item) => item.state === row.state);
         return {
           state: row.state,
           selfPayOnly: row.selfPayOnly === true,
+          slidingScaleAvailable:
+            typeof row.slidingScaleAvailable === 'boolean'
+              ? row.slidingScaleAvailable
+              : staticState?.slidingScaleAvailable ?? false,
           initialFee: row.initialFee,
           followUpFee: row.followUpFee,
         };
@@ -968,7 +972,7 @@ function mapFees(cms: PublicCmsPayload | null) {
     insuranceDisclaimer:
       typeof insurance.disclaimer === 'string' && insurance.disclaimer.trim()
         ? insurance.disclaimer
-        : staticInsuranceSection.disclaimer,
+        : 'Insurance coverage and network participation vary by plan. Please contact us to verify your benefits and eligibility before scheduling.',
     psychiatricStatePricing:
       psychiatricStatePricing.length === staticPsychiatricStatePricing.length
         ? psychiatricStatePricing

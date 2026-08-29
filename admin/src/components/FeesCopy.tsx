@@ -14,6 +14,7 @@ type SectionRow = {
 type PsychiatricStatePricing = {
   state: string;
   selfPayOnly: boolean;
+  slidingScaleAvailable: boolean;
   initialFee: number;
   followUpFee: number;
 };
@@ -39,9 +40,9 @@ export function FeesCopy() {
   const [insuranceDisclaimer, setInsuranceDisclaimer] = useState('');
   const [selfPayContent, setSelfPayContent] = useState<Record<string, unknown>>({});
   const [psychiatricPricing, setPsychiatricPricing] = useState<PsychiatricStatePricing[]>([
-    { state: 'Florida', selfPayOnly: false, initialFee: 300, followUpFee: 150 },
-    { state: 'Massachusetts', selfPayOnly: true, initialFee: 300, followUpFee: 175 },
-    { state: 'Arizona', selfPayOnly: true, initialFee: 325, followUpFee: 175 },
+    { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 300, followUpFee: 150 },
+    { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 300, followUpFee: 175 },
+    { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 175 },
   ]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -81,7 +82,9 @@ export function FeesCopy() {
             typeof item === 'object' &&
             typeof (item as Record<string, unknown>).state === 'string' &&
             typeof (item as Record<string, unknown>).initialFee === 'number' &&
-            typeof (item as Record<string, unknown>).followUpFee === 'number'
+            typeof (item as Record<string, unknown>).followUpFee === 'number' &&
+            ((item as Record<string, unknown>).slidingScaleAvailable === undefined ||
+              typeof (item as Record<string, unknown>).slidingScaleAvailable === 'boolean')
         );
         if (pricing.length === 3) setPsychiatricPricing(pricing);
       }
@@ -178,6 +181,21 @@ export function FeesCopy() {
       {psychiatricPricing.map((pricing, index) => (
         <div key={pricing.state} style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: '0.75rem' }}>
           <strong>{pricing.state}{pricing.selfPayOnly ? ' — Self-pay only' : ''}</strong>
+          <label>
+            <input
+              aria-label={`${pricing.state} sliding scale available`}
+              type="checkbox"
+              checked={pricing.slidingScaleAvailable}
+              onChange={(e) =>
+                setPsychiatricPricing((current) =>
+                  current.map((item, itemIndex) =>
+                    itemIndex === index ? { ...item, slidingScaleAvailable: e.target.checked } : item
+                  )
+                )
+              }
+            />
+            Sliding Scale Available
+          </label>
           <input
             aria-label={`${pricing.state} initial fee`}
             type="number"

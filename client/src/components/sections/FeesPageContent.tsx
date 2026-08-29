@@ -12,7 +12,6 @@ import {
   additionalInfo,
   feesFaqs,
 } from '@/data/pricing';
-import { insuranceSection } from '@/data/marketing';
 import { site } from '@/data/site';
 import { formatPrice } from '@/lib/utils';
 import type { Faq, InsuranceCarrier } from '@/types/content';
@@ -29,7 +28,7 @@ export function FeesPageContent({
   introBody = feesIntro.body,
   selfPayBody = selfPay.body,
   psychiatricStatePricing = staticPsychiatricStatePricing,
-  insuranceDisclaimer = insuranceSection.disclaimer,
+  insuranceDisclaimer = 'Insurance coverage and network participation vary by plan. Please contact us to verify your benefits and eligibility before scheduling.',
 }: {
   carriers?: InsuranceCarrier[];
   faqs?: Faq[];
@@ -37,7 +36,13 @@ export function FeesPageContent({
   introHeading?: string;
   introBody?: string;
   selfPayBody?: string[];
-  psychiatricStatePricing?: { state: string; selfPayOnly: boolean; initialFee: number; followUpFee: number }[];
+  psychiatricStatePricing?: {
+    state: string;
+    selfPayOnly: boolean;
+    slidingScaleAvailable: boolean;
+    initialFee: number;
+    followUpFee: number;
+  }[];
   insuranceDisclaimer?: string;
 } = {}) {
   const bookHref = bookingUrl || site.booking.page;
@@ -70,6 +75,9 @@ export function FeesPageContent({
                     <p className="mt-3 text-[12px] font-semibold uppercase tracking-[1px] text-[var(--lw-primary)]">
                       Self-Pay Only
                     </p>
+                  ) : null}
+                  {pricing.slidingScaleAvailable ? (
+                    <p className="mt-3 text-[14px] font-semibold text-[var(--lw-primary)]">Sliding Scale Available</p>
                   ) : null}
                   <p className="mt-6 font-heading text-[22px] text-[var(--lw-primary)] sm:text-[24px]">
                     Initial Psychiatric Evaluation: {formatPrice(pricing.initialFee)}
@@ -155,9 +163,8 @@ export function FeesPageContent({
       <InsuranceGrid
         showCta={false}
         showDisclaimer={true}
-        title="Accepted"
-        accent="Insurance Plans"
-        body="Florida insurance participation varies by plan and network. Massachusetts and Arizona psychiatric visits are self-pay only at this time."
+        heading="Accepted Insurance Plans — Florida Only"
+        body="The insurance plans listed below apply to eligible Florida patients only. Massachusetts and Arizona psychiatric visits are self-pay only at this time."
         disclaimer={insuranceDisclaimer}
         carriers={carriers}
       />
