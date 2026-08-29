@@ -146,25 +146,25 @@ export const insuranceSection = {
 
 export const insuranceCarriers: InsuranceCarrier[] = [
   { name: 'AVMED Florida Exchange', logo: '/images/insurance/AvMed.png', width: 219, height: 103 },
-  { name: 'BH Complete Commercial', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
-  { name: 'FL DSNP', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
-  { name: 'Florida Exchange', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  { name: 'BH Complete Commercial', logo: '/images/insurance/insurance-placeholder.svg', width: 160, height: 64 },
+  { name: 'FL DSNP', logo: '/images/insurance/insurance-placeholder.svg', width: 160, height: 64 },
+  { name: 'Florida Exchange', logo: '/images/insurance/insurance-placeholder.svg', width: 160, height: 64 },
   { name: 'Oscar Health Plan', logo: '/images/insurance/Oscar-Health.png', width: 416, height: 114 },
-  { name: 'UBH General', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  { name: 'UBH General', logo: '/images/insurance/insurance-placeholder.svg', width: 160, height: 64 },
   {
     name: 'Veterans Affairs Coordinated Care Network Region 3',
-    logo: '/images/insurance/placeholder.svg',
+    logo: '/images/insurance/insurance-placeholder.svg',
     width: 160,
     height: 64,
   },
   { name: 'Oxford (Commercial)', logo: '/images/insurance/Oxford.png', width: 234, height: 103 },
   { name: 'Aetna (Commercial)', logo: '/images/insurance/Aetna.png', width: 204, height: 103 },
-  { name: 'First Health (Coventry Health Care)', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  { name: 'First Health (Coventry Health Care)', logo: '/images/insurance/insurance-placeholder.svg', width: 160, height: 64 },
   { name: 'Cigna (Commercial)', logo: '/images/insurance/Cigna.png', width: 187, height: 114 },
   { name: 'Medicaid', logo: '/images/insurance/Medicaid.png', width: 291, height: 103 },
   { name: 'Medicare', logo: '/images/insurance/Medicare.png', width: 290, height: 114 },
   { name: 'UHC Medicare Advantage', logo: '/images/insurance/UnitedHealthcare.png', width: 538, height: 114 },
-  { name: 'Optum', logo: '/images/insurance/placeholder.svg', width: 160, height: 64 },
+  { name: 'Optum', logo: '/images/insurance/insurance-placeholder.svg', width: 160, height: 64 },
 ];
 
 /* -------------------------------------------------------------- stats --- */

@@ -7,6 +7,8 @@ import { SwapButton } from '@/components/ui/SwapButton';
 import { insuranceCarriers as staticCarriers } from '@/data/marketing';
 import type { InsuranceCarrier } from '@/types/content';
 
+const FALLBACK_LOGO = '/images/insurance/insurance-placeholder.svg';
+
 /**
  * Live homepage insurance band: centered split heading + 6 wordmark logos
  * per view (Elementor media carousel, autoplay 5s, infinite).
@@ -145,28 +147,42 @@ function LogoCarousel({ carriers }: { carriers: InsuranceCarrier[] }) {
             className="flex shrink-0 items-center justify-center px-3 sm:px-5"
             style={{ width: `${100 / visible}%` }}
           >
-            {carrier.logo.startsWith('http') ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={carrier.logo}
-                alt=""
-                width={carrier.width}
-                height={carrier.height}
-                className="h-8 w-auto max-h-8 max-w-full object-contain object-center sm:h-9 sm:max-h-9"
-              />
-            ) : (
-              <Image
-                src={carrier.logo}
-                alt=""
-                width={carrier.width}
-                height={carrier.height}
-                loading="lazy"
-                className="h-8 w-auto max-h-8 max-w-full object-contain object-center sm:h-9 sm:max-h-9"
-              />
-            )}
+            <CarrierLogo carrier={carrier} />
           </li>
         ))}
       </ul>
     </div>
+  );
+}
+
+function CarrierLogo({ carrier }: { carrier: InsuranceCarrier }) {
+  const [src, setSrc] = useState(carrier.logo || FALLBACK_LOGO);
+
+  const handleError = () => {
+    setSrc((current) => (current === FALLBACK_LOGO ? current : FALLBACK_LOGO));
+  };
+
+  const className = 'h-8 w-auto max-h-8 max-w-full object-contain object-center sm:h-9 sm:max-h-9';
+
+  return src.startsWith('http') ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      width={carrier.width}
+      height={carrier.height}
+      onError={handleError}
+      className={className}
+    />
+  ) : (
+    <Image
+      src={src}
+      alt=""
+      width={carrier.width}
+      height={carrier.height}
+      loading="lazy"
+      onError={handleError}
+      className={className}
+    />
   );
 }

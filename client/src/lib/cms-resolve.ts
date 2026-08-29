@@ -234,7 +234,7 @@ function mapInsurance(cms: PublicCmsPayload | null, live: boolean): InsuranceCar
     .filter((r) => r.name)
     .map((r) => ({
       name: String(r.name),
-      logo: r.logo_url ? siteAssetSrc(String(r.logo_url)) : '/images/insurance/placeholder.svg',
+      logo: (r.logo_url && siteAssetSrc(String(r.logo_url))) || '/images/insurance/insurance-placeholder.svg',
       width: 160,
       height: 64,
     }));
