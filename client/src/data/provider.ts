@@ -13,7 +13,7 @@ import type { Provider } from '@/types/content';
  */
 export const provider: Provider = {
   name: 'Lourdie Chachoute',
-  credentials: 'FNP-C, PMHNP-BC, RRT, CCRN',
+  credentials: 'APRN, FNP-C, PMHNP-BC, RRT, CCRN',
   role: 'Psychiatric-Mental Health Nurse Practitioner',
   tagline:
     'Personalized, compassionate psychiatric care and professional PMHNP telehealth services designed to support your emotional wellness and long-term stability.',
@@ -35,6 +35,7 @@ export const provider: Provider = {
   ],
 
   certifications: [
+    'Doctor of Nursing Practice (DNP) — University of Central Florida (in progress)',
     'FNP-C — Family Nurse Practitioner, Certified',
     'PMHNP-BC — Psychiatric-Mental Health Nurse Practitioner, Board Certified',
     'RRT — Registered Respiratory Therapist',

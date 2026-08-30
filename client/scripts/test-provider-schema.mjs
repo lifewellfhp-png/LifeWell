@@ -143,19 +143,48 @@ test('owner-approved facts are preserved end-to-end when no CMS override is supp
   assert.ok(staticProvider.education.some((e) => /DNP/.test(e) && /pursuing/i.test(e)));
 });
 
-test('a CMS certifications value that includes DNP-in-progress flows through, where the static-only list never did', () => {
-  // The static `certifications` array (used for hasCredential) never
-  // included DNP status — only the CMS record's certifications field does.
-  // This documents that the synchronization actually adds real information
-  // to JSON-LD when CMS data is available, not just relabels the same facts.
-  assert.equal(
-    staticProvider.certifications.some((c) => /DNP/.test(c)),
-    false
-  );
+test('a CMS certifications value overrides the static list, as before', () => {
   const node = providerNode({
-    certifications: ['Doctor of Nursing Practice (DNP) — University of Central Florida (in progress)'],
+    certifications: ['Some Other Credential — Test Board'],
   });
-  assert.ok(node.hasCredential.some((c) => /DNP/.test(c.name) && /in progress/i.test(c.name)));
+  assert.deepEqual(
+    node.hasCredential.map((c) => c.name),
+    ['Some Other Credential — Test Board']
+  );
+});
+
+/* ---- P3-E1B: static fallback alignment with approved CMS facts ---- */
+
+test('P3-E1B.A static provider.credentials matches the owner-approved formal credential string exactly', () => {
+  assert.equal(staticProvider.credentials, 'APRN, FNP-C, PMHNP-BC, RRT, CCRN');
+});
+
+test('P3-E1B.B static provider fallback certifications clearly include DNP in-progress status', () => {
+  const dnpEntry = staticProvider.certifications.find((c) => /DNP/.test(c));
+  assert.ok(dnpEntry, 'expected a DNP entry in the static certifications list');
+  assert.ok(/in progress/i.test(dnpEntry));
+});
+
+test('P3-E1B.C providerNode() without CMS data now uses the corrected static credentials (includes APRN)', () => {
+  const node = providerNode();
+  assert.ok(node.name.includes('APRN, FNP-C, PMHNP-BC, RRT, CCRN'));
+});
+
+test('P3-E1B.D providerNode() with CMS data still prefers the CMS value over the corrected static one', () => {
+  const node = providerNode({ credentials: 'MD' });
+  assert.equal(node.name, `${staticProvider.name}, MD`);
+  assert.equal(node.name.includes('APRN'), false);
+});
+
+test('P3-E1B.E DNP is represented as in-progress, never as a completed/earned credential, in the static fallback', () => {
+  const node = providerNode();
+  const dnpCredential = node.hasCredential.find((c) => /DNP/.test(c.name));
+  assert.ok(dnpCredential);
+  assert.ok(/in progress/i.test(dnpCredential.name));
+  assert.equal(/earned|completed|awarded/i.test(dnpCredential.name), false);
+  // The formal name/credentials string must never append a DNP suffix,
+  // which would imply the degree has been conferred.
+  assert.equal(/,\s*DNP\b/.test(node.name), false);
 });
 
 test('a CMS credentials value ("APRN, FNP-C, PMHNP-BC, RRT, CCRN") is used verbatim, not merged with the static string', () => {
