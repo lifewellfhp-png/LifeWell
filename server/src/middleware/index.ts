@@ -25,9 +25,9 @@ export const requestLogger: RequestHandler = (req, res, next) => {
   next();
 };
 
-const limiter = (max: number, message: string) =>
+const limiter = (windowMs: number, max: number, message: string) =>
   rateLimit({
-    windowMs: 60 * 60 * 1000,
+    windowMs,
     max,
     standardHeaders: true,
     legacyHeaders: false,
@@ -36,14 +36,30 @@ const limiter = (max: number, message: string) =>
     skipFailedRequests: false,
   });
 
+const HOUR_MS = 60 * 60 * 1000;
+
 export const contactLimiter = limiter(
+  HOUR_MS,
   env.RATE_LIMIT_CONTACT,
   'Too many messages sent from this connection. Please try again later, or call us directly.'
 );
 
 export const newsletterLimiter = limiter(
+  HOUR_MS,
   env.RATE_LIMIT_NEWSLETTER,
   'Too many signup attempts. Please try again later.'
+);
+
+/**
+ * Admin login. A bounded per-IP limiter, not a distributed account lockout —
+ * counts every attempt (success or failure) so a scripted probe can't loop
+ * freely, but doesn't track per-account state or reveal whether a given
+ * email exists (that stays the login handler's job, via one generic error).
+ */
+export const adminLoginLimiter = limiter(
+  15 * 60 * 1000,
+  env.RATE_LIMIT_ADMIN_LOGIN,
+  'Too many sign-in attempts. Please wait a few minutes and try again.'
 );
 
 /** Wraps async handlers so rejections reach the error middleware. */

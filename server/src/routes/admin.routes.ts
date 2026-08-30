@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { asyncHandler } from '../middleware/index.js';
+import { asyncHandler, adminLoginLimiter } from '../middleware/index.js';
 import {
   requireAdmin,
   requirePermission,
@@ -102,7 +102,7 @@ import {
 
 export const adminRouter: Router = Router();
 
-adminRouter.post('/auth/login', asyncHandler(handleAdminLogin));
+adminRouter.post('/auth/login', adminLoginLimiter, asyncHandler(handleAdminLogin));
 adminRouter.get('/auth/me', requireAdmin, asyncHandler(handleAdminMe));
 
 adminRouter.get(

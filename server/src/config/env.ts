@@ -39,17 +39,24 @@ const schema = z.object({
   NEWSLETTER_API_KEY: z.string().optional(),
   NEWSLETTER_LIST_ID: z.string().optional(),
 
-  /** Rate limits, per IP per hour. */
+  /** Rate limits, per IP per hour (contact/newsletter) or per 15 minutes (admin login). */
   RATE_LIMIT_CONTACT: z.coerce.number().int().positive().default(5),
   RATE_LIMIT_NEWSLETTER: z.coerce.number().int().positive().default(3),
+  RATE_LIMIT_ADMIN_LOGIN: z.coerce.number().int().positive().default(5),
 
   /* Supabase — admin CMS + leads persistence. */
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
 
-  /** JWT secret for admin sessions. */
-  ADMIN_JWT_SECRET: z.string().min(16).default('dev-only-change-me-admin-jwt'),
+  /**
+   * JWT secret for admin sessions. Required — deliberately no default.
+   * Admin auth guards leads/contact PII, so a misconfigured deployment must
+   * fail at boot rather than silently sign tokens with a known value.
+   */
+  ADMIN_JWT_SECRET: z
+    .string()
+    .min(32, 'ADMIN_JWT_SECRET must be set to a random value at least 32 characters long.'),
 
   GA4_MEASUREMENT_ID: z.string().optional(),
   GOOGLE_SEARCH_CONSOLE_SITE: z.string().optional(),

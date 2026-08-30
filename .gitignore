@@ -41,3 +41,4 @@ admin/.vercel
 client/next-env.d.ts
 admin/next-env.d.ts
 *.tsbuildinfo
+.env*

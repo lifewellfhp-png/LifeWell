@@ -7,7 +7,11 @@
  *
  * No network calls, no Supabase, no production data.
  *
- *   npx tsx --test scripts/test-stats-verification-gate.mjs
+ * Imports admin.routes.ts, which now requires ADMIN_JWT_SECRET (P4-B1 —
+ * no insecure default) — set a synthetic test value before running:
+ *
+ *   ADMIN_JWT_SECRET=test-only-admin-jwt-secret-not-for-production-000000 \
+ *     npx tsx --test scripts/test-stats-verification-gate.mjs
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -3,9 +3,13 @@
  *
  * No network calls, no Supabase, no production data — this only exercises
  * the in-memory diff function that decides what goes into an audit log
- * entry's `meta.changes`. Run with:
+ * entry's `meta.changes`.
  *
- *   npx tsx --test scripts/test-audit-diff.mjs
+ * Imports audit.ts -> adminAuth.ts -> env.ts, which now requires
+ * ADMIN_JWT_SECRET (P4-B1 — no insecure default). Run with:
+ *
+ *   ADMIN_JWT_SECRET=test-only-admin-jwt-secret-not-for-production-000000 \
+ *     npx tsx --test scripts/test-audit-diff.mjs
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
