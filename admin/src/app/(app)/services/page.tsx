@@ -10,7 +10,7 @@ export default function Page() {
       title="Services"
       subtitle="Text, images, and category match the public /our-services grid and /services/[slug] pages. Preview first; Save publishes to visitors."
       endpoint="/api/admin/services"
-      createDefaults={{ published: true, sort_order: 0, category: 'psychiatric' }}
+      createDefaults={{ published: true, sort_order: 0, category: '' }}
       itemLabel={(r) => String(r.title || 'Service')}
       preview={{
         hint: 'Card + service page layout. Image, title, summary, and body update here as you type. Save to push to the live site.',
@@ -55,9 +55,10 @@ export default function Page() {
         { key: 'slug', label: 'URL slug' },
         {
           key: 'category',
-          label: 'Category',
+          label: 'Category (required — controls Massachusetts/Arizona telehealth eligibility)',
           type: 'select',
           options: [
+            { value: '', label: 'Select a category…' },
             { value: 'psychiatric', label: 'Psychiatric & Mental Health' },
             { value: 'primary-care', label: 'Family Health (Primary Care)' },
           ],

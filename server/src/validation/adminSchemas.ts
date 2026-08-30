@@ -18,13 +18,30 @@ export const serviceCreate = z.object({
   body: z.string().max(50000).optional().nullable(),
   icon: z.string().max(200).optional().nullable(),
   image_url: z.string().max(1000).optional().nullable().or(z.literal('')),
-  category: z.enum(['psychiatric', 'primary-care']).optional().nullable(),
+  /**
+   * Required on create — a new service must never be silently classified.
+   * See mapServiceSummaries() (client) and the `services` beforeUpdate hook
+   * (admin.routes.ts): an uncategorized row must never quietly become
+   * MA/AZ-eligible ('psychiatric').
+   */
+  category: z.enum(['psychiatric', 'primary-care']),
   published: z.boolean().default(true),
   sort_order: z.number().int().default(0),
   seo_title: z.string().max(200).optional().nullable(),
   seo_description: z.string().max(500).optional().nullable(),
 });
-export const serviceUpdate = serviceCreate.partial();
+export const serviceUpdate = serviceCreate.partial().extend({
+  // Update stays lenient: category may be omitted (no change), a valid
+  // value (explicit change), or null/'' (legacy rows with no category yet,
+  // and the Admin form always resubmits every field — see the services
+  // beforeUpdate hook, which strips a null/'' category rather than writing
+  // it, so editing an unrelated field on an uncategorized legacy row can
+  // never fail or accidentally clear a real value).
+  category: z.preprocess(
+    (v) => (v === '' ? null : v),
+    z.enum(['psychiatric', 'primary-care']).nullable().optional()
+  ),
+});
 
 export const providerCreate = z.object({
   slug: z.string().min(1).max(120),

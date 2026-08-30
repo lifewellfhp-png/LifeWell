@@ -167,6 +167,18 @@ adminRouter.use(
     createSchema: serviceCreate,
     updateSchema: serviceUpdate,
     orderBy: { column: 'sort_order', ascending: true },
+    // A null/'' category (legacy rows with none set yet, or the Admin form
+    // resubmitting every field on an unrelated edit) must never overwrite
+    // whatever the row already has — omit it rather than writing null, so
+    // an uncategorized service never gets stuck re-clearing itself and can
+    // still be explicitly assigned a real category later.
+    beforeUpdate: (data) => {
+      if (data.category === null) {
+        const { category: _category, ...rest } = data;
+        return rest;
+      }
+      return data;
+    },
   })
 );
 

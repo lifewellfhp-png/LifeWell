@@ -272,7 +272,7 @@ function mapInsuranceSection(cms: PublicCmsPayload | null) {
   };
 }
 
-function mapServiceSummaries(cms: PublicCmsPayload | null, live: boolean): ServiceSummary[] {
+export function mapServiceSummaries(cms: PublicCmsPayload | null, live: boolean): ServiceSummary[] {
   const rows = (cms?.services ?? []) as CmsService[];
   if (!rows.length) return live ? [] : staticServiceSummaries;
 
@@ -282,10 +282,15 @@ function mapServiceSummaries(cms: PublicCmsPayload | null, live: boolean): Servi
     .map((r) => {
       const slug = String(r.slug);
       const base = bySlug.get(slug);
+      // A known slug keeps its known category. An unrecognized slug with no
+      // explicit, valid CMS category must NOT become psychiatric by default —
+      // that would silently make it MA/AZ-eligible (see TelehealthStatePageContent's
+      // `category === 'psychiatric'` filter) without anyone having chosen that.
+      // 'primary-care' is the safe default: it never unlocks MA/AZ display.
       const category =
         r.category === 'primary-care' || r.category === 'psychiatric'
           ? r.category
-          : base?.category ?? 'psychiatric';
+          : base?.category ?? 'primary-care';
       const imageSrc = siteAssetSrc(
         (typeof r.image_url === 'string' && r.image_url) ||
           (typeof r.icon === 'string' && r.icon) ||
