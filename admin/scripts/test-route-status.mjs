@@ -64,9 +64,13 @@ test('J. every currently-working CMS path remains active', () => {
   }
 });
 
-test('the other 3 currently-broken CMS rows are all flagged (not silently active)', () => {
-  assert.equal(classifyRoute('/new-patients').kind, 'unmatched');
+test('the remaining unresolved CMS rows are still flagged (not silently active)', () => {
+  assert.equal(classifyRoute('/telehealth').kind, 'unmatched');
   assert.equal(classifyRoute('/in-person').kind, 'unmatched');
+});
+
+test('/new-patients is active now that the route exists (P3-E3B5)', () => {
+  assert.equal(classifyRoute('/new-patients').kind, 'active');
 });
 
 test('dynamic route families are recognized without verifying the specific slug', () => {

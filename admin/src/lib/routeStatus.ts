@@ -20,6 +20,7 @@ export const KNOWN_STATIC_ROUTES: string[] = [
   '/contact-telehealth-mental-health-provider',
   '/faqs',
   '/fees-insurance',
+  '/new-patients',
   '/our-services',
   '/privacy-policy',
   '/sms-consent-communication-policy',
