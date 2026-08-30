@@ -1,8 +1,8 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Eye, KeyRound, LoaderCircle, Mail, Plus, ShieldBan, ShieldCheck, Trash2, X } from 'lucide-react';
-import { api } from '@/lib/api';
+import { Eye, KeyRound, LoaderCircle, Lock, Mail, Plus, ShieldBan, ShieldCheck, Trash2, X } from 'lucide-react';
+import { api, setToken } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { STAFF_ACCESS, STAFF_MODULES } from '@/lib/nav';
 import { NAV_ICONS } from '@/lib/icons';
@@ -29,13 +29,19 @@ export default function UsersPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState<UserRow[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<'create' | 'view' | 'reset' | null>(null);
+  const [mode, setMode] = useState<'create' | 'view' | 'reset' | 'change-password' | null>(null);
   const [selected, setSelected] = useState<UserRow | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [sendInvite, setSendInvite] = useState(true);
+  const [ownPasswordForm, setOwnPasswordForm] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: '',
+  });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function load() {
     const res = await api<UserRow[]>('/api/admin/users');
@@ -68,6 +74,9 @@ export default function UsersPage() {
     setMode(null);
     setSelected(null);
     setNewPassword('');
+    setOwnPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+    setFieldErrors({});
+    setError(null);
   }
 
   function togglePermission(module: string) {
@@ -128,6 +137,30 @@ export default function UsersPage() {
       setNewPassword('');
       await load();
     }
+  }
+
+  async function onChangeOwnPassword(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    setFieldErrors({});
+    const res = await api<{ token: string }>('/api/admin/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(ownPasswordForm),
+    });
+    setSaving(false);
+    if (!res.success) {
+      setError(res.message || 'Password change failed.');
+      setFieldErrors(res.errors || {});
+      return;
+    }
+    // Keep this session working under the new token version rather than
+    // forcing an immediate re-login — other sessions/devices are the ones
+    // this change is meant to log out.
+    if (res.data?.token) setToken(res.data.token);
+    setMode(null);
+    setOwnPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+    setMessage('Your password was changed. Other signed-in sessions have been signed out.');
   }
 
   async function onDelete(row: UserRow) {
@@ -191,6 +224,34 @@ export default function UsersPage() {
 
       {error && !mode ? <div className="error-banner">{error}</div> : null}
       {message && !mode ? <div className="ok-banner">{message}</div> : null}
+
+      {user ? (
+        <article className="card card-pad account-card" style={{ marginBottom: '1.5rem' }}>
+          <div className="account-card-head">
+            <div className="sidebar-avatar">{user.name.slice(0, 1).toUpperCase()}</div>
+            <div>
+              <strong>{user.name}</strong>
+              <span className="muted">{user.email}</span>
+            </div>
+            <span className="badge ok">Your Account</span>
+          </div>
+          <div className="row-actions">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                setError(null);
+                setFieldErrors({});
+                setOwnPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+                setMode('change-password');
+              }}
+            >
+              <Lock size={15} />
+              Change password
+            </button>
+          </div>
+        </article>
+      ) : null}
 
       <div className="account-grid">
         {rows.map((row) => (
@@ -468,6 +529,83 @@ export default function UsersPage() {
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? <LoaderCircle className="nav-spinner" size={16} /> : <KeyRound size={16} />}
                 {saving ? 'Saving…' : 'Save password'}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
+      {mode === 'change-password' ? (
+        <div className="overlay modal-overlay">
+          <form className="card card-pad modal-card" onSubmit={onChangeOwnPassword}>
+            <div className="modal-head">
+              <div>
+                <p className="modal-kicker">Security</p>
+                <h2>Change your password</h2>
+              </div>
+              <button type="button" className="icon-btn" onClick={closeModal} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            {error ? <div className="error-banner">{error}</div> : null}
+            <div className="field">
+              <label htmlFor="current-password">Current password</label>
+              <input
+                id="current-password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={ownPasswordForm.current_password}
+                onChange={(e) =>
+                  setOwnPasswordForm({ ...ownPasswordForm, current_password: e.target.value })
+                }
+              />
+              {fieldErrors.current_password ? (
+                <p className="field-error">{fieldErrors.current_password}</p>
+              ) : null}
+            </div>
+            <div className="field">
+              <label htmlFor="new-own-password">New password</label>
+              <input
+                id="new-own-password"
+                type="password"
+                required
+                minLength={12}
+                autoComplete="new-password"
+                value={ownPasswordForm.new_password}
+                onChange={(e) => setOwnPasswordForm({ ...ownPasswordForm, new_password: e.target.value })}
+              />
+              {fieldErrors.new_password ? <p className="field-error">{fieldErrors.new_password}</p> : null}
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                At least 12 characters, with an uppercase letter, a lowercase letter, a number, and a
+                symbol.
+              </p>
+            </div>
+            <div className="field">
+              <label htmlFor="confirm-own-password">Confirm new password</label>
+              <input
+                id="confirm-own-password"
+                type="password"
+                required
+                minLength={12}
+                autoComplete="new-password"
+                value={ownPasswordForm.confirm_password}
+                onChange={(e) =>
+                  setOwnPasswordForm({ ...ownPasswordForm, confirm_password: e.target.value })
+                }
+              />
+              {fieldErrors.confirm_password ? (
+                <p className="field-error">{fieldErrors.confirm_password}</p>
+              ) : null}
+            </div>
+            <p className="muted">Changing your password signs out every other device or browser tab.</p>
+            <div className="modal-actions">
+              <button type="button" className="btn btn-ghost" onClick={closeModal} disabled={saving}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? <LoaderCircle className="nav-spinner" size={16} /> : <Lock size={16} />}
+                {saving ? 'Saving…' : 'Change password'}
               </button>
             </div>
           </form>

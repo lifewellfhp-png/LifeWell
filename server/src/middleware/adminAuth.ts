@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response, RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { forbidden, unauthorized } from '../utils/errors.js';
+import { getSupabase } from '../lib/supabase.js';
 
 export type AdminRole = 'super_admin' | 'staff';
 
@@ -10,6 +11,15 @@ export type AdminTokenPayload = {
   email: string;
   role: AdminRole;
   permissions: string[];
+  /**
+   * Token version at the time this JWT was signed. admin_users.token_version
+   * increments on every password change; requireAdmin rejects any token
+   * whose `tv` no longer matches the row's current value. This is what
+   * makes "revoke existing sessions" real for an otherwise fully stateless
+   * bearer token — without it, a JWT stays valid until its 30-day expiry
+   * regardless of a password change.
+   */
+  tv: number;
 };
 
 export type AuthedRequest = Request & {
@@ -54,13 +64,31 @@ export const requireAdmin: RequestHandler = (req, _res, next) => {
     next(unauthorized('Sign in required.'));
     return;
   }
+  let payload: AdminTokenPayload;
   try {
-    const payload = verifyAdminToken(header.slice(7));
-    (req as AuthedRequest).admin = payload;
-    next();
+    payload = verifyAdminToken(header.slice(7));
   } catch {
     next(unauthorized('Session expired. Please sign in again.'));
+    return;
   }
+
+  // Tokens signed before token versioning (or by a test fixture) omit `tv`;
+  // treat that as version 0 rather than failing every existing session.
+  const tokenVersion = typeof payload.tv === 'number' ? payload.tv : 0;
+
+  Promise.resolve()
+    .then(() =>
+      getSupabase().from('admin_users').select('token_version').eq('id', payload.sub).maybeSingle()
+    )
+    .then(({ data, error }) => {
+      if (error || !data || (data.token_version ?? 0) !== tokenVersion) {
+        next(unauthorized('Session expired. Please sign in again.'));
+        return;
+      }
+      (req as AuthedRequest).admin = payload;
+      next();
+    })
+    .catch(() => next(unauthorized('Session expired. Please sign in again.')));
 };
 
 export function requirePermission(module: AdminModule): RequestHandler {

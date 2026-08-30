@@ -83,6 +83,13 @@ alter table site_settings enable row level security;
 alter table services add column if not exists image_url text;
 alter table services add column if not exists category text;
 
+-- Self-service password change (Admin "Your Account" panel): lets
+-- requireAdmin reject every JWT issued before a password change, not just
+-- ones that happen to expire. Bumped on every password change; embedded in
+-- the JWT as `tv` at sign time and compared against this column on every
+-- authenticated admin request.
+alter table admin_users add column if not exists token_version integer not null default 0;
+
 -- P2B: Wellness Resource Hub taxonomy + article-to-service linking.
 alter table blog_posts add column if not exists category text;
 alter table blog_posts add column if not exists related_service_slug text;

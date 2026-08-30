@@ -233,6 +233,31 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+/**
+ * Strong policy for self-service password changes (changePasswordSchema
+ * below) — deliberately stricter than adminUserCreate/adminUserUpdate's
+ * min(10), which cover admin-set temporary passwords for other accounts.
+ */
+const strongPassword = z
+  .string()
+  .min(12, 'Password must be at least 12 characters.')
+  .max(128)
+  .refine((v) => /[a-z]/.test(v), 'Password must include a lowercase letter.')
+  .refine((v) => /[A-Z]/.test(v), 'Password must include an uppercase letter.')
+  .refine((v) => /[0-9]/.test(v), 'Password must include a number.')
+  .refine((v) => /[^A-Za-z0-9]/.test(v), 'Password must include a symbol.');
+
+export const changePasswordSchema = z
+  .object({
+    current_password: z.string().min(1, 'Current password is required.'),
+    new_password: strongPassword,
+    confirm_password: z.string().min(1, 'Please confirm the new password.'),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: 'New password and confirmation do not match.',
+    path: ['confirm_password'],
+  });
+
 export const sendCredentialsSchema = z.object({
   password: z.string().min(10).max(128).optional(),
   admin_url: z.string().url().optional(),

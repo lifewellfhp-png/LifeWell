@@ -7,7 +7,14 @@ import {
   type AdminRole,
   type AuthedRequest,
 } from '../middleware/adminAuth.js';
-import { loginSchema, adminUserCreate, adminUserUpdate, sendCredentialsSchema } from '../validation/adminSchemas.js';
+import {
+  loginSchema,
+  adminUserCreate,
+  adminUserUpdate,
+  sendCredentialsSchema,
+  changePasswordSchema,
+} from '../validation/adminSchemas.js';
+import { fieldErrors } from '../validation/schemas.js';
 import { badRequest, unauthorized, notFound } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { writeAuditLog } from '../lib/audit.js';
@@ -36,6 +43,7 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<voi
     email: user.email,
     role: user.role as AdminRole,
     permissions: (user.permissions as string[]) ?? [],
+    tv: (user.token_version as number | null) ?? 0,
   });
 
   await getSupabase()
@@ -81,6 +89,71 @@ export async function handleAdminMe(req: Request, res: Response): Promise<void> 
   if (!user || !user.active) throw unauthorized('Account inactive.');
 
   res.json({ success: true, data: user });
+}
+
+/**
+ * Self-service password change for the currently signed-in admin. Verifies
+ * the current password, hashes and stores the new one, and bumps
+ * token_version so every other JWT for this account (other tabs/devices,
+ * or a stolen token) stops working on its next request — see requireAdmin
+ * in middleware/adminAuth.ts. A fresh token for the bumped version is
+ * returned so this session keeps working without a forced re-login.
+ */
+export async function handleChangePassword(req: Request, res: Response): Promise<void> {
+  const admin = (req as AuthedRequest).admin;
+  if (!admin) throw unauthorized('Sign in required.');
+
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw badRequest('Please correct the highlighted fields and try again.', fieldErrors(parsed.error));
+  }
+
+  const { data: user, error } = await getSupabase()
+    .from('admin_users')
+    .select('id, email, name, role, permissions, password_hash, token_version, active')
+    .eq('id', admin.sub)
+    .maybeSingle();
+
+  if (error) throw badRequest(error.message);
+  if (!user || !user.active) throw unauthorized('Account inactive.');
+
+  const currentOk = await bcrypt.compare(parsed.data.current_password, user.password_hash);
+  if (!currentOk) throw unauthorized('Current password is incorrect.');
+
+  const sameAsCurrent = await bcrypt.compare(parsed.data.new_password, user.password_hash);
+  if (sameAsCurrent) throw badRequest('New password must be different from your current password.');
+
+  const password_hash = await bcrypt.hash(parsed.data.new_password, 12);
+  const nextTokenVersion = ((user.token_version as number | null) ?? 0) + 1;
+
+  const { error: updateError } = await getSupabase()
+    .from('admin_users')
+    .update({
+      password_hash,
+      token_version: nextTokenVersion,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', user.id);
+  if (updateError) throw badRequest(updateError.message);
+
+  const token = signAdminToken({
+    sub: user.id,
+    email: user.email,
+    role: user.role as AdminRole,
+    permissions: (user.permissions as string[]) ?? [],
+    tv: nextTokenVersion,
+  });
+
+  logger.info('admin password changed', { role: user.role });
+  await writeAuditLog({
+    actor: { sub: user.id, email: user.email, name: user.name, role: user.role as AdminRole },
+    action: 'change_password',
+    resource: 'auth',
+    resourceId: user.id,
+    summary: `${user.name} changed their own password`,
+  });
+
+  res.json({ success: true, data: { token } });
 }
 
 export async function listAdminUsers(_req: Request, res: Response): Promise<void> {

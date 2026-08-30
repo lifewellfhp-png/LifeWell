@@ -62,6 +62,17 @@ export const adminLoginLimiter = limiter(
   'Too many sign-in attempts. Please wait a few minutes and try again.'
 );
 
+/**
+ * Admin change-password. Same window/threshold as login — this endpoint
+ * still requires guessing the current password, so it's the same
+ * brute-force surface for anyone holding a stolen but still-valid token.
+ */
+export const changePasswordLimiter = limiter(
+  15 * 60 * 1000,
+  env.RATE_LIMIT_ADMIN_LOGIN,
+  'Too many password change attempts. Please wait a few minutes and try again.'
+);
+
 /** Wraps async handlers so rejections reach the error middleware. */
 export const asyncHandler =
   (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>): RequestHandler =>

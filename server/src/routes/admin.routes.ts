@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { asyncHandler, adminLoginLimiter } from '../middleware/index.js';
+import { asyncHandler, adminLoginLimiter, changePasswordLimiter } from '../middleware/index.js';
 import {
   requireAdmin,
   requirePermission,
@@ -11,6 +11,7 @@ import { createCrudRouter } from './crudFactory.js';
 import {
   handleAdminLogin,
   handleAdminMe,
+  handleChangePassword,
   listAdminUsers,
   createAdminUser,
   updateAdminUser,
@@ -104,6 +105,12 @@ export const adminRouter: Router = Router();
 
 adminRouter.post('/auth/login', adminLoginLimiter, asyncHandler(handleAdminLogin));
 adminRouter.get('/auth/me', requireAdmin, asyncHandler(handleAdminMe));
+adminRouter.post(
+  '/auth/change-password',
+  requireAdmin,
+  changePasswordLimiter,
+  asyncHandler(handleChangePassword)
+);
 
 adminRouter.get(
   '/dashboard',
