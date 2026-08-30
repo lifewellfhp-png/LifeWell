@@ -18,19 +18,19 @@ type HeroForm = { badge: string; headline: string; subhead: string; image: strin
 type WelcomeForm = { heading: string; body: string; ctaLabel: string; ctaHref: string; image: string };
 type IntroForm = { eyebrow: string; heading: string; body: string; cta: string };
 type TextForm = { heading: string; body: string; eyebrow: string };
-type StatItem = { value: string; suffix: string; label: string; hidden: boolean };
+type StatItem = { value: string; suffix: string; label: string; hidden: boolean; requiresVerification: boolean };
 
 const emptyHero: HeroForm = { badge: '', headline: '', subhead: '', image: '' };
 const emptyWelcome: WelcomeForm = { heading: '', body: '', ctaLabel: '', ctaHref: '', image: '' };
 const emptyIntro: IntroForm = { eyebrow: '', heading: '', body: '', cta: '' };
 const emptyHow: TextForm = { heading: '', body: '', eyebrow: '' };
-const emptyStat: StatItem = { value: '', suffix: '', label: '', hidden: false };
+const emptyStat: StatItem = { value: '', suffix: '', label: '', hidden: false, requiresVerification: false };
 
 /** Kept in sync with the approved defaults in client/src/data/marketing.ts. */
 const APPROVED_STATS: StatItem[] = [
-  { value: '1', suffix: '', label: 'Licensed Provider', hidden: false },
-  { value: '15', suffix: '+', label: 'Years of Experience', hidden: false },
-  { value: '24', suffix: '/7', label: 'Secure Online Access', hidden: false },
+  { value: '1', suffix: '', label: 'Licensed Provider', hidden: false, requiresVerification: false },
+  { value: '15', suffix: '+', label: 'Years of Experience', hidden: false, requiresVerification: false },
+  { value: '24', suffix: '/7', label: 'Secure Online Access', hidden: false, requiresVerification: false },
 ];
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -149,6 +149,7 @@ export function HomepageCopy() {
             suffix: typeof row.suffix === 'string' ? row.suffix : '',
             label: typeof row.label === 'string' ? row.label : '',
             hidden: Boolean(row.hidden),
+            requiresVerification: Boolean(row.requiresVerification),
           };
         })
       );
@@ -202,9 +203,19 @@ export function HomepageCopy() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
     setMessage(null);
+
+    const blockedStat = statsItems.find((s) => s.requiresVerification && !s.hidden && s.label.trim());
+    if (blockedStat) {
+      setError(
+        `"${blockedStat.label}" is marked "Requires verification" and can't be published yet. ` +
+          'Either turn its visibility back off, or confirm the figure is accurate and clear "Requires verification" first.'
+      );
+      return;
+    }
+
+    setSaving(true);
     const welcomeBody = welcome.body
       .split(/\n\s*\n/)
       .map((p) => p.trim())
@@ -246,6 +257,7 @@ export function HomepageCopy() {
             suffix: s.suffix,
             label: s.label,
             hidden: s.hidden,
+            requiresVerification: s.requiresVerification,
           })),
       }),
     ]);
@@ -354,69 +366,83 @@ export function HomepageCopy() {
         </div>
       ) : null}
       {statsItems.map((stat, i) => (
-        <div
-          key={i}
-          className="field"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 2fr auto auto auto auto',
-            gap: '0.5rem',
-            alignItems: 'center',
-            marginBottom: '0.5rem',
-          }}
-        >
-          <input
-            aria-label={`Stat ${i + 1} value`}
-            placeholder="Value (e.g. 15)"
-            value={stat.value}
-            onChange={(e) => updateStat(i, { value: e.target.value })}
-          />
-          <input
-            aria-label={`Stat ${i + 1} suffix`}
-            placeholder="Suffix (e.g. +)"
-            value={stat.suffix}
-            onChange={(e) => updateStat(i, { suffix: e.target.value })}
-          />
-          <input
-            aria-label={`Stat ${i + 1} label`}
-            placeholder="Label (e.g. Years of Experience)"
-            value={stat.label}
-            onChange={(e) => updateStat(i, { label: e.target.value })}
-          />
-          <label className="check-label" style={{ whiteSpace: 'nowrap' }}>
+        <div key={i} style={{ marginBottom: '0.5rem' }}>
+          <div
+            className="field"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 2fr auto auto auto auto auto',
+              gap: '0.5rem',
+              alignItems: 'center',
+            }}
+          >
             <input
-              type="checkbox"
-              checked={!stat.hidden}
-              onChange={(e) => updateStat(i, { hidden: !e.target.checked })}
+              aria-label={`Stat ${i + 1} value`}
+              placeholder="Value (e.g. 15)"
+              value={stat.value}
+              onChange={(e) => updateStat(i, { value: e.target.value })}
             />
-            Visible
-          </label>
-          <button
-            type="button"
-            className="icon-btn"
-            aria-label="Move stat up"
-            disabled={i === 0}
-            onClick={() => moveStat(i, -1)}
-          >
-            <ArrowUp size={15} />
-          </button>
-          <button
-            type="button"
-            className="icon-btn"
-            aria-label="Move stat down"
-            disabled={i === statsItems.length - 1}
-            onClick={() => moveStat(i, 1)}
-          >
-            <ArrowDown size={15} />
-          </button>
-          <button
-            type="button"
-            className="btn btn-danger"
-            aria-label="Remove stat"
-            onClick={() => removeStat(i)}
-          >
-            <Trash2 size={15} />
-          </button>
+            <input
+              aria-label={`Stat ${i + 1} suffix`}
+              placeholder="Suffix (e.g. +)"
+              value={stat.suffix}
+              onChange={(e) => updateStat(i, { suffix: e.target.value })}
+            />
+            <input
+              aria-label={`Stat ${i + 1} label`}
+              placeholder="Label (e.g. Years of Experience)"
+              value={stat.label}
+              onChange={(e) => updateStat(i, { label: e.target.value })}
+            />
+            <label className="check-label" style={{ whiteSpace: 'nowrap' }}>
+              <input
+                type="checkbox"
+                checked={!stat.hidden}
+                onChange={(e) => updateStat(i, { hidden: !e.target.checked })}
+              />
+              Visible
+            </label>
+            <label className="check-label" style={{ whiteSpace: 'nowrap' }}>
+              <input
+                type="checkbox"
+                checked={stat.requiresVerification}
+                onChange={(e) => updateStat(i, { requiresVerification: e.target.checked })}
+              />
+              Requires verification
+            </label>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Move stat up"
+              disabled={i === 0}
+              onClick={() => moveStat(i, -1)}
+            >
+              <ArrowUp size={15} />
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Move stat down"
+              disabled={i === statsItems.length - 1}
+              onClick={() => moveStat(i, 1)}
+            >
+              <ArrowDown size={15} />
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              aria-label="Remove stat"
+              onClick={() => removeStat(i)}
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+          {stat.requiresVerification && !stat.hidden ? (
+            <p className="muted" style={{ margin: '0.25rem 0 0', color: 'var(--danger, #b91c1c)' }}>
+              This figure is marked as requiring verification, so it won&apos;t be published even though
+              &quot;Visible&quot; is checked — clear &quot;Requires verification&quot; once you&apos;ve confirmed it.
+            </p>
+          ) : null}
         </div>
       ))}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>

@@ -910,7 +910,7 @@ function mapHowItWorks(cms: PublicCmsPayload | null) {
   };
 }
 
-function mapStats(cms: PublicCmsPayload | null): Stat[] {
+export function mapStats(cms: PublicCmsPayload | null): Stat[] {
   const content = sectionContent(cms, 'home', 'stats');
   if (!content || !Array.isArray(content.items)) return staticStats;
   const raw = content.items;

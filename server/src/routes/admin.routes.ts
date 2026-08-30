@@ -34,6 +34,41 @@ import { getSiteSettings, updateSiteSettings } from '../controllers/settings.con
 import { importLiveWebsiteContent } from '../controllers/importLive.controller.js';
 import { getSupabase } from '../lib/supabase.js';
 import { badRequest } from '../utils/errors.js';
+
+/**
+ * home/stats governance (P3-E2): a stat item explicitly marked
+ * `requiresVerification: true` must never become publicly visible through
+ * this route, regardless of what `hidden` value was submitted alongside
+ * it — the only way to make it visible is to remove the requiresVerification
+ * flag itself first, a separate, deliberate, visible admin action.
+ *
+ * No verified/approved completion state exists anywhere in the current
+ * data model, so this does not invent one: an item marked
+ * requiresVerification is treated as permanently non-public until that
+ * flag is explicitly cleared, not "pending approval" in some other sense.
+ *
+ * Scoped narrowly to page_key:'home', section_key:'stats' — every other
+ * page/section this shared `/sections` route serves (hero, welcome,
+ * fees copy, etc.) passes through untouched. Detection relies on the
+ * submitted payload including page_key/section_key, which the actual
+ * Admin stats editor always sends (see admin/src/components/HomepageCopy.tsx);
+ * a raw API call that PATCHes only `content` without repeating those two
+ * identifying fields would not be caught by this guard.
+ */
+export function enforceStatsVerificationGate(data: Record<string, unknown>): Record<string, unknown> {
+  if (data.page_key !== 'home' || data.section_key !== 'stats') return data;
+  const content = data.content;
+  if (!content || typeof content !== 'object' || Array.isArray(content)) return data;
+  const items = (content as Record<string, unknown>).items;
+  if (!Array.isArray(items)) return data;
+  const guardedItems = items.map((item) => {
+    if (item && typeof item === 'object' && (item as Record<string, unknown>).requiresVerification === true) {
+      return { ...(item as Record<string, unknown>), hidden: true };
+    }
+    return item;
+  });
+  return { ...data, content: { ...(content as Record<string, unknown>), items: guardedItems } };
+}
 import {
   announcementCreate,
   announcementUpdate,
@@ -307,6 +342,8 @@ adminRouter.use(
     createSchema: sectionCreate,
     updateSchema: sectionUpdate,
     orderBy: { column: 'page_key', ascending: true },
+    beforeCreate: enforceStatsVerificationGate,
+    beforeUpdate: enforceStatsVerificationGate,
   })
 );
 
