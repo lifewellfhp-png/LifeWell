@@ -108,6 +108,19 @@ export function organizationNode() {
 }
 
 /**
+ * `hasCredential` in Schema.org semantically describes a credential the
+ * Person actually holds. A certifications-list entry explicitly marked
+ * "(in progress)" is a real, approved fact to state in prose (bio text,
+ * the static fallback, /bio) — but it is not yet an earned credential, so
+ * it must not be emitted here. Deliberately narrow: this only recognizes
+ * the exact approved wording, never infers completion from a date or
+ * attempts any broader natural-language interpretation.
+ */
+function isCompletedCredential(entry: string): boolean {
+  return !/\(in progress\)/i.test(entry);
+}
+
+/**
  * Person/Physician node. Prefers CMS-resolved provider data field-by-field,
  * falling back to the static record (client/src/data/provider.ts) for any
  * field the caller doesn't supply or the CMS hasn't set — so this always
@@ -119,7 +132,10 @@ export function organizationNode() {
  * Central Florida (in progress)" — extracting a clean institution name from
  * that would mean parsing prose, which this is intentionally avoiding.
  * `certifications` itself needs no such parsing (both the CMS and static
- * versions are already discrete list items), so it's synced directly.
+ * versions are already discrete list items), so it's synced directly —
+ * except that an explicitly in-progress entry is filtered out of
+ * `hasCredential` (see isCompletedCredential()), since that field
+ * specifically claims a credential is held, not merely pursued.
  */
 export function providerNode(resolved?: ResolvedProviderLike) {
   const name = resolved?.name || provider.name;
@@ -156,7 +172,7 @@ export function providerNode(resolved?: ResolvedProviderLike) {
       { '@type': 'CollegeOrUniversity', name: 'South University' },
       { '@type': 'CollegeOrUniversity', name: 'Walden University' },
     ],
-    hasCredential: certifications.map((c) => ({
+    hasCredential: certifications.filter(isCompletedCredential).map((c) => ({
       '@type': 'EducationalOccupationalCredential',
       credentialCategory: 'Board Certification',
       name: c,

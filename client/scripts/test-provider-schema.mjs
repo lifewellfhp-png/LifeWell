@@ -39,9 +39,12 @@ test('B. providerNode with no argument uses the existing static provider fallbac
   assert.equal(node.jobTitle, staticProvider.role);
   assert.equal(node.description, staticProvider.bio[0]);
   assert.ok(node.image.url.includes(staticProvider.image.src));
+  // hasCredential excludes any explicitly in-progress entry (see P3-E1C) —
+  // compare against the static list with that entry filtered out, not the
+  // raw array, which still (correctly) contains the DNP-in-progress item.
   assert.deepEqual(
     node.hasCredential.map((c) => c.name),
-    staticProvider.certifications
+    staticProvider.certifications.filter((c) => !/\(in progress\)/i.test(c))
   );
 });
 
@@ -82,7 +85,7 @@ test('D2. an empty resolved certifications array falls back to static certificat
   const node = providerNode({ certifications: [] });
   assert.deepEqual(
     node.hasCredential.map((c) => c.name),
-    staticProvider.certifications
+    staticProvider.certifications.filter((c) => !/\(in progress\)/i.test(c))
   );
 });
 
@@ -176,15 +179,83 @@ test('P3-E1B.D providerNode() with CMS data still prefers the CMS value over the
   assert.equal(node.name.includes('APRN'), false);
 });
 
-test('P3-E1B.E DNP is represented as in-progress, never as a completed/earned credential, in the static fallback', () => {
+test('P3-E1B.E (superseded by P3-E1C below) DNP is never represented as completed in the formal name/credentials string', () => {
   const node = providerNode();
-  const dnpCredential = node.hasCredential.find((c) => /DNP/.test(c.name));
-  assert.ok(dnpCredential);
-  assert.ok(/in progress/i.test(dnpCredential.name));
-  assert.equal(/earned|completed|awarded/i.test(dnpCredential.name), false);
   // The formal name/credentials string must never append a DNP suffix,
   // which would imply the degree has been conferred.
   assert.equal(/,\s*DNP\b/.test(node.name), false);
+});
+
+/* ---- P3-E1C: exclude in-progress credentials from Schema.org hasCredential ---- */
+
+test('P3-E1C.A providerNode(static fallback) does NOT emit the DNP-in-progress entry in hasCredential', () => {
+  const node = providerNode();
+  assert.equal(
+    node.hasCredential.some((c) => /DNP/.test(c.name)),
+    false
+  );
+});
+
+test('P3-E1C.B providerNode(CMS resolved) does NOT emit an "(in progress)" entry in hasCredential', () => {
+  const node = providerNode({
+    certifications: [
+      'Doctor of Nursing Practice (DNP) — University of Central Florida (in progress)',
+      'PMHNP-BC — Psychiatric-Mental Health Nurse Practitioner, Board Certified',
+    ],
+  });
+  assert.deepEqual(
+    node.hasCredential.map((c) => c.name),
+    ['PMHNP-BC — Psychiatric-Mental Health Nurse Practitioner, Board Certified']
+  );
+});
+
+test('P3-E1C.C completed credential entries still emit normally', () => {
+  const node = providerNode();
+  const names = node.hasCredential.map((c) => c.name);
+  assert.ok(names.some((n) => n.includes('FNP-C')));
+  assert.ok(names.some((n) => n.includes('PMHNP-BC')));
+  assert.ok(names.some((n) => n.includes('RRT')));
+  assert.ok(names.some((n) => n.includes('CCRN')));
+  assert.equal(names.length, staticProvider.certifications.length - 1);
+});
+
+test('P3-E1C.D formal credentials string remains "APRN, FNP-C, PMHNP-BC, RRT, CCRN"', () => {
+  const node = providerNode();
+  assert.ok(node.name.includes('APRN, FNP-C, PMHNP-BC, RRT, CCRN'));
+});
+
+test('P3-E1C.E provider.ts itself still contains the DNP-in-progress entry (the filter is JSON-LD-only, not a content removal)', () => {
+  assert.ok(
+    staticProvider.certifications.some(
+      (c) => /DNP/.test(c) && /in progress/i.test(c) && /University of Central Florida/.test(c)
+    )
+  );
+});
+
+test('P3-E1C.F no bare "DNP" is appended to provider name or any hasCredential entry', () => {
+  const node = providerNode();
+  assert.equal(/,\s*DNP\b/.test(node.name), false);
+  assert.equal(
+    node.hasCredential.some((c) => /^DNP$/.test(c.name.trim())),
+    false
+  );
+});
+
+test('P3-E1C.G filtering an in-progress entry never introduces undefined/broken JSON', () => {
+  const node = providerNode();
+  const serialized = JSON.stringify(node);
+  assert.equal(serialized.includes('undefined'), false);
+  assert.ok(Array.isArray(node.hasCredential) && node.hasCredential.length > 0);
+});
+
+test('P3-E1C: an in-progress entry with different casing/spacing in the marker is still excluded', () => {
+  const node = providerNode({
+    certifications: ['Some Degree — Somewhere (IN PROGRESS)', 'Real Credential — Real Board'],
+  });
+  assert.deepEqual(
+    node.hasCredential.map((c) => c.name),
+    ['Real Credential — Real Board']
+  );
 });
 
 test('a CMS credentials value ("APRN, FNP-C, PMHNP-BC, RRT, CCRN") is used verbatim, not merged with the static string', () => {
