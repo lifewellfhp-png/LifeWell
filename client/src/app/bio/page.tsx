@@ -31,7 +31,7 @@ export default async function BioPage() {
   const loc = cms.locations.find((row) => row.isPrimary) ?? cms.locations[0];
   return (
     <>
-      <JsonLd data={providerPageGraph(DESCRIPTION)} id="provider-schema" />
+      <JsonLd data={providerPageGraph(DESCRIPTION, cms.provider ?? undefined)} id="provider-schema" />
       <BioPageContent
         overlay={cms.provider ?? undefined}
         testimonials={cms.testimonials}

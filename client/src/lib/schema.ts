@@ -29,6 +29,36 @@ const abs = (path: string) =>
   path.startsWith('http') ? path : `${site.url}${path.startsWith('/') ? path : `/${path}`}`;
 
 /**
+ * Shape of `cms.provider` (see mapProvider() in cms-resolve.ts) — kept local
+ * and structural rather than importing a type from cms-resolve.ts, since no
+ * exported type exists there and this is the only field set schema.ts needs.
+ * Every field is optional so a partially-filled CMS row still produces valid
+ * output: providerNode() falls back to the static record field-by-field.
+ */
+type ResolvedProviderLike = {
+  name?: string;
+  credentials?: string;
+  title?: string | null;
+  bio?: string | null;
+  photoUrl?: string | null;
+  certifications?: string[];
+} | null;
+
+/**
+ * Splits a two-token "First Last" name for givenName/familyName. Bounded
+ * deliberately: any name that isn't exactly two space-separated tokens
+ * (a middle name, suffix, hyphenation, etc.) falls back to the existing
+ * static values rather than guessing — for this single-provider site the
+ * static fallback is never wrong, so there's no reason to risk a bad split.
+ */
+function splitName(fullName: string | undefined): { givenName: string; familyName: string } {
+  const parts = fullName?.trim().split(/\s+/) ?? [];
+  const [first, last] = parts;
+  if (parts.length === 2 && first && last) return { givenName: first, familyName: last };
+  return { givenName: 'Lourdie', familyName: 'Chachoute' };
+}
+
+/**
  * Every state the provider is authorized to treat patients in via telehealth
  * (plus Florida's in-person option). Single source: data/telehealth-states.ts.
  */
@@ -77,19 +107,44 @@ export function organizationNode() {
   };
 }
 
-export function providerNode() {
+/**
+ * Person/Physician node. Prefers CMS-resolved provider data field-by-field,
+ * falling back to the static record (client/src/data/provider.ts) for any
+ * field the caller doesn't supply or the CMS hasn't set — so this always
+ * produces complete, valid output whether or not CMS data is available.
+ *
+ * `alumniOf` (specific university names) and `knowsAbout`/`medicalSpecialty`
+ * stay static deliberately: the CMS `education`/`certifications` fields are
+ * free-text lines like "Doctor of Nursing Practice (DNP) — University of
+ * Central Florida (in progress)" — extracting a clean institution name from
+ * that would mean parsing prose, which this is intentionally avoiding.
+ * `certifications` itself needs no such parsing (both the CMS and static
+ * versions are already discrete list items), so it's synced directly.
+ */
+export function providerNode(resolved?: ResolvedProviderLike) {
+  const name = resolved?.name || provider.name;
+  const credentials = resolved?.credentials || provider.credentials;
+  const jobTitle = resolved?.title || provider.role;
+  const bioParagraphs = resolved?.bio
+    ? resolved.bio.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
+    : provider.bio;
+  const description = bioParagraphs[0] || provider.bio[0];
+  const photoSrc = resolved?.photoUrl || provider.image.src;
+  const certifications = resolved?.certifications?.length ? resolved.certifications : provider.certifications;
+  const { givenName, familyName } = splitName(resolved?.name);
+
   return {
     '@type': ['Person', 'Physician'],
     '@id': PROVIDER_ID,
-    name: `${provider.name}, ${provider.credentials}`,
-    givenName: 'Lourdie',
-    familyName: 'Chachoute',
-    jobTitle: provider.role,
-    description: provider.bio[0],
+    name: `${name}, ${credentials}`,
+    givenName,
+    familyName,
+    jobTitle,
+    description,
     url: `${site.url}/bio`,
     image: {
       '@type': 'ImageObject',
-      url: abs(provider.image.src),
+      url: abs(photoSrc),
       width: provider.image.width,
       height: provider.image.height,
     },
@@ -101,7 +156,7 @@ export function providerNode() {
       { '@type': 'CollegeOrUniversity', name: 'South University' },
       { '@type': 'CollegeOrUniversity', name: 'Walden University' },
     ],
-    hasCredential: provider.certifications.map((c) => ({
+    hasCredential: certifications.map((c) => ({
       '@type': 'EducationalOccupationalCredential',
       credentialCategory: 'Board Certification',
       name: c,
@@ -178,10 +233,12 @@ export function pageGraph(
   ]);
 }
 
-export function providerPageGraph(description: string) {
+export function providerPageGraph(description: string, resolved?: ResolvedProviderLike) {
+  const name = resolved?.name || provider.name;
+  const credentials = resolved?.credentials || provider.credentials;
   return graph([
     {
-      ...webPageNode('/bio', `${provider.name}, ${provider.credentials}`, description),
+      ...webPageNode('/bio', `${name}, ${credentials}`, description),
       '@type': 'ProfilePage',
       mainEntity: { '@id': PROVIDER_ID },
     },
