@@ -266,6 +266,28 @@ create table if not exists conversions (
   created_at timestamptz not null default now()
 );
 
+-- ---------------------------------------------------------------------------
+-- RLS posture (reviewed P4-E1): every table below has RLS enabled and
+-- deliberately ZERO policies. That is a default-deny control, not an
+-- oversight — reviewed and reaffirmed, not merely inherited.
+--
+-- All Supabase access in this app goes through server/src/lib/supabase.ts's
+-- single client, which uses SUPABASE_SERVICE_ROLE_KEY exclusively (bypasses
+-- RLS by design). Neither client/ nor admin/ holds a Supabase credential —
+-- every read and write is mediated by the Express API, which does its own
+-- authorization (requireAdmin/requirePermission/requireSuperAdmin) and, for
+-- the public content API, its own row *and column* filtering. RLS row
+-- filters alone cannot reproduce that column-level restriction, which is
+-- one reason the P4-E1 audit chose not to add anon/authenticated SELECT
+-- policies even for tables already exposed read-only via the public API.
+--
+-- If anon-key (or Supabase Auth "authenticated") access is ever introduced
+-- for real — i.e. a client-side Supabase call that bypasses the Express
+-- API — that is a new decision requiring its own review of exactly which
+-- tables AND which columns should be exposed before any policy is written.
+-- Do not add a permissive policy "to unblock" such a change without that
+-- review; the absence of policies here is the safety margin.
+-- ---------------------------------------------------------------------------
 alter table admin_users enable row level security;
 alter table leads enable row level security;
 alter table announcements enable row level security;
