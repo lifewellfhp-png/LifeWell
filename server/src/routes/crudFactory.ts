@@ -10,7 +10,7 @@ import {
   type AuthedRequest,
 } from '../middleware/adminAuth.js';
 import { badRequest, notFound } from '../utils/errors.js';
-import { recordLabel, writeAuditLog } from '../lib/audit.js';
+import { diffChanges, recordLabel, writeAuditLog } from '../lib/audit.js';
 import { refreshPublicSite } from '../lib/refreshSite.js';
 
 function withoutOptionalMediaFields(payload: Record<string, unknown>) {
@@ -122,6 +122,15 @@ export function createCrudRouter(options: CrudOptions): Router {
         updated_at: new Date().toISOString(),
       };
       if (beforeUpdate) payload = beforeUpdate(payload);
+
+      // Best-effort: read the prior row so the audit log can record exactly
+      // which fields changed. Never blocks the update if it fails.
+      const { data: before } = await getSupabase()
+        .from(table)
+        .select('*')
+        .eq('id', req.params.id)
+        .maybeSingle();
+
       let { data, error } = await getSupabase()
         .from(table)
         .update(payload)
@@ -141,12 +150,14 @@ export function createCrudRouter(options: CrudOptions): Router {
       if (error) throw badRequest(error.message);
       if (!data) throw notFound('Record not found.');
       const actor = (req as AuthedRequest).admin;
+      const changes = diffChanges(before as Record<string, unknown> | null, payload);
       await writeAuditLog({
         actor,
         action: 'update',
         resource: module,
         resourceId: String(req.params.id),
         summary: `Updated ${module}: ${recordLabel(data as Record<string, unknown>)}`,
+        meta: changes ? { changes, origin: { method: 'PATCH', endpoint: `/${table}/:id` } } : undefined,
       });
       void refreshPublicSite();
       res.json({ success: true, data });

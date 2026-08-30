@@ -319,7 +319,7 @@ export async function listAuditLogs(req: Request, res: Response): Promise<void> 
   const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 200) : 80;
   const { data, error } = await getSupabase()
     .from('admin_audit_logs')
-    .select('id, actor_email, actor_name, action, resource, resource_id, summary, created_at')
+    .select('id, actor_email, actor_name, action, resource, resource_id, summary, meta, created_at')
     .order('created_at', { ascending: false })
     .limit(limit);
   if (error) throw badRequest(error.message);
