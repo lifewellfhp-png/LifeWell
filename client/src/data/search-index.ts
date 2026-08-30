@@ -61,6 +61,13 @@ function build(): SearchEntry[] {
         .join(' ')}`,
     },
     {
+      title: 'New Patients',
+      href: '/new-patients',
+      section: 'Pages',
+      summary: 'What to expect at your first visit and how to prepare.',
+      keywords: 'new patients first visit first appointment what to expect prepare for appointment intake',
+    },
+    {
       title: 'Book an Appointment',
       href: '/book-telehealth-mental-health-appointment',
       section: 'Pages',
