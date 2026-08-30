@@ -73,11 +73,11 @@ export const generatedLegalPages: LegalPage[] = [
         ]
       },
       {
-        "heading": "Confidentiality and HIPAA Compliance",
+        "heading": "Confidentiality and Data Protection",
         "blocks": [
           {
             "type": "text",
-            "text": "We follow professional and legal standards to protect your health information. Telehealth sessions and electronic communications are conducted through secure, encrypted, and HIPAA-compliant platforms."
+            "text": "We follow professional and legal standards designed to protect your health information. Telehealth sessions and electronic communications are conducted using encrypted connections through our scheduling and telehealth providers."
           },
           {
             "type": "text",
@@ -231,7 +231,7 @@ export const generatedLegalPages: LegalPage[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Telehealth services are provided through secure, HIPAA-compliant platforms. By scheduling an appointment, you agree to participate in telehealth services voluntarily."
+            "text": "Telehealth services are provided through our scheduling and telehealth video provider. By scheduling an appointment, you agree to participate in telehealth services voluntarily."
           },
           {
             "type": "text",

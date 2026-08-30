@@ -58,7 +58,7 @@ export const benefits: Benefit[] = [
   {
     title: 'Private & Secure Telehealth Sessions',
     description:
-      'All appointments are conducted through secure, HIPAA-compliant platforms to ensure your privacy and confidentiality at every step.',
+      'All appointments are conducted through our telehealth platform, designed with your privacy and confidentiality in mind at every step.',
     image: {
       src: '/images/benefits/Private-Secure-Telehealth-Sessions.avif',
       width: 1180,
@@ -225,7 +225,7 @@ export const faqs: Faq[] = [
   {
     question: 'Are telehealth sessions confidential?',
     answer:
-      'Yes. All telehealth sessions are conducted through secure, HIPAA-compliant platforms to protect your privacy and confidentiality.',
+      'Yes. All telehealth sessions are conducted through our telehealth platform, which is designed with your privacy and confidentiality in mind.',
   },
   {
     question: 'What do I need for a telehealth appointment?',

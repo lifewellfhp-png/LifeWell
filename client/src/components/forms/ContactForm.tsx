@@ -143,11 +143,11 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
           <p className="text-sm text-text-secondary">
             <strong className="font-semibold text-text-primary">Please note:</strong> do not include
             sensitive medical or personal health information in this form. For clinical matters,
-            call{' '}
+            please call our office at{' '}
             <a href={site.contact.phoneHref} className="font-semibold text-text-link">
               {site.contact.phone}
-            </a>{' '}
-            or use the secure patient portal.
+            </a>
+            .
           </p>
         </div>
       )}

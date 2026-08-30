@@ -200,7 +200,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "All psychiatric evaluations are conducted through a secure, HIPAA-compliant telehealth platform, allowing you to receive professional care from the comfort and privacy of your home."
+            "text": "All psychiatric evaluations are conducted through our telehealth platform, allowing you to receive professional care from the comfort and privacy of your home."
           },
           {
             "type": "text",
@@ -439,7 +439,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "All medication management appointments are conducted through secure, HIPAA-compliant telehealth platforms. This allows you to receive professional psychiatric care without needing to travel."
+            "text": "All medication management appointments are conducted through our telehealth platform. This allows you to receive professional psychiatric care without needing to travel."
           },
           {
             "type": "text",
@@ -734,7 +734,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "All treatment is provided through secure, HIPAA-compliant telehealth platforms, allowing you to receive care from the comfort and privacy of your home."
+            "text": "All treatment is provided through our telehealth platform, allowing you to receive care from the comfort and privacy of your home."
           },
           {
             "type": "text",

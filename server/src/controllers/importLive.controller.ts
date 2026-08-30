@@ -38,7 +38,7 @@ const FAQS = [
   ['What is telehealth mental health care?', 'Telehealth mental health care allows you to receive therapy, psychiatric evaluation, and medication management through secure video appointments instead of in-person visits.'],
   ['How do I schedule an appointment?', 'You can schedule an appointment using the online booking system. After scheduling, you will receive confirmation and instructions for your telehealth session.'],
   ['Do you accept insurance?', 'We accept select insurance plans. Please contact us or visit the Fees & Insurance page to verify coverage and payment options.'],
-  ['Are telehealth sessions confidential?', 'Yes. All telehealth sessions are conducted through secure, HIPAA-compliant platforms to protect your privacy and confidentiality.'],
+  ['Are telehealth sessions confidential?', 'Yes. All telehealth sessions are conducted through our telehealth platform, which is designed with your privacy and confidentiality in mind.'],
   ['What do I need for a telehealth appointment?', 'You will need a stable internet connection, a computer, tablet, or smartphone, and a private location for your session.'],
   ['Can I reschedule or cancel my appointment?', 'Yes. Appointments can be rescheduled or canceled according to the cancellation policy. Please contact us in advance to make changes.'],
   ['What insurance plans do you accept?', 'I accept select insurance plans for mental health services. Coverage may vary depending on your insurance provider and individual policy. Please contact me directly to confirm whether your plan is accepted and to verify your mental health benefits.'],
@@ -217,7 +217,7 @@ export async function runLiveImport(): Promise<Record<string, number>> {
           {
             title: 'Private & Secure Telehealth Sessions',
             description:
-              'All appointments are conducted through secure, HIPAA-compliant platforms to ensure your privacy and confidentiality at every step.',
+              'All appointments are conducted through our telehealth platform, designed with your privacy and confidentiality in mind at every step.',
             image: '/images/benefits/Private-Secure-Telehealth-Sessions.avif',
           },
           {
