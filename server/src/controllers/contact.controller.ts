@@ -8,6 +8,31 @@ import { badRequest } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { supabaseConfigured } from '../lib/supabase.js';
 
+/**
+ * Builds the operational log body for a contact-form notification.
+ * Deliberately takes only name/email/phone/referenceId as parameters — no
+ * message/body text is accepted, so (like buildLeadInsertPayload in
+ * leads.controller.ts) this function structurally cannot embed the
+ * free-text message even if a future caller passed the wider `ContactInput`
+ * object in by mistake. Exported so tests can prove this without a live
+ * Supabase connection. See P4-B2.
+ */
+export function buildContactLogBody(input: {
+  name: string;
+  email: string;
+  phone?: string;
+  referenceId: string;
+}): string {
+  return [
+    `Name: ${input.name}`,
+    `Email: ${input.email}`,
+    `Phone: ${input.phone || '—'}`,
+    `Reference: ${input.referenceId}`,
+    '',
+    '[Message content is not stored here. It was forwarded by email only — see the practice inbox notification for this reference.]',
+  ].join('\n');
+}
+
 export async function handleContact(req: Request, res: Response): Promise<void> {
   const parsed = contactSchema.safeParse(req.body);
 
@@ -33,13 +58,15 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
 
   if (supabaseConfigured()) {
     try {
+      // Deliberately omits parsed.data.message — see storeLead()'s doc
+      // comment (P4-B2). The message is still forwarded by email below;
+      // it is just never written to this table.
       await storeLead({
         type: 'contact',
         name: parsed.data.name,
         email: parsed.data.email,
         phone: parsed.data.phone,
         subject: parsed.data.subject,
-        message: parsed.data.message,
         reference_id: referenceId,
       });
       leadStored = true;
@@ -67,6 +94,10 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
     };
   }
 
+  // P4-B2: the logged body is operational metadata only — name/email/
+  // phone/reference are already stored in `leads`, so this adds nothing
+  // new. The free-text message itself is intentionally never included
+  // here; it was already forwarded (or attempted) via SMTP above.
   await logEmailMessage({
     direction: 'inbound',
     from_email: parsed.data.email,
@@ -74,14 +105,12 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
     to_email: result.inbox,
     to_name: 'LifeWell inbox',
     subject: parsed.data.subject || `Website enquiry from ${parsed.data.name}`,
-    body: [
-      `Name: ${parsed.data.name}`,
-      `Email: ${parsed.data.email}`,
-      `Phone: ${parsed.data.phone || '—'}`,
-      `Reference: ${referenceId}`,
-      '',
-      parsed.data.message,
-    ].join('\n'),
+    body: buildContactLogBody({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      phone: parsed.data.phone,
+      referenceId,
+    }),
     status: result.delivered ? 'sent' : 'failed',
     error: result.delivered ? null : 'SMTP did not accept the message',
   });

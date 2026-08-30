@@ -58,28 +58,47 @@ export async function deleteLead(req: Request, res: Response): Promise<void> {
   res.json({ success: true });
 }
 
-/** Store a website lead without logging message body (PHI-safe). */
-export async function storeLead(input: {
+export type StoreLeadInput = {
   type: 'contact' | 'support' | 'newsletter';
   name?: string;
   email?: string;
   phone?: string;
   subject?: string;
-  message?: string;
   reference_id?: string;
   source?: string;
-}): Promise<void> {
-  const { error } = await getSupabase().from('leads').insert({
+};
+
+/**
+ * Pure payload builder, exported only so tests can prove — without a live
+ * Supabase connection — exactly what would be inserted. Deliberately takes
+ * no `message` field at all: this is what actually enforces the P4-B2
+ * data-minimization decision, structurally rather than by caller
+ * discipline. Even if some future input object happens to carry an extra
+ * `message` property (e.g. from a loosely-typed caller), it is never read
+ * here, so it can never reach the insert payload.
+ */
+export function buildLeadInsertPayload(input: StoreLeadInput) {
+  return {
     type: input.type,
     name: input.name ?? null,
     email: input.email ?? null,
     phone: input.phone ?? null,
     subject: input.subject ?? null,
-    message: input.message ?? null,
     reference_id: input.reference_id ?? null,
     source: input.source ?? 'website',
-    status: 'new',
-  });
+    status: 'new' as const,
+  };
+}
+
+/**
+ * Stores a website lead. The public Contact form's free-text message is
+ * forwarded by email (see contact.controller.ts / email.service.ts) but
+ * never reaches this table — see buildLeadInsertPayload() above. The
+ * historical leads.message column is left in place for existing rows and
+ * is not dropped.
+ */
+export async function storeLead(input: StoreLeadInput): Promise<void> {
+  const { error } = await getSupabase().from('leads').insert(buildLeadInsertPayload(input));
   if (error) {
     // Soft-fail so form delivery is not blocked if DB is down.
     throw new Error(error.message);

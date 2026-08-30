@@ -59,11 +59,19 @@ export async function resolveInboxEmail(): Promise<string> {
 }
 
 /**
- * Sends the contact-form notification.
+ * Sends the contact-form notification email.
  *
- * Nothing is persisted. The submission is validated, forwarded, and dropped —
- * storing what may be protected health information would place this service in
- * HIPAA scope and require a BAA with the host and mail provider.
+ * The free-text message is used transiently here — and in the SMTP payload
+ * built below — to deliver the notification, which is the whole point of
+ * the form. It is intentionally never written to leads.message or to
+ * email_messages.body (see storeLead() and contact.controller.ts, P4-B2):
+ * this function forwards the message, it does not store it.
+ *
+ * That narrows, but does not eliminate, what this workflow touches: the
+ * message still passes through this server's memory and through whichever
+ * SMTP provider is configured. Whether that provider is HIPAA-capable and
+ * BAA-covered is a separate, unresolved vendor decision — nothing here
+ * constitutes or implies a compliance claim.
  */
 export async function sendContactNotification(
   input: ContactInput,
