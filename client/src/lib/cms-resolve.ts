@@ -64,7 +64,7 @@ export type ResolvedContent = {
   stats: Stat[];
   booking: { url: string; page: string; label: string };
   announcements: { title: string; body: string; tone: string }[];
-  videos: { title: string; url: string; provider: string; description?: string | null; embedHtml?: string | null }[];
+  videos: { title: string; url: string; provider: string; description?: string | null }[];
   settings: {
     primaryColor: string;
     accentColor: string;
@@ -439,17 +439,15 @@ function mapVideos(cms: PublicCmsPayload | null) {
     url?: string;
     provider?: string;
     description?: string | null;
-    embed_html?: string | null;
     published?: boolean;
   }[];
   return rows
-    .filter((r) => r.published !== false && r.title && (r.url || r.embed_html))
+    .filter((r) => r.published !== false && r.title && r.url)
     .map((r) => ({
       title: String(r.title),
       url: String(r.url || ''),
       provider: String(r.provider || 'youtube'),
       description: r.description ?? null,
-      embedHtml: r.embed_html ?? null,
     }));
 }
 

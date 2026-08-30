@@ -20,7 +20,7 @@ export default function Page() {
             url={String(form.url || '')}
             provider={String(form.provider || 'youtube')}
             description={form.description ? String(form.description) : null}
-            embedHtml={form.embed_html ? String(form.embed_html) : null}
+            hasLegacyEmbedHtml={Boolean(form.embed_html && String(form.embed_html).trim())}
             published={Boolean(form.published)}
           />
         ),
@@ -47,10 +47,9 @@ export default function Page() {
             { value: 'embed', label: 'Embed' },
           ],
         },
-        { key: 'url', label: 'URL', full: true },
+        { key: 'url', label: 'URL (YouTube, Vimeo, or a direct video file link)', full: true },
         { key: 'thumbnail_url', label: 'Thumbnail URL', full: true },
         { key: 'description', label: 'Description', type: 'textarea', full: true },
-        { key: 'embed_html', label: 'Embed HTML (optional)', type: 'textarea', full: true },
         { key: 'sort_order', label: 'Sort order', type: 'number' },
         { key: 'published', label: 'Published on homepage', type: 'checkbox' },
       ]}

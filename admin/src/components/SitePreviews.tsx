@@ -3,6 +3,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { findMediaPlacements, VIDEO_PLACEMENT, type Placement } from '@/lib/placements';
 import { publicAssetUrl } from '@/lib/site';
+import { resolveVideoEmbed } from '@/lib/videoEmbed';
 
 const HEADING_FONT: Record<string, string> = {
   Lora: 'var(--font-lora), Georgia, serif',
@@ -207,40 +208,64 @@ export function MediaPreview({
   );
 }
 
-function youtubeId(url: string): string | null {
-  const match = url.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{6,})/);
-  return match?.[1] ?? null;
-}
+const YOUTUBE_ALLOW =
+  'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+const VIMEO_ALLOW = 'autoplay; fullscreen; picture-in-picture';
 
 export function VideoPreview({
   title,
   url,
   provider,
   description,
-  embedHtml,
+  hasLegacyEmbedHtml,
   published,
 }: {
   title?: string;
   url?: string;
   provider?: string;
   description?: string | null;
-  embedHtml?: string | null;
+  /** True if this row still has a legacy embed_html value in the database.
+   * Never rendered — only used to prompt the editor to replace it with a
+   * supported video URL. See P4-E3. */
+  hasLegacyEmbedHtml?: boolean;
   published?: boolean;
 }) {
-  const yt = provider === 'youtube' && url ? youtubeId(url) : null;
+  const resolved = resolveVideoEmbed(provider, url);
   return (
     <div className="video-mock">
       <p className="preview-place">
         Homepage section <strong>Watch and Learn</strong> ({VIDEO_PLACEMENT.path})
         {published === false ? ' — draft, hidden from visitors until published and saved.' : ' — goes live after Save.'}
       </p>
+      {hasLegacyEmbedHtml ? (
+        <p className="preview-place warn">
+          This video has legacy embed code from before this field was retired for security reasons. It
+          is no longer shown to visitors. Replace it with a YouTube or Vimeo URL above, then Save.
+        </p>
+      ) : null}
       <div className="video-frame">
-        {embedHtml ? (
-          <div className="video-embed" dangerouslySetInnerHTML={{ __html: embedHtml }} />
-        ) : yt ? (
-          <iframe title={title || 'Video'} src={`https://www.youtube-nocookie.com/embed/${yt}`} allowFullScreen />
+        {resolved.kind === 'youtube' ? (
+          <iframe
+            title={title || 'Video'}
+            src={`https://www.youtube-nocookie.com/embed/${resolved.id}`}
+            allow={YOUTUBE_ALLOW}
+            allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        ) : resolved.kind === 'vimeo' ? (
+          <iframe
+            title={title || 'Video'}
+            src={`https://player.vimeo.com/video/${resolved.id}`}
+            allow={VIMEO_ALLOW}
+            allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        ) : resolved.kind === 'file' ? (
+          <video src={publicAssetUrl(resolved.url)} controls />
         ) : url ? (
-          <video src={publicAssetUrl(url)} controls />
+          <p>No preview available for this URL — supported sources are YouTube, Vimeo, or a direct video file URL.</p>
         ) : (
           <p>Add a URL to preview</p>
         )}

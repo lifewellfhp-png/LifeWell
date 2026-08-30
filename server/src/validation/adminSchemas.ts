@@ -161,23 +161,42 @@ export const mediaCreate = z.object({
 });
 export const mediaUpdate = mediaCreate.partial();
 
+/**
+ * Only an https:// URL is ever accepted for a video (P4-E3) — rejects
+ * javascript:, data:, blob:, protocol-relative, and malformed input by
+ * construction, since `new URL()` throws on anything that isn't a
+ * well-formed absolute URL and the protocol check excludes every
+ * non-https scheme. No raw HTML is accepted for videos at all: the
+ * `embed_html` field has been removed from this schema entirely, so a
+ * request that includes it has that key silently dropped before it ever
+ * reaches the database (see crudFactory.ts, which inserts/updates using
+ * only `parsed.data`, never the raw request body) — not sanitized,
+ * simply never accepted as a write target.
+ */
+const httpsUrl = z.string().max(2000).refine(
+  (value) => {
+    try {
+      return new URL(value).protocol === 'https:';
+    } catch {
+      return false;
+    }
+  },
+  { message: 'Must be a valid https:// URL' }
+);
+
 const videoFields = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(5000).optional().nullable(),
   provider: z.enum(['youtube', 'vimeo', 'file', 'embed']).default('youtube'),
-  url: z.string().max(2000).optional().nullable().or(z.literal('')),
-  embed_html: z.string().max(10000).optional().nullable(),
-  thumbnail_url: z.string().optional().nullable(),
+  url: httpsUrl.optional().nullable().or(z.literal('')),
+  thumbnail_url: httpsUrl.optional().nullable().or(z.literal('')),
   published: z.boolean().default(true),
   sort_order: z.number().int().default(0),
 });
-export const videoCreate = videoFields.refine(
-  (row) => Boolean((row.url && String(row.url).trim()) || (row.embed_html && String(row.embed_html).trim())),
-  {
-    message: 'Add a video URL or embed HTML',
-    path: ['url'],
-  }
-);
+export const videoCreate = videoFields.refine((row) => Boolean(row.url && String(row.url).trim()), {
+  message: 'Add a video URL',
+  path: ['url'],
+});
 export const videoUpdate = videoFields.partial();
 
 export const sectionCreate = z.object({

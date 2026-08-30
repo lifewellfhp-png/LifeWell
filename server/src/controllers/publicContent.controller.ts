@@ -71,7 +71,17 @@ export async function getPublicContent(_req: Request, res: Response): Promise<vo
         .eq('published', true)
         .order('published_at', { ascending: false })
     ),
-    resolveTable('videos', sb.from('videos').select('*').eq('published', true).order('sort_order')),
+    // Explicit column list — deliberately excludes embed_html (legacy,
+    // never rendered as HTML anywhere; see P4-E3) so the raw value never
+    // leaves the server for the public API at all.
+    resolveTable(
+      'videos',
+      sb
+        .from('videos')
+        .select('id, title, description, provider, url, thumbnail_url, published, sort_order, created_at, updated_at')
+        .eq('published', true)
+        .order('sort_order')
+    ),
     resolveTable('site_sections', sb.from('site_sections').select('*').eq('published', true).order('updated_at', { ascending: false })),
     resolveTable('booking_settings', sb.from('booking_settings').select('*').eq('active', true)),
     resolveTable('seo_meta', sb.from('seo_meta').select('*')),
