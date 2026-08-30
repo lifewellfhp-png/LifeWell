@@ -138,19 +138,17 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
 
   return (
     <form onSubmit={onSubmit} noValidate className={compact ? 'space-y-5' : 'space-y-6'}>
-      {!compact && (
-        <div className="rounded-md border border-border-subtle bg-surface-muted px-5 py-4">
-          <p className="text-sm text-text-secondary">
-            <strong className="font-semibold text-text-primary">Please note:</strong> do not include
-            sensitive medical or personal health information in this form. For clinical matters,
-            please call our office at{' '}
-            <a href={site.contact.phoneHref} className="font-semibold text-text-link">
-              {site.contact.phone}
-            </a>
-            .
-          </p>
-        </div>
-      )}
+      <div className="rounded-md border border-border-subtle bg-surface-muted px-5 py-4">
+        <p className="text-sm text-text-secondary">
+          <strong className="font-semibold text-text-primary">Please note:</strong> do not include
+          sensitive medical or personal health information in this form. For clinical matters,
+          please call our office at{' '}
+          <a href={site.contact.phoneHref} className="font-semibold text-text-link">
+            {site.contact.phone}
+          </a>
+          .
+        </p>
+      </div>
 
       <div className={compact ? 'grid gap-5 sm:grid-cols-2' : 'grid gap-6 sm:grid-cols-2'}>
         <TextField
