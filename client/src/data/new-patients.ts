@@ -13,7 +13,7 @@ export const newPatientsHero = {
 };
 
 export const beforeYourVisit = {
-  heading: 'Before ',
+  heading: 'Before',
   headingAccent: 'Your Visit',
   body: "A little preparation helps your first appointment go smoothly. It's helpful to have the following ready:",
   items: [
@@ -25,7 +25,7 @@ export const beforeYourVisit = {
 };
 
 export const whatToExpect = {
-  heading: 'What to ',
+  heading: 'What to',
   headingAccent: 'Expect',
   body: [
     "Your first visit is a chance to talk through what's bringing you in, share relevant history, and describe your current symptoms and goals for care.",
@@ -34,7 +34,7 @@ export const whatToExpect = {
 };
 
 export const telehealthSection = {
-  heading: 'Telehealth ',
+  heading: 'Telehealth',
   headingAccent: 'Visits',
   body: 'Psychiatric telehealth appointments are available for patients located in Florida, Massachusetts, and Arizona at the time of their visit. All you need is a private space, a reliable internet connection, and a device with video and audio.',
   states: [
@@ -45,7 +45,7 @@ export const telehealthSection = {
 };
 
 export const inPersonSection = {
-  heading: 'In-Person ',
+  heading: 'In-Person',
   headingAccent: 'Visits',
   body: "In-person visits are available at LifeWell's Orlando office.",
   address: {
@@ -55,13 +55,13 @@ export const inPersonSection = {
 };
 
 export const insuranceSection = {
-  heading: 'Insurance & ',
+  heading: 'Insurance &',
   headingAccent: 'Self-Pay',
   body: 'Review insurance and self-pay information before your visit.',
 };
 
 export const questionsSection = {
-  heading: 'Questions ',
+  heading: 'Questions',
   headingAccent: 'Before Your Visit',
   body: "If you still have questions, our FAQs cover the most common ones — or reach out directly and we'll help.",
 };
