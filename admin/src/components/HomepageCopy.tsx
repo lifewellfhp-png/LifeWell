@@ -26,11 +26,20 @@ const emptyIntro: IntroForm = { eyebrow: '', heading: '', body: '', cta: '' };
 const emptyHow: TextForm = { heading: '', body: '', eyebrow: '' };
 const emptyStat: StatItem = { value: '', suffix: '', label: '', hidden: false, requiresVerification: false };
 
-/** Kept in sync with the approved defaults in client/src/data/marketing.ts. */
-const APPROVED_STATS: StatItem[] = [
-  { value: '1', suffix: '', label: 'Licensed Provider', hidden: false, requiresVerification: false },
-  { value: '15', suffix: '+', label: 'Years of Experience', hidden: false, requiresVerification: false },
-  { value: '24', suffix: '/7', label: 'Secure Online Access', hidden: false, requiresVerification: false },
+/**
+ * Kept in sync with the approved figures/labels in client/src/data/marketing.ts —
+ * but NOT with their visibility. The owner's current decision is that every
+ * homepage stat stays hidden regardless of how well-supported the underlying
+ * fact is (the 15+ years figure itself remains approved and visible on
+ * /bio — that's a separate decision from whether the homepage stat band
+ * shows it). "Reset to approved defaults" must never be a one-click way to
+ * publish a stat the owner has asked to keep hidden, so every entry here
+ * stays hidden: true until that owner decision changes.
+ */
+export const APPROVED_STATS: StatItem[] = [
+  { value: '1', suffix: '', label: 'Licensed Provider', hidden: true, requiresVerification: false },
+  { value: '15', suffix: '+', label: 'Years of Experience', hidden: true, requiresVerification: false },
+  { value: '24', suffix: '/7', label: 'Secure Online Access', hidden: true, requiresVerification: false },
 ];
 
 function asRecord(value: unknown): Record<string, unknown> {
