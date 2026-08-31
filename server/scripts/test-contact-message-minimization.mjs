@@ -57,13 +57,16 @@ test('A. contact validation still accepts and requires the message field', () =>
   assert.equal(withoutMessage.success, false, 'message should still be required for a real submission');
 });
 
-test('B. the SMTP notification still forwards the message (source-justified check — see file header)', () => {
+test('B. the outbound notification still forwards the message (source-justified check — see file header)', () => {
   const source = readFileSync(join(root, 'src/services/email.service.ts'), 'utf8');
   // sendContactNotification must still interpolate input.message into both
   // the plain-text and HTML bodies it sends — that's the actual forwarding
-  // this phase is required to preserve.
+  // this phase is required to preserve. P4-D5 migrated the transport from
+  // SMTP/Nodemailer to the Paubox REST API (sendViaPauboxApi); the transport
+  // function name changed, but the forwarding behavior this test guards did
+  // not.
   assert.match(source, /input\.message/);
-  assert.match(source, /await mail\.sendMail\(/);
+  assert.match(source, /await sendViaPauboxApi\(/);
 });
 
 test('C. buildLeadInsertPayload never includes a message field, even if one is present on the input object', () => {

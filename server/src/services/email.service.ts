@@ -1,29 +1,25 @@
-import nodemailer, { type Transporter } from 'nodemailer';
-import { env, mailConfigured, isProduction } from '../config/env.js';
+import { env, isProduction } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 import { serverError } from '../utils/errors.js';
 import type { ContactInput } from '../validation/schemas.js';
 import { getSupabase, supabaseConfigured } from '../lib/supabase.js';
 
-let transporter: Transporter | null = null;
-
-function getTransporter(): Transporter | null {
-  if (!mailConfigured) return null;
-  if (transporter) return transporter;
-
-  transporter = nodemailer.createTransport({
-    host: env.SMTP_HOST,
-    port: env.SMTP_PORT,
-    secure: env.SMTP_SECURE,
-    auth: { user: env.SMTP_USER as string, pass: env.SMTP_PASSWORD as string },
-    // Serverless hosts (Vercel) need explicit timeouts; cPanel SMTP can be slow.
-    connectionTimeout: 20_000,
-    greetingTimeout: 20_000,
-    socketTimeout: 30_000,
-  });
-
-  return transporter;
-}
+/**
+ * P4-D5: outbound mail goes through the Paubox REST Email API rather than
+ * SMTP/Nodemailer (repeated production SMTP tests could not be confirmed as
+ * reaching an external mailbox or the Paubox Mail Log — see P4-D4).
+ *
+ * The API key reused here is the exact same credential already stored in
+ * SMTP_PASSWORD: Paubox issues one key usable either as the SMTP AUTH
+ * password or as this REST API's Bearer token, so this avoids creating a
+ * second, duplicate secret. SMTP_HOST/PORT/SECURE/USER are no longer read by
+ * this file — they're left configured in Vercel deliberately, as a rollback
+ * path back to the SMTP transport if this migration needs to be reverted.
+ */
+const PAUBOX_API_KEY = env.SMTP_PASSWORD;
+const PAUBOX_ENDPOINT = 'https://api.paubox.com/v1/email/messages';
+const PAUBOX_TIMEOUT_MS = 20_000;
+const pauboxConfigured = Boolean(PAUBOX_API_KEY);
 
 /** Escapes a value for safe interpolation into the HTML email body. */
 const escapeHtml = (value: string) =>
@@ -58,20 +54,107 @@ export async function resolveInboxEmail(): Promise<string> {
   return env.CONTACT_EMAIL;
 }
 
+type PauboxAddress = { name?: string; address: string };
+
+type PauboxApiResult = {
+  ok: boolean;
+  httpStatus: number;
+  sourceTrackingId?: string;
+  errorMessage?: string;
+};
+
+const formatAddress = (addr: PauboxAddress) => (addr.name ? `${addr.name} <${addr.address}>` : addr.address);
+
+/**
+ * Single low-level Paubox REST Email API call, shared by
+ * sendContactNotification() and sendOutboundMail() so there is exactly one
+ * place that knows how to talk to Paubox. Never throws — HTTP-level errors
+ * (401/403/422/429/5xx) and network/timeout failures are both normalized
+ * into `{ ok: false, httpStatus, errorMessage }` so callers apply their own
+ * existing fallback behavior uniformly, the same way a thrown Nodemailer
+ * error used to be caught by both callers before this migration.
+ *
+ * errorMessage is always a short, sanitized, provider-controlled or
+ * category string — never the raw response body, which could in principle
+ * echo back submitted content.
+ */
+async function sendViaPauboxApi(params: {
+  to: PauboxAddress;
+  subject: string;
+  text: string;
+  html: string;
+  replyTo?: PauboxAddress;
+}): Promise<PauboxApiResult> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PAUBOX_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(PAUBOX_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${PAUBOX_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        data: {
+          message: {
+            recipients: [formatAddress(params.to)],
+            headers: {
+              subject: params.subject,
+              from: env.MAIL_FROM,
+              ...(params.replyTo ? { 'reply-to': formatAddress(params.replyTo) } : {}),
+            },
+            content: {
+              'text/plain': params.text,
+              'text/html': params.html,
+            },
+          },
+        },
+      }),
+      signal: controller.signal,
+    });
+
+    let sourceTrackingId: string | undefined;
+    try {
+      const body: unknown = await res.json();
+      if (body && typeof body === 'object' && typeof (body as Record<string, unknown>).sourceTrackingId === 'string') {
+        sourceTrackingId = (body as Record<string, unknown>).sourceTrackingId as string;
+      }
+    } catch {
+      // Non-JSON or empty body — nothing to extract.
+    }
+
+    return {
+      ok: res.ok,
+      httpStatus: res.status,
+      sourceTrackingId,
+      errorMessage: res.ok ? undefined : `Paubox API responded ${res.status}`,
+    };
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === 'AbortError';
+    return {
+      ok: false,
+      httpStatus: 0,
+      errorMessage: timedOut ? 'Paubox API request timed out' : 'Paubox API network error',
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * Sends the contact-form notification email.
  *
- * The free-text message is used transiently here — and in the SMTP payload
+ * The free-text message is used transiently here — and in the request body
  * built below — to deliver the notification, which is the whole point of
  * the form. It is intentionally never written to leads.message or to
  * email_messages.body (see storeLead() and contact.controller.ts, P4-B2):
  * this function forwards the message, it does not store it.
  *
  * That narrows, but does not eliminate, what this workflow touches: the
- * message still passes through this server's memory and through whichever
- * SMTP provider is configured. Whether that provider is HIPAA-capable and
- * BAA-covered is a separate, unresolved vendor decision — nothing here
- * constitutes or implies a compliance claim.
+ * message still passes through this server's memory and through the Paubox
+ * Email API. A BAA is executed with Paubox for lifewellfhp.com (see P4-D3),
+ * but nothing here constitutes or implies a broader compliance claim.
  */
 export async function sendContactNotification(
   input: ContactInput,
@@ -112,11 +195,10 @@ export async function sendContactNotification(
   `;
 
   const inbox = await resolveInboxEmail();
-  const mail = getTransporter();
 
-  if (!mail) {
+  if (!pauboxConfigured) {
     // Log-only mode. Never claim delivery that did not happen.
-    logger.warn('SMTP is not configured — contact notification was not sent', {
+    logger.warn('Paubox API key is not configured — contact notification was not sent', {
       referenceId,
       hasSubject: Boolean(input.subject),
       messageLength: input.message.length,
@@ -127,45 +209,38 @@ export async function sendContactNotification(
     return { delivered: false, referenceId, inbox };
   }
 
-  try {
-    const info = await mail.sendMail({
-      from: env.MAIL_FROM,
-      to: inbox,
-      // Lets the practice reply straight to the patient without exposing the
-      // address as the envelope sender. A structured address object (rather
-      // than a manually-composed "Name <email>" string) lets Nodemailer own
-      // the RFC 2822 encoding/escaping, instead of this code re-implementing
-      // it — input.name/input.email are already control-character-stripped
-      // and email-format-validated by contactSchema, but this is a strictly
-      // safer representation of that same validated data either way.
-      replyTo: { name: input.name, address: input.email },
-      subject,
-      text,
-      html,
-    });
+  const result = await sendViaPauboxApi({
+    to: { address: inbox },
+    subject,
+    text,
+    html,
+    // Lets the practice reply straight to the patient without exposing the
+    // address as the envelope sender. input.name/input.email are already
+    // control-character-stripped and email-format-validated by
+    // contactSchema before they ever reach here.
+    replyTo: { name: input.name, address: input.email },
+  });
 
-    // sendMail() resolving only proves the SMTP transaction was accepted by
-    // the configured relay — not that the message reached the final
-    // mailbox. Log exactly that, plus the non-sensitive protocol metadata
-    // Nodemailer's SentMessageInfo carries, so a future delivery mystery has
-    // more than "it didn't throw" to go on. Deliberately counts, not
-    // addresses — no message content, no visitor name/email/phone here.
-    logger.info('Contact notification accepted by SMTP', {
-      referenceId,
-      messageId: info.messageId,
-      acceptedCount: info.accepted?.length ?? 0,
-      rejectedCount: info.rejected?.length ?? 0,
-      pendingCount: info.pending?.length ?? 0,
-      response: info.response,
-    });
-    return { delivered: true, referenceId, inbox };
-  } catch (error) {
+  if (!result.ok) {
     logger.error('Contact notification failed', {
       referenceId,
-      reason: error instanceof Error ? error.message : 'unknown',
+      httpStatus: result.httpStatus,
+      reason: result.errorMessage,
     });
     throw serverError('Unable to deliver the message');
   }
+
+  // A 2xx response only proves Paubox's API accepted the request — not that
+  // it reached the final mailbox. Log exactly that, plus the non-sensitive
+  // tracking id Paubox returns, so a future delivery question has more than
+  // "the request didn't fail" to go on. No message content, no visitor
+  // name/email/phone here.
+  logger.info('Contact notification accepted by Paubox Email API', {
+    referenceId,
+    httpStatus: result.httpStatus,
+    sourceTrackingId: result.sourceTrackingId,
+  });
+  return { delivered: true, referenceId, inbox };
 }
 
 export type OutboundMail = {
@@ -192,54 +267,41 @@ export async function sendOutboundMail(input: OutboundMail): Promise<OutboundRes
     </div>
   `;
 
-  const mail = getTransporter();
-  if (!mail) {
-    const error = 'SMTP is not configured';
+  if (!pauboxConfigured) {
+    const error = 'Paubox API key is not configured';
     logger.warn('Outbound mail skipped', { to: input.to, reason: error });
-    if (isProduction) return { delivered: false, error };
     return { delivered: false, error };
   }
 
-  try {
-    const info = await mail.sendMail({
-      from: env.MAIL_FROM,
-      to: input.toName ? `${input.toName} <${input.to}>` : input.to,
-      replyTo: input.replyTo,
-      subject: input.subject,
-      text,
-      html: input.html || html,
-    });
-    // Same non-sensitive SMTP-acceptance metadata as sendContactNotification,
-    // for diagnostic parity between the two mail paths — no recipient
-    // address or message content.
-    logger.info('Outbound mail accepted by SMTP', {
-      messageId: info.messageId,
-      acceptedCount: info.accepted?.length ?? 0,
-      rejectedCount: info.rejected?.length ?? 0,
-      pendingCount: info.pending?.length ?? 0,
-      response: info.response,
-    });
-    return { delivered: true };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'unknown';
+  const result = await sendViaPauboxApi({
+    to: { name: input.toName, address: input.to },
+    subject: input.subject,
+    text,
+    html: input.html || html,
+    replyTo: input.replyTo ? { address: input.replyTo } : undefined,
+  });
+
+  if (!result.ok) {
+    const message = result.errorMessage || 'unknown';
     logger.error('Outbound mail failed', { to: input.to, reason: message });
     return { delivered: false, error: message };
   }
+
+  // Same non-sensitive acceptance metadata as sendContactNotification, for
+  // diagnostic parity between the two mail paths — no recipient address or
+  // message content.
+  logger.info('Outbound mail accepted by Paubox Email API', {
+    httpStatus: result.httpStatus,
+    sourceTrackingId: result.sourceTrackingId,
+  });
+  return { delivered: true };
 }
 
-/** Verifies SMTP credentials at boot so misconfiguration surfaces early. */
+/** Local dev only (never invoked on Vercel — see index.ts) — confirms the Paubox API key is present at boot. */
 export async function verifyMailTransport(): Promise<void> {
-  const mail = getTransporter();
-  if (!mail) {
-    logger.warn('SMTP not configured — contact form runs in log-only mode');
+  if (!pauboxConfigured) {
+    logger.warn('Paubox API key not configured — contact form runs in log-only mode');
     return;
   }
-  try {
-    await mail.verify();
-    logger.info('SMTP transport verified');
-  } catch (error) {
-    logger.error('SMTP verification failed', {
-      reason: error instanceof Error ? error.message : 'unknown',
-    });
-  }
+  logger.info('Paubox Email API key configured');
 }
