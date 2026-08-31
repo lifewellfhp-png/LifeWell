@@ -128,18 +128,36 @@ export async function sendContactNotification(
   }
 
   try {
-    await mail.sendMail({
+    const info = await mail.sendMail({
       from: env.MAIL_FROM,
       to: inbox,
       // Lets the practice reply straight to the patient without exposing the
-      // address as the envelope sender.
-      replyTo: `${input.name} <${input.email}>`,
+      // address as the envelope sender. A structured address object (rather
+      // than a manually-composed "Name <email>" string) lets Nodemailer own
+      // the RFC 2822 encoding/escaping, instead of this code re-implementing
+      // it — input.name/input.email are already control-character-stripped
+      // and email-format-validated by contactSchema, but this is a strictly
+      // safer representation of that same validated data either way.
+      replyTo: { name: input.name, address: input.email },
       subject,
       text,
       html,
     });
 
-    logger.info('Contact notification delivered', { referenceId });
+    // sendMail() resolving only proves the SMTP transaction was accepted by
+    // the configured relay — not that the message reached the final
+    // mailbox. Log exactly that, plus the non-sensitive protocol metadata
+    // Nodemailer's SentMessageInfo carries, so a future delivery mystery has
+    // more than "it didn't throw" to go on. Deliberately counts, not
+    // addresses — no message content, no visitor name/email/phone here.
+    logger.info('Contact notification accepted by SMTP', {
+      referenceId,
+      messageId: info.messageId,
+      acceptedCount: info.accepted?.length ?? 0,
+      rejectedCount: info.rejected?.length ?? 0,
+      pendingCount: info.pending?.length ?? 0,
+      response: info.response,
+    });
     return { delivered: true, referenceId, inbox };
   } catch (error) {
     logger.error('Contact notification failed', {
@@ -183,13 +201,23 @@ export async function sendOutboundMail(input: OutboundMail): Promise<OutboundRes
   }
 
   try {
-    await mail.sendMail({
+    const info = await mail.sendMail({
       from: env.MAIL_FROM,
       to: input.toName ? `${input.toName} <${input.to}>` : input.to,
       replyTo: input.replyTo,
       subject: input.subject,
       text,
       html: input.html || html,
+    });
+    // Same non-sensitive SMTP-acceptance metadata as sendContactNotification,
+    // for diagnostic parity between the two mail paths — no recipient
+    // address or message content.
+    logger.info('Outbound mail accepted by SMTP', {
+      messageId: info.messageId,
+      acceptedCount: info.accepted?.length ?? 0,
+      rejectedCount: info.rejected?.length ?? 0,
+      pendingCount: info.pending?.length ?? 0,
+      response: info.response,
     });
     return { delivered: true };
   } catch (error) {
