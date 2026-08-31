@@ -271,7 +271,7 @@ export default function LeadsPage() {
               <span>· {selected.email}</span>
               <span>· {selected.phone || 'no phone'}</span>
             </p>
-            <p className="muted">{selected.subject}</p>
+            <p className="muted">{selected.subject || '—'}</p>
             <div className="card card-pad inquiry-body">{selected.message || '—'}</div>
             <div className="row-actions" style={{ marginTop: '1rem' }}>
               {['new', 'open', 'replied', 'closed', 'spam'].map((s) => (

@@ -58,15 +58,15 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
 
   if (supabaseConfigured()) {
     try {
-      // Deliberately omits parsed.data.message — see storeLead()'s doc
-      // comment (P4-B2). The message is still forwarded by email below;
-      // it is just never written to this table.
+      // Deliberately omits parsed.data.message (P4-B2) and parsed.data.subject
+      // (P4-B3) — see storeLead()'s doc comment. Both are visitor-controlled
+      // free text; either is still forwarded by email below, just never
+      // written to this table.
       await storeLead({
         type: 'contact',
         name: parsed.data.name,
         email: parsed.data.email,
         phone: parsed.data.phone,
-        subject: parsed.data.subject,
         reference_id: referenceId,
       });
       leadStored = true;
@@ -104,7 +104,12 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
     from_name: parsed.data.name,
     to_email: result.inbox,
     to_name: 'LifeWell inbox',
-    subject: parsed.data.subject || `Website enquiry from ${parsed.data.name}`,
+    // P4-B3: the visitor-entered subject is free text and is never
+    // persisted, matching the P4-B2 message minimization — only this fixed,
+    // application-controlled label is stored. The visitor's actual subject
+    // still reaches the outbound Paubox notification (see
+    // sendContactNotification()), just not this operational log row.
+    subject: 'Website contact inquiry',
     body: buildContactLogBody({
       name: parsed.data.name,
       email: parsed.data.email,
