@@ -9,7 +9,13 @@ import {
   handleAnalyticsIngest,
   handleConversionIngest,
 } from '../controllers/analytics.controller.js';
-import { asyncHandler, contactLimiter, newsletterLimiter } from '../middleware/index.js';
+import {
+  asyncHandler,
+  contactLimiter,
+  newsletterLimiter,
+  analyticsLimiter,
+  conversionLimiter,
+} from '../middleware/index.js';
 import { mailConfigured, env } from '../config/env.js';
 import { adminRouter } from './admin.routes.js';
 import { supabaseConfigured } from '../lib/supabase.js';
@@ -41,8 +47,8 @@ router.post('/api/newsletter', newsletterLimiter, asyncHandler(handleNewsletter)
 // Public CMS + privacy-focused telemetry for the marketing site
 router.get('/api/public/content', asyncHandler(getPublicContent));
 router.get('/api/public/blog/:slug', asyncHandler(getPublicBlogPost));
-router.post('/api/public/analytics', asyncHandler(handleAnalyticsIngest));
-router.post('/api/public/conversions', asyncHandler(handleConversionIngest));
+router.post('/api/public/analytics', analyticsLimiter, asyncHandler(handleAnalyticsIngest));
+router.post('/api/public/conversions', conversionLimiter, asyncHandler(handleConversionIngest));
 
 // Admin CMS API
 router.use('/api/admin', adminRouter);

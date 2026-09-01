@@ -73,6 +73,30 @@ export const changePasswordLimiter = limiter(
   'Too many password change attempts. Please wait a few minutes and try again.'
 );
 
+/**
+ * Public analytics beacon (P4-G2). Unauthenticated and previously
+ * unprotected — a single page load fires at most one of these, so this
+ * threshold is generous relative to real browsing while still bounding a
+ * scripted flood. Hardcoded (not env-configurable) — see P4-G2A.
+ */
+export const analyticsLimiter = limiter(
+  5 * 60 * 1000,
+  60,
+  'Too many analytics requests. Please try again later.'
+);
+
+/**
+ * Public conversion beacon (P4-G2). Unauthenticated and previously
+ * unprotected — the only current caller fires this at most once per
+ * successful Contact submission, so this threshold stays tight relative to
+ * that naturally low legitimate volume. Hardcoded — see P4-G2A.
+ */
+export const conversionLimiter = limiter(
+  60 * 60 * 1000,
+  10,
+  'Too many tracking requests. Please try again later.'
+);
+
 /** Wraps async handlers so rejections reach the error middleware. */
 export const asyncHandler =
   (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>): RequestHandler =>
