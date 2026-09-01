@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
-import { contactSchema, fieldErrors } from '../validation/schemas.js';
+import { contactSchema, fieldErrors, CONTACT_REASON_LABELS } from '../validation/schemas.js';
 import { sendContactNotification, resolveInboxEmail } from '../services/email.service.js';
 import { storeLead } from './leads.controller.js';
 import { logEmailMessage } from '../lib/mailLog.js';
@@ -10,26 +10,29 @@ import { supabaseConfigured } from '../lib/supabase.js';
 
 /**
  * Builds the operational log body for a contact-form notification.
- * Deliberately takes only name/email/phone/referenceId as parameters — no
- * message/body text is accepted, so (like buildLeadInsertPayload in
- * leads.controller.ts) this function structurally cannot embed the
- * free-text message even if a future caller passed the wider `ContactInput`
- * object in by mistake. Exported so tests can prove this without a live
- * Supabase connection. See P4-B2.
+ * Deliberately takes only name/email/phone/referenceId/reasonLabel as
+ * parameters — no free-text message/subject is accepted, so (like
+ * buildLeadInsertPayload in leads.controller.ts) this function structurally
+ * cannot embed visitor-written narrative even if a future caller passed a
+ * wider object in by mistake. reasonLabel is always a value looked up from
+ * CONTACT_REASON_LABELS, never visitor-supplied text. Exported so tests can
+ * prove this without a live Supabase connection. See P4-B2/P4-B3/P4-B4.
  */
 export function buildContactLogBody(input: {
   name: string;
   email: string;
   phone?: string;
   referenceId: string;
+  reasonLabel: string;
 }): string {
   return [
     `Name: ${input.name}`,
     `Email: ${input.email}`,
     `Phone: ${input.phone || '—'}`,
+    `Reason: ${input.reasonLabel}`,
     `Reference: ${input.referenceId}`,
     '',
-    '[Message content is not stored here. It was forwarded by email only — see the practice inbox notification for this reference.]',
+    'This is an administrative contact request submitted through the website. No free-text message was collected.',
   ].join('\n');
 }
 
@@ -54,19 +57,19 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
   }
 
   const referenceId = randomUUID().slice(0, 8).toUpperCase();
+  const reasonLabel = CONTACT_REASON_LABELS[parsed.data.reason];
   let leadStored = false;
 
   if (supabaseConfigured()) {
     try {
-      // Deliberately omits parsed.data.message (P4-B2) and parsed.data.subject
-      // (P4-B3) — see storeLead()'s doc comment. Both are visitor-controlled
-      // free text; either is still forwarded by email below, just never
-      // written to this table.
+      // P4-B2/P4-B4: no visitor-written free text exists anymore — subject
+      // here is the server-controlled reason label, never visitor input.
       await storeLead({
         type: 'contact',
         name: parsed.data.name,
         email: parsed.data.email,
         phone: parsed.data.phone,
+        subject: reasonLabel,
         reference_id: referenceId,
       });
       leadStored = true;
@@ -94,27 +97,23 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
     };
   }
 
-  // P4-B2: the logged body is operational metadata only — name/email/
-  // phone/reference are already stored in `leads`, so this adds nothing
-  // new. The free-text message itself is intentionally never included
-  // here; it was already forwarded (or attempted) via SMTP above.
+  // P4-B2/P4-B4: the logged body is operational metadata only — name/email/
+  // phone/reason/reference are already stored in `leads`, so this adds
+  // nothing new. There is no free-text message or subject to include; the
+  // form no longer collects either.
   await logEmailMessage({
     direction: 'inbound',
     from_email: parsed.data.email,
     from_name: parsed.data.name,
     to_email: result.inbox,
     to_name: 'LifeWell inbox',
-    // P4-B3: the visitor-entered subject is free text and is never
-    // persisted, matching the P4-B2 message minimization — only this fixed,
-    // application-controlled label is stored. The visitor's actual subject
-    // still reaches the outbound Paubox notification (see
-    // sendContactNotification()), just not this operational log row.
-    subject: 'Website contact inquiry',
+    subject: `Website contact: ${reasonLabel}`,
     body: buildContactLogBody({
       name: parsed.data.name,
       email: parsed.data.email,
       phone: parsed.data.phone,
       referenceId,
+      reasonLabel,
     }),
     status: result.delivered ? 'sent' : 'failed',
     error: result.delivered ? null : 'SMTP did not accept the message',

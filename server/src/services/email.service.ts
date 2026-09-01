@@ -1,7 +1,7 @@
 import { env, isProduction } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 import { serverError } from '../utils/errors.js';
-import type { ContactInput } from '../validation/schemas.js';
+import { CONTACT_REASON_LABELS, type ContactInput } from '../validation/schemas.js';
 import { getSupabase, supabaseConfigured } from '../lib/supabase.js';
 
 /**
@@ -145,52 +145,50 @@ async function sendViaPauboxApi(params: {
 /**
  * Sends the contact-form notification email.
  *
- * The free-text message is used transiently here — and in the request body
- * built below — to deliver the notification, which is the whole point of
- * the form. It is intentionally never written to leads.message or to
- * email_messages.body (see storeLead() and contact.controller.ts, P4-B2):
- * this function forwards the message, it does not store it.
+ * P4-B4: there is no visitor-written free text anywhere in this workflow
+ * anymore — `input.reason` is a validated enum value, mapped here to a
+ * fixed, server-controlled label. The notification is built entirely from
+ * administrative identity/contact fields plus that label; there is no
+ * arbitrary visitor narrative to transmit, log, or store. See also P4-B2
+ * (message minimization) and P4-B3 (subject minimization), both superseded
+ * by this phase removing the free-text fields themselves.
  *
- * That narrows, but does not eliminate, what this workflow touches: the
- * message still passes through this server's memory and through the Paubox
- * Email API. A BAA is executed with Paubox for lifewellfhp.com (see P4-D3),
- * but nothing here constitutes or implies a broader compliance claim.
+ * The Paubox Email API remains the transport (P4-D5); a BAA is executed
+ * with Paubox for lifewellfhp.com (see P4-D3), but nothing here constitutes
+ * or implies a broader compliance claim about the website itself.
  */
 export async function sendContactNotification(
   input: ContactInput,
   referenceId: string
 ): Promise<DeliveryResult> {
-  const subject = input.subject
-    ? `Website enquiry: ${input.subject}`
-    : `Website enquiry from ${input.name}`;
+  const reasonLabel = CONTACT_REASON_LABELS[input.reason];
+  const subject = `Website contact: ${reasonLabel}`;
 
   const text = [
-    `New enquiry from the LifeWell website`,
+    `New administrative contact request from the LifeWell website`,
     `Reference: ${referenceId}`,
     ``,
-    `Name:    ${input.name}`,
-    `Email:   ${input.email}`,
-    `Phone:   ${input.phone || '—'}`,
-    `Subject: ${input.subject || '—'}`,
+    `Name:   ${input.name}`,
+    `Email:  ${input.email}`,
+    `Phone:  ${input.phone || '—'}`,
+    `Reason: ${reasonLabel}`,
     ``,
-    `Message:`,
-    input.message,
+    `This is an administrative contact request. No free-text message was collected.`,
     ``,
     `— Sent from the contact form at lifewellfhp.com`,
   ].join('\n');
 
   const html = `
     <div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#374151;line-height:1.6">
-      <h2 style="font-family:Georgia,serif;color:#2f6691;margin:0 0 4px">New website enquiry</h2>
+      <h2 style="font-family:Georgia,serif;color:#2f6691;margin:0 0 4px">New administrative contact request</h2>
       <p style="margin:0 0 20px;font-size:13px;color:#5b6675">Reference ${escapeHtml(referenceId)}</p>
       <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:20px">
         <tr><td style="padding:6px 16px 6px 0;color:#5b6675">Name</td><td style="padding:6px 0"><strong>${escapeHtml(input.name)}</strong></td></tr>
         <tr><td style="padding:6px 16px 6px 0;color:#5b6675">Email</td><td style="padding:6px 0"><a href="mailto:${escapeHtml(input.email)}">${escapeHtml(input.email)}</a></td></tr>
         <tr><td style="padding:6px 16px 6px 0;color:#5b6675">Phone</td><td style="padding:6px 0">${escapeHtml(input.phone || '—')}</td></tr>
-        <tr><td style="padding:6px 16px 6px 0;color:#5b6675">Subject</td><td style="padding:6px 0">${escapeHtml(input.subject || '—')}</td></tr>
+        <tr><td style="padding:6px 16px 6px 0;color:#5b6675">Reason</td><td style="padding:6px 0">${escapeHtml(reasonLabel)}</td></tr>
       </table>
-      <div style="border-left:3px solid #3e7fb1;padding:4px 0 4px 16px;white-space:pre-wrap">${escapeHtml(input.message)}</div>
-      <p style="margin-top:24px;font-size:12px;color:#5b6675">Sent from the contact form at lifewellfhp.com</p>
+      <p style="margin-top:24px;font-size:12px;color:#5b6675">This is an administrative contact request. No free-text message was collected. Sent from the contact form at lifewellfhp.com</p>
     </div>
   `;
 
@@ -200,8 +198,7 @@ export async function sendContactNotification(
     // Log-only mode. Never claim delivery that did not happen.
     logger.warn('Paubox API key is not configured — contact notification was not sent', {
       referenceId,
-      hasSubject: Boolean(input.subject),
-      messageLength: input.message.length,
+      reason: input.reason,
     });
     if (isProduction) {
       throw serverError('Mail transport is not configured');

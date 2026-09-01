@@ -112,6 +112,46 @@ export function TextField({
   );
 }
 
+export function SelectField({
+  value,
+  onChange,
+  options,
+  placeholder,
+  ...base
+}: BaseProps & {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+}) {
+  return (
+    <Wrapper {...base}>
+      <select
+        id={base.id}
+        name={base.id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={base.required}
+        disabled={base.disabled}
+        aria-invalid={base.error ? true : undefined}
+        aria-describedby={describedBy(base.id, base.error, base.hint)}
+        className={cn(base.compact ? CONTROL_COMPACT : CONTROL, !base.compact && 'rounded-xs', borderFor(!!base.error, base.compact), 'min-h-12')}
+      >
+        {placeholder && (
+          <option value="" disabled>
+            {placeholder}
+          </option>
+        )}
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </Wrapper>
+  );
+}
+
 export function TextAreaField({
   rows = 6,
   placeholder,

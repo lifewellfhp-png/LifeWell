@@ -196,8 +196,8 @@ export interface ContactFormValues {
   name: string;
   email: string;
   phone: string;
-  subject: string;
-  message: string;
+  /** Controlled administrative reason — see CONTACT_REASONS. Never free text. */
+  reason: string;
   consent: boolean;
 }
 

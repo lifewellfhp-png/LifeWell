@@ -78,9 +78,9 @@ test('A. no public marketing surface (benefits, FAQs, generated services, genera
   assert.doesNotMatch(contactFormSource, hipaaPattern, 'ContactForm.tsx must not claim HIPAA compliance');
 });
 
-test('B. the Contact form still warns against submitting sensitive health information', () => {
+test('B. the Contact form still warns against submitting medical information (P4-B4: reworded for the now-administrative-only form)', () => {
   assert.match(contactFormSource, /do not include/i);
-  assert.match(contactFormSource, /sensitive medical or personal health information/i);
+  assert.match(contactFormSource, /do not include medical\s+information/i);
 });
 
 test('C. the Contact form no longer references a nonexistent "secure patient portal"', () => {

@@ -84,9 +84,9 @@ test('7. leads.message remains non-persisted (P4-B2, structurally unaffected by 
   assert.doesNotMatch(leadsSource, /message:\s*input\.message/);
 });
 
-test('8. email_messages.body minimization remains intact (P4-B2, structurally unaffected by the transport change)', () => {
+test('8. email_messages.body minimization remains intact (P4-B2/P4-B4: no free-text message is ever collected, so there is nothing to store)', () => {
   const contactControllerSource = readFileSync(join(root, 'src/controllers/contact.controller.ts'), 'utf8');
-  assert.match(contactControllerSource, /not stored here/i);
+  assert.match(contactControllerSource, /No free-text message was collected/i);
 });
 
 test('9. the Paubox API key never enters any log call in this file', () => {
@@ -175,7 +175,7 @@ test('contactSchema still strips control characters from name, protecting the Re
   const parsed = contactSchema.safeParse({
     name: attempt,
     email: 'visitor@example.com',
-    message: 'A message long enough to pass the minimum length check.',
+    reason: 'general_admin',
     consent: true,
   });
   assert.equal(parsed.success, true);

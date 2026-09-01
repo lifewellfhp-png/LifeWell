@@ -6,23 +6,29 @@ import { submitContact } from '@/lib/api';
 import { trackConversion } from '@/lib/cms';
 import type { FormStatus } from '@/types/content';
 import { site } from '@/data/site';
+import { CONTACT_REASONS } from '@/data/contact';
 import { Button } from '@/components/ui/Button';
-import { TextField, TextAreaField, CheckboxField, Honeypot } from './Field';
+import { TextField, SelectField, CheckboxField, Honeypot } from './Field';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const MESSAGE_MAX = 2000;
 
-type Errors = Partial<Record<'name' | 'email' | 'phone' | 'message' | 'consent', string>>;
+type Errors = Partial<Record<'name' | 'email' | 'phone' | 'reason' | 'consent', string>>;
 
 const EMPTY = {
   name: '',
   email: '',
   phone: '',
-  subject: '',
-  message: '',
+  reason: '',
   consent: false,
 };
 
+/**
+ * P4-B4: an administrative/non-clinical Contact request only. No free-text
+ * Subject or Message field exists here — the visitor picks from a fixed set
+ * of controlled reasons (CONTACT_REASONS). The server independently
+ * validates the submitted reason against its own allowlist and rejects
+ * anything else.
+ */
 export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact' }) {
   const uid = useId();
   const [values, setValues] = useState(EMPTY);
@@ -44,7 +50,6 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
     const name = values.name.trim();
     const email = values.email.trim();
     const phone = values.phone.trim();
-    const message = values.message.trim();
 
     if (!name) next.name = 'Please enter your name.';
     else if (name.length < 2) next.name = 'Please enter your full name.';
@@ -56,10 +61,7 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
     if (phone && !/^[\d\s()+.-]{7,20}$/.test(phone))
       next.phone = 'Please enter a valid phone number.';
 
-    if (!message) next.message = 'Please enter your message.';
-    else if (message.length < 10) next.message = 'Please provide a little more detail.';
-    else if (message.length > MESSAGE_MAX)
-      next.message = `Please use ${MESSAGE_MAX} characters or fewer.`;
+    if (!values.reason) next.reason = 'Please select a reason for contacting us.';
 
     if (!compact && !values.consent) next.consent = 'Please confirm before sending.';
 
@@ -87,8 +89,7 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
       name: values.name.trim(),
       email: values.email.trim(),
       phone: values.phone.trim(),
-      subject: values.subject.trim(),
-      message: values.message.trim(),
+      reason: values.reason,
       consent: compact ? true : values.consent,
       company,
     });
@@ -140,9 +141,9 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
     <form onSubmit={onSubmit} noValidate className={compact ? 'space-y-5' : 'space-y-6'}>
       <div className="rounded-md border border-border-subtle bg-surface-muted px-5 py-4">
         <p className="text-sm text-text-secondary">
-          <strong className="font-semibold text-text-primary">Please note:</strong> do not include
-          sensitive medical or personal health information in this form. For clinical matters,
-          please call our office at{' '}
+          <strong className="font-semibold text-text-primary">Please note:</strong> use this form
+          for scheduling and administrative questions only. Please do not include medical
+          information. For clinical matters, please call our office at{' '}
           <a href={site.contact.phoneHref} className="font-semibold text-text-link">
             {site.contact.phone}
           </a>
@@ -175,41 +176,30 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
           disabled={busy}
         />
         {!compact && (
-          <>
-            <TextField
-              id={`${uid}-phone`}
-              label="Phone number"
-              type="tel"
-              autoComplete="tel"
-              value={values.phone}
-              onChange={(v) => set('phone', v)}
-              error={errors.phone}
-              disabled={busy}
-            />
-            <TextField
-              id={`${uid}-subject`}
-              label="Subject"
-              value={values.subject}
-              onChange={(v) => set('subject', v)}
-              disabled={busy}
-            />
-          </>
+          <TextField
+            id={`${uid}-phone`}
+            label="Phone number"
+            type="tel"
+            autoComplete="tel"
+            value={values.phone}
+            onChange={(v) => set('phone', v)}
+            error={errors.phone}
+            disabled={busy}
+          />
         )}
+        <SelectField
+          id={`${uid}-reason`}
+          label={compact ? 'Reason' : 'Reason for contacting us'}
+          required
+          compact={compact}
+          placeholder="Select a reason…"
+          options={CONTACT_REASONS.map((r) => ({ value: r.value, label: r.label }))}
+          value={values.reason}
+          onChange={(v) => set('reason', v)}
+          error={errors.reason}
+          disabled={busy}
+        />
       </div>
-
-      <TextAreaField
-        id={`${uid}-message`}
-        label={compact ? 'Your Message' : 'How can we help?'}
-        required
-        compact={compact}
-        rows={compact ? 5 : 6}
-        maxLength={MESSAGE_MAX}
-        hint={compact ? undefined : 'Please keep your message general — avoid clinical details.'}
-        value={values.message}
-        onChange={(v) => set('message', v)}
-        error={errors.message}
-        disabled={busy}
-      />
 
       {!compact && (
         <CheckboxField

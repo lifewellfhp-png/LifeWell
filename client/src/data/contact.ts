@@ -34,3 +34,21 @@ export const contactPage = {
   mapSrc:
     'https://maps.google.com/maps?q=3680+Avalon+Park+E+Blvd+Suite+310,+Orlando,+FL+32828&z=15&output=embed',
 };
+
+/**
+ * P4-B4: the public Contact form is an administrative/non-clinical request
+ * only — no free-text Subject or Message. This is the client-side mirror of
+ * the server's allowlist (server/src/validation/schemas.ts); the two are
+ * kept in sync by hand since client/server share no code in this repo. The
+ * server independently validates against its own copy — this list is for
+ * rendering the dropdown only and is never trusted as-is.
+ */
+export const CONTACT_REASONS = [
+  { value: 'scheduling', label: 'Schedule an appointment' },
+  { value: 'insurance_pricing', label: 'Insurance or pricing question' },
+  { value: 'existing_appointment', label: 'Existing appointment question' },
+  { value: 'billing_admin', label: 'Billing or administrative question' },
+  { value: 'general_admin', label: 'General administrative question' },
+] as const;
+
+export type ContactReason = (typeof CONTACT_REASONS)[number]['value'];

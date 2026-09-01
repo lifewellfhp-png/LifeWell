@@ -42,9 +42,9 @@ test('A/B. the warning block is the unconditional first child of <form> — rend
   );
 });
 
-test('C. the warning tells visitors not to include sensitive medical/personal health information', () => {
+test('C. the warning tells visitors not to include medical information (P4-B4: reworded for the now-administrative-only form)', () => {
   assert.match(source, /do not include/i);
-  assert.match(source, /sensitive medical or personal health information/i);
+  assert.match(source, /do not include medical\s+information/i);
 });
 
 test('D. the warning references the existing centralized office phone data, not a hardcoded second number', () => {
@@ -62,15 +62,16 @@ test('F. no HIPAA-compliance claim (or other forbidden phrase) is introduced', (
   assert.doesNotMatch(source, /encrypted messaging/i);
 });
 
-test('G. the free-text message field remains present and is never gated behind a variant conditional', () => {
-  // The message TextAreaField sits as a direct, unconditional sibling
-  // immediately after the two-column name/email grid closes — never inside
-  // a `{!compact && (...)}` block. This has always been true; this phase
-  // must not change it.
+test('G. the controlled reason selector (P4-B4: replaced the free-text message field) remains present and is never gated behind a variant conditional', () => {
+  // P4-B4 removed the free-text Subject/Message fields entirely, replacing
+  // them with a required, controlled Reason selector that (like the
+  // message field before it) must render in both compact and full variants.
+  // It sits as a sibling immediately after the phone field's `{!compact &&
+  // (...)}` block closes — not nested inside that block.
   assert.match(
     source,
-    /<\/div>\s*<TextAreaField\s*\n\s*id=\{`\$\{uid\}-message`\}/,
-    'the message field must be an unconditional sibling, not gated behind a variant check'
+    /\)\}\s*<SelectField\s*\n\s*id=\{`\$\{uid\}-reason`\}/,
+    'the reason selector must be an unconditional sibling immediately after the closed phone-field conditional, not gated behind a variant check'
   );
 });
 

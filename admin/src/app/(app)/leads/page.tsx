@@ -271,8 +271,16 @@ export default function LeadsPage() {
               <span>· {selected.email}</span>
               <span>· {selected.phone || 'no phone'}</span>
             </p>
-            <p className="muted">{selected.subject || '—'}</p>
-            <div className="card card-pad inquiry-body">{selected.message || '—'}</div>
+            <p className="muted">
+              {selected.type === 'contact' ? `Reason: ${selected.subject || '—'}` : selected.subject || '—'}
+            </p>
+            {/* P4-B4: new Contact submissions never have a message (the
+                free-text field was removed) — hide the empty box for those.
+                A historical Contact lead from before P4-B2 may still have a
+                real stored message, so it still renders. */}
+            {(selected.type !== 'contact' || selected.message) && (
+              <div className="card card-pad inquiry-body">{selected.message || '—'}</div>
+            )}
             <div className="row-actions" style={{ marginTop: '1rem' }}>
               {['new', 'open', 'replied', 'closed', 'spam'].map((s) => (
                 <button key={s} type="button" className="btn btn-ghost" onClick={() => setLeadStatus(selected.id, s)}>
