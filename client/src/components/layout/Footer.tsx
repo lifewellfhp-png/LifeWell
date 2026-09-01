@@ -120,7 +120,8 @@ export async function Footer() {
 
           <div className="border-t border-white/30 py-5 text-center sm:py-6">
             <p className="font-body text-[13px] font-normal leading-relaxed text-white sm:text-[14px]">
-              © 2026 {site.name}. All Rights Reserved. | Design By
+              © 2026 {site.name}. All Rights Reserved. | Website Design & Development by
+              Wesly Chachoute, M.S. in Cybersecurity | DBA Candidate
             </p>
           </div>
         </Container>
