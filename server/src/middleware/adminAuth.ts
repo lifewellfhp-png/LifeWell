@@ -46,6 +46,9 @@ const ALL_MODULES = [
   'users',
   'emails',
   'settings',
+  // P4-I2C: marketing contact directory only — campaign sending is a
+  // separate, later module, not added yet.
+  'marketing_contacts',
 ] as const;
 
 export type AdminModule = (typeof ALL_MODULES)[number];

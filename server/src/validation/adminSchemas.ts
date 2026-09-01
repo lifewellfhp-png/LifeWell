@@ -351,6 +351,107 @@ export const settingsUpdate = z.object({
   inbox_email: z.string().email().optional().nullable().or(z.literal('')),
 });
 
+// ---------------------------------------------------------------------------
+// Marketing contacts (P4-I2C). A marketing directory, NOT a clinical patient
+// database — see server/supabase/ops.sql's P4-I2A migration for the full
+// data-minimization rationale this mirrors. `.strict()` rejects any
+// unrecognized key outright (the same choice P4-B4 made for the public
+// Contact form), so a caller cannot slip an arbitrary clinical/free-text
+// field through validation.
+// ---------------------------------------------------------------------------
+
+export const MARKETING_AUDIENCE_TYPES = ['existing_patient', 'prospective_patient', 'subscriber', 'other'] as const;
+export const MARKETING_SOURCES = ['manual', 'csv_import', 'website_signup', 'other'] as const;
+export const MARKETING_STATUSES = ['pending', 'subscribed', 'unsubscribed', 'suppressed'] as const;
+// Small, operational, non-clinical set. `other` is a literal controlled
+// value — no accompanying free-text explanation field exists, so a caller
+// can never smuggle arbitrary text through this column.
+export const MARKETING_SUPPRESSION_REASONS = ['hard_bounce', 'spam_complaint', 'administrative', 'other'] as const;
+
+export type MarketingAudienceType = (typeof MARKETING_AUDIENCE_TYPES)[number];
+export type MarketingSource = (typeof MARKETING_SOURCES)[number];
+export type MarketingStatus = (typeof MARKETING_STATUSES)[number];
+
+const marketingContactBase = z.object({
+  // 254 is the practical maximum total email address length (RFC 5321/5322).
+  email: z.string().trim().min(1).max(254).email(),
+  first_name: z.string().trim().max(120).optional().nullable(),
+  last_name: z.string().trim().max(120).optional().nullable(),
+  // Segmentation only — must never be read as implying marketing consent.
+  audience_type: z.enum(MARKETING_AUDIENCE_TYPES).default('other'),
+  source: z.enum(MARKETING_SOURCES).default('manual'),
+  marketing_status: z.enum(MARKETING_STATUSES).default('pending'),
+  // Reuses the same controlled vocabulary as `source`, matching the DB
+  // migration's own choice not to invent a second enum.
+  consent_source: z.enum(MARKETING_SOURCES).optional().nullable(),
+  consent_at: z.string().datetime().optional().nullable(),
+  unsubscribed_at: z.string().datetime().optional().nullable(),
+  suppressed_at: z.string().datetime().optional().nullable(),
+  suppression_reason: z.enum(MARKETING_SUPPRESSION_REASONS).optional().nullable(),
+});
+// Deliberately no `id`, `email_normalized`, `created_at`, or `updated_at`
+// field anywhere above — combined with `.strict()` below, this means a
+// caller-supplied value for any of those is rejected outright at parse
+// time, not merely ignored. `email_normalized` remains exclusively
+// Postgres-generated (see the P4-I2A migration).
+
+export const marketingContactCreate = marketingContactBase.strict().refine(
+  (data) => !(data.marketing_status === 'subscribed' && !data.consent_source),
+  {
+    message: 'A contact cannot be created as subscribed without a consent_source.',
+    path: ['consent_source'],
+  }
+);
+
+export const marketingContactUpdate = marketingContactBase
+  .strict()
+  .partial()
+  .refine((data) => !(data.marketing_status === 'subscribed' && data.consent_source === null), {
+    message: 'consent_source cannot be explicitly cleared while setting marketing_status to subscribed.',
+    path: ['consent_source'],
+  });
+
+/**
+ * Effective-row consent invariant, mirroring assertEffectiveTestimonialConsent
+ * (P4-G6): the PATCH payload alone can look fine while the row it produces
+ * (merged with the existing stored values) is not. Called by the controller
+ * after fetching the current row, not by the schema itself.
+ */
+export function assertEffectiveMarketingConsent(row: {
+  marketing_status?: unknown;
+  consent_source?: unknown;
+}): void {
+  if (row.marketing_status === 'subscribed' && !row.consent_source) {
+    throw new Error('A contact cannot be subscribed without a consent_source.');
+  }
+}
+
+const MARKETING_STATUS_TRANSITION_REJECTIONS = new Set([
+  // Generic PATCH must never reactivate an opt-out — only a future,
+  // explicit resubscription workflow (not built in this phase) may do so.
+  'unsubscribed->subscribed',
+  'suppressed->subscribed',
+  // Weakens an opt-out back toward a sendable-adjacent state.
+  'unsubscribed->pending',
+  'suppressed->pending',
+  // Do not casually weaken a stronger suppression down to a plain
+  // unsubscribe; no repository/product evidence justifies allowing this
+  // through the generic endpoint.
+  'suppressed->unsubscribed',
+]);
+
+/**
+ * Sticky unsubscribe/suppression invariant (P4-I2C). Every other directed
+ * transition between the four statuses — including unsubscribed->suppressed
+ * (allowed) and every transition away from `subscribed` — is permitted.
+ */
+export function assertMarketingStatusTransition(before: string, next: string): void {
+  if (before === next) return;
+  if (MARKETING_STATUS_TRANSITION_REJECTIONS.has(`${before}->${next}`)) {
+    throw new Error(`Cannot change marketing_status from ${before} to ${next} through this endpoint.`);
+  }
+}
+
 export const DEFAULT_SITE_SETTINGS = {
   id: 'default',
   primary_color: '#3E7FB1',

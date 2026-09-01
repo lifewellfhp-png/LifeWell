@@ -33,6 +33,12 @@ import { listNotifications, markNotificationsRead } from '../controllers/notific
 import { listEmails, sendAdminEmails, getMailConfig } from '../controllers/emails.controller.js';
 import { getSiteSettings, updateSiteSettings } from '../controllers/settings.controller.js';
 import { importLiveWebsiteContent } from '../controllers/importLive.controller.js';
+import {
+  listMarketingContacts,
+  getMarketingContact,
+  createMarketingContact,
+  updateMarketingContact,
+} from '../controllers/marketingContacts.controller.js';
 import { getSupabase } from '../lib/supabase.js';
 import { badRequest } from '../utils/errors.js';
 
@@ -392,6 +398,39 @@ adminRouter.get(
   requireAdmin,
   requirePermission('analytics'),
   asyncHandler(getAnalyticsSummary)
+);
+
+/**
+ * Marketing contact directory (P4-I2C). Deliberately NOT createCrudRouter —
+ * this table needs server-side pagination/search/filtering (the generic
+ * factory fetches every row unbounded) and effective-row status-transition
+ * validation (the generic factory has no concept of it). No DELETE route:
+ * marketing suppression/unsubscribe history is intentionally preserved,
+ * not erasable — see the P4-I2C design notes.
+ */
+adminRouter.get(
+  '/marketing-contacts',
+  requireAdmin,
+  requirePermission('marketing_contacts'),
+  asyncHandler(listMarketingContacts)
+);
+adminRouter.get(
+  '/marketing-contacts/:id',
+  requireAdmin,
+  requirePermission('marketing_contacts'),
+  asyncHandler(getMarketingContact)
+);
+adminRouter.post(
+  '/marketing-contacts',
+  requireAdmin,
+  requirePermission('marketing_contacts'),
+  asyncHandler(createMarketingContact)
+);
+adminRouter.patch(
+  '/marketing-contacts/:id',
+  requireAdmin,
+  requirePermission('marketing_contacts'),
+  asyncHandler(updateMarketingContact)
 );
 
 adminRouter.get('/users', requireAdmin, requireSuperAdmin, asyncHandler(listAdminUsers));
