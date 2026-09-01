@@ -417,3 +417,82 @@ alter table marketing_contacts enable row level security;
 -- future authenticated Server API using the existing service-role client.
 
 notify pgrst, 'reload schema';
+
+-- P4-I4A: Marketing Campaign Schema Preparation.
+--
+-- SCHEMA PREPARATION ONLY. This table stores ADMIN DRAFT CONTENT and
+-- audience-selection criteria for a future Campaign Builder — it does not
+-- represent delivery, does not prove an email was ever sent, does not
+-- snapshot recipients, and stores no delivery metrics, provider IDs,
+-- tracking fields, or unsubscribe-token material. A future P4-I5 phase
+-- will define the actual delivery lifecycle (and whatever table(s) that
+-- needs) separately, rather than this table growing into that role.
+--
+-- Draft management only: the status enum below is intentionally limited to
+-- draft/archived. No scheduled/queued/sending/sent/delivered/failed state
+-- exists here — that is P4-I5's responsibility once delivery is designed.
+--
+-- Same non-clinical posture as marketing_contacts: no diagnosis,
+-- medication, symptom, clinical-note, treatment-plan, appointment-note, or
+-- patient-record field/foreign-key exists here, and none should ever be
+-- added.
+create table if not exists marketing_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  -- Internal Admin-facing label — never sent to a recipient.
+  name text not null check (length(trim(name)) > 0 and length(name) <= 200),
+  -- Recipient-facing subject line for a future send. Not used by anything
+  -- yet; validated the same shape as `name` for consistency.
+  subject text not null check (length(trim(subject)) > 0 and length(subject) <= 200),
+  -- Future email preheader/preview text. Nullable — a draft need not have
+  -- one yet, unlike name/subject/content which every draft must have.
+  preview_text text check (preview_text is null or length(preview_text) <= 500),
+  -- Plain text for this phase — no rich-text editor, no HTML-specific
+  -- delivery assumption, no executable template syntax. A future P4-I4B
+  -- (Admin UI/API) or P4-I5 (delivery) phase must define content
+  -- validation/rendering safety before this ever reaches an email send.
+  content text not null check (length(trim(content)) > 0),
+  status text not null default 'draft' check (status in ('draft', 'archived')),
+  -- Segmentation only, exactly like marketing_contacts.audience_type — NULL
+  -- means "all eligible subscribed contacts"; a value narrows to that one
+  -- audience. This column can NEVER imply consent: a future runtime's
+  -- recipient eligibility always additionally requires
+  -- marketing_contacts.marketing_status = 'subscribed', regardless of
+  -- audience_type. No recipient rows, counts, or snapshots are created by
+  -- this table — eligible recipients are always computed fresh against
+  -- current marketing_contacts state.
+  audience_type text
+    check (audience_type is null or audience_type in ('existing_patient', 'prospective_patient', 'subscriber', 'other')),
+  -- No foreign key to admin_users: this schema has zero foreign keys
+  -- anywhere today, including admin_audit_logs.actor_id — the closest
+  -- existing analog for "which admin did this." Admin-user lifecycle and
+  -- access control are handled entirely at the application layer; a hard
+  -- FK here could block legitimate admin-account maintenance/removal.
+  -- Nullable for the same reason actor_id is nullable.
+  created_by uuid,
+  created_at timestamptz not null default now(),
+  -- No trigger — matches every other table in this schema; a future Server
+  -- API sets this explicitly on update, the same way crudFactory.ts already
+  -- does for every other resource.
+  updated_at timestamptz not null default now(),
+  -- Archive semantics: status = 'archived' together with archived_at, set
+  -- together by a future runtime. No CHECK ties the two columns together —
+  -- unlike the one enforced marketing_contacts invariant (subscribed
+  -- requires consent_source), there is no single-fact consistency rule to
+  -- enforce here, and adding one would make future state evolution (e.g. an
+  -- archived-then-unarchived draft's timestamp handling) unnecessarily
+  -- fragile before any real usage pattern exists.
+  archived_at timestamptz
+);
+
+create index if not exists marketing_campaigns_status_idx on marketing_campaigns (status);
+create index if not exists marketing_campaigns_created_idx on marketing_campaigns (created_at desc);
+-- No audience_type index: this is a small draft-management table with no
+-- runtime filtering behavior defined yet — nothing today justifies the
+-- write overhead. Add one later if real usage shows it is needed.
+
+alter table marketing_campaigns enable row level security;
+-- Zero policies — same default-deny posture as marketing_contacts and every
+-- other table. Access will be exclusively through a future authenticated
+-- Server API using the existing service-role client.
+
+notify pgrst, 'reload schema';

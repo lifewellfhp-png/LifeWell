@@ -87,10 +87,14 @@ test('no phone/SMS column exists on this table', () => {
   assert.doesNotMatch(block, /^\s*(phone|sms)\s+text\b/im);
 });
 
-test('no campaign tables are created in this phase', () => {
-  assert.doesNotMatch(opsSource, /create table if not exists marketing_campaigns/);
-  assert.doesNotMatch(opsSource, /create table if not exists campaign_recipients/);
-  assert.doesNotMatch(opsSource, /create table if not exists campaign_deliveries/);
+test('no campaign tables are created in the P4-I2A block itself', () => {
+  // Scoped to this phase's own block, not the whole file — P4-I4A later
+  // adds marketing_campaigns in its own separate block further down
+  // ops.sql, which is out of scope for this P4-I2A migration to have
+  // created and is covered by its own test-marketing-campaigns-schema.mjs.
+  assert.doesNotMatch(block, /create table if not exists marketing_campaigns/);
+  assert.doesNotMatch(block, /create table if not exists campaign_recipients/);
+  assert.doesNotMatch(block, /create table if not exists campaign_deliveries/);
 });
 
 test('RLS is enabled with zero policies', () => {
