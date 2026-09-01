@@ -206,28 +206,77 @@ export async function createAdminUser(req: Request, res: Response): Promise<void
   res.status(201).json({ success: true, data, invite });
 }
 
+/**
+ * Order-independent comparison — permission ordering carries no meaning in
+ * this app (every read site uses .includes()), so the same set resubmitted
+ * in a different order must not look like a change (P4-G4A).
+ */
+function permissionsEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((value, i) => value === sortedB[i]);
+}
+
+/**
+ * Pure revocation decision for an admin-user update, extracted so it's
+ * directly unit-testable without a live Supabase connection (P4-G4A).
+ * `before` is the row as it existed before this update; `submitted` is only
+ * the fields actually present in the parsed request body.
+ */
+export function shouldRevokeOnUpdate(
+  before: { active: boolean; permissions: string[] },
+  submitted: { active?: boolean; permissions?: string[] }
+): boolean {
+  const activeDisabled = submitted.active === false && before.active !== false;
+  const permissionsChanged =
+    submitted.permissions !== undefined && !permissionsEqual(submitted.permissions, before.permissions ?? []);
+  return activeDisabled || permissionsChanged;
+}
+
 export async function updateAdminUser(req: Request, res: Response): Promise<void> {
   const parsed = adminUserUpdate.safeParse(req.body);
   if (!parsed.success) throw badRequest('Invalid user payload.');
 
+  const { data: before, error: beforeError } = await getSupabase()
+    .from('admin_users')
+    .select('role, active, permissions, token_version')
+    .eq('id', req.params.id)
+    .maybeSingle();
+  if (beforeError) throw badRequest(beforeError.message);
+  if (!before) throw notFound('User not found.');
+
+  if (parsed.data.active === false && before.role === 'super_admin') {
+    throw badRequest('Super Admin accounts cannot be blocked.');
+  }
+
   const patch: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
-  if (parsed.data.active === false) {
-    const { data: target } = await getSupabase()
-      .from('admin_users')
-      .select('role')
-      .eq('id', req.params.id)
-      .maybeSingle();
-    if (target?.role === 'super_admin') {
-      throw badRequest('Super Admin accounts cannot be blocked.');
-    }
-  }
   if (parsed.data.email) patch.email = parsed.data.email.toLowerCase().trim();
   if (parsed.data.name !== undefined) patch.name = parsed.data.name;
   if (parsed.data.permissions !== undefined) patch.permissions = parsed.data.permissions;
   if (parsed.data.active !== undefined) patch.active = parsed.data.active;
   if (parsed.data.password) patch.password_hash = await bcrypt.hash(parsed.data.password, 12);
+
+  /**
+   * Revoke existing sessions for this account — same token_version
+   * mechanism handleChangePassword already uses — exactly once, only when
+   * this update actually disables a currently-active account or actually
+   * changes the effective permission set (P4-G4A). Deliberately NOT
+   * triggered by: a false→false no-op resubmission of an already-disabled
+   * account, a re-enable (false→true; token_version must never
+   * decrease/reset — an old token revoked by the prior disable must stay
+   * revoked until a fresh login), or an unrelated profile field (email,
+   * name, password reset) with no active/permissions change.
+   */
+  const revoke = shouldRevokeOnUpdate(
+    { active: before.active, permissions: (before.permissions as string[] | null) ?? [] },
+    { active: parsed.data.active, permissions: parsed.data.permissions }
+  );
+  if (revoke) {
+    patch.token_version = ((before.token_version as number | null) ?? 0) + 1;
+  }
 
   const { data, error } = await getSupabase()
     .from('admin_users')

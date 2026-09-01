@@ -51,11 +51,32 @@ const ALL_MODULES = [
 export type AdminModule = (typeof ALL_MODULES)[number];
 
 export function signAdminToken(payload: AdminTokenPayload): string {
-  return jwt.sign(payload, env.ADMIN_JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign(payload, env.ADMIN_JWT_SECRET, { algorithm: 'HS256', expiresIn: '30d' });
 }
 
 export function verifyAdminToken(token: string): AdminTokenPayload {
-  return jwt.verify(token, env.ADMIN_JWT_SECRET) as AdminTokenPayload;
+  // Explicitly restricts accepted algorithms rather than trusting whatever
+  // the token header claims (jsonwebtoken's default behavior) — defense in
+  // depth against algorithm-confusion attacks (P4-G4/P4-G4A).
+  return jwt.verify(token, env.ADMIN_JWT_SECRET, { algorithms: ['HS256'] }) as AdminTokenPayload;
+}
+
+/**
+ * The actual revocation decision, pulled out as a pure function so it can be
+ * tested directly against synthetic lookup results without a live Supabase
+ * connection (P4-G4A) — requireAdmin below calls this with its real query
+ * result, unchanged behavior, just a named/testable condition.
+ */
+export function isSessionRevoked(
+  lookup: { data: { token_version: number | null; active: boolean } | null; error: unknown },
+  tokenVersion: number
+): boolean {
+  return Boolean(
+    lookup.error ||
+      !lookup.data ||
+      (lookup.data.token_version ?? 0) !== tokenVersion ||
+      lookup.data.active === false
+  );
 }
 
 export const requireAdmin: RequestHandler = (req, _res, next) => {
@@ -78,10 +99,18 @@ export const requireAdmin: RequestHandler = (req, _res, next) => {
 
   Promise.resolve()
     .then(() =>
-      getSupabase().from('admin_users').select('token_version').eq('id', payload.sub).maybeSingle()
+      getSupabase()
+        .from('admin_users')
+        .select('token_version, active')
+        .eq('id', payload.sub)
+        .maybeSingle()
     )
     .then(({ data, error }) => {
-      if (error || !data || (data.token_version ?? 0) !== tokenVersion) {
+      // Same single query as before, now also checking `active` (P4-G4A) so
+      // a disabled account is rejected even if some future code path ever
+      // sets active=false without bumping token_version — a generic message
+      // either way, never revealing which condition failed.
+      if (isSessionRevoked({ data, error }, tokenVersion)) {
         next(unauthorized('Session expired. Please sign in again.'));
         return;
       }
