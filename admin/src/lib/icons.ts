@@ -22,6 +22,7 @@ import {
   BarChart3,
   Users,
   ScrollText,
+  Contact,
 } from 'lucide-react';
 import type { NavIconName } from './nav';
 
@@ -48,4 +49,5 @@ export const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   BarChart3,
   Users,
   ScrollText,
+  Contact,
 };
