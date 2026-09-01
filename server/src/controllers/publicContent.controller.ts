@@ -56,7 +56,10 @@ export async function getPublicContent(_req: Request, res: Response): Promise<vo
     resolveTable('services', sb.from('services').select('*').eq('published', true).order('sort_order')),
     resolveTable('providers', sb.from('providers').select('*').eq('published', true).order('sort_order')),
     resolveTable('insurance_plans', sb.from('insurance_plans').select('*').eq('published', true).order('sort_order')),
-    resolveTable('testimonials', sb.from('testimonials').select('*').eq('published', true).order('sort_order')),
+    resolveTable(
+      'testimonials',
+      sb.from('testimonials').select('*').eq('published', true).eq('consent_confirmed', true).order('sort_order')
+    ),
     resolveTable('faqs', sb.from('faqs').select('*').eq('published', true).order('sort_order')),
     resolveTable('locations', sb.from('locations').select('*').eq('published', true)),
     resolveTable(

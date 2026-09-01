@@ -87,6 +87,12 @@ export function createCrudRouter(options: CrudOptions): Router {
       }
       let payload = parsed.data as Record<string, unknown>;
       if (beforeCreate) payload = beforeCreate(payload);
+      if (module === 'testimonials') {
+        const { published, consent_confirmed } = payload;
+        if (published === true && consent_confirmed !== true) {
+          throw badRequest('Published testimonials require consent_confirmed=true.');
+        }
+      }
       let { data, error } = await getSupabase().from(table).insert(payload).select('*').single();
       if (error && /does not exist|schema cache/i.test(error.message)) {
         const retry = await getSupabase().from(table).insert(withoutOptionalMediaFields(payload)).select('*').single();
@@ -130,6 +136,13 @@ export function createCrudRouter(options: CrudOptions): Router {
         .select('*')
         .eq('id', req.params.id)
         .maybeSingle();
+
+      if (module === 'testimonials') {
+        const effective = { ...(before ?? {}), ...payload } as Record<string, unknown>;
+        if (effective.published === true && effective.consent_confirmed !== true) {
+          throw badRequest('Published testimonials require consent_confirmed=true.');
+        }
+      }
 
       let { data, error } = await getSupabase()
         .from(table)

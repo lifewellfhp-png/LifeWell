@@ -267,8 +267,6 @@ adminRouter.use(
     createSchema: testimonialCreate,
     updateSchema: testimonialUpdate,
     orderBy: { column: 'sort_order', ascending: true },
-    beforeCreate: (data) => ({ ...data, consent_confirmed: data.published ? true : data.consent_confirmed }),
-    beforeUpdate: (data) => ({ ...data, consent_confirmed: data.published ? true : data.consent_confirmed }),
   })
 );
 

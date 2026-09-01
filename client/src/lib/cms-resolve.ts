@@ -210,15 +210,21 @@ function mapFeesFaqs(cms: PublicCmsPayload | null, live: boolean): Faq[] {
   return mapped.length ? mapped : staticFeesFaqs;
 }
 
-function mapTestimonials(cms: PublicCmsPayload | null, live: boolean): Testimonial[] {
+export function isCmsTestimonialPubliclyVisible(row: { published?: unknown; consent_confirmed?: unknown }): boolean {
+  return row.published === true && row.consent_confirmed === true;
+}
+
+export function mapTestimonials(cms: PublicCmsPayload | null, live: boolean): Testimonial[] {
   const rows = (cms?.testimonials ?? []) as {
     quote?: string;
     author_name?: string;
     author_role?: string | null;
+    published?: unknown;
+    consent_confirmed?: unknown;
     rating?: number | null;
   }[];
   const mapped = rows
-    .filter((r) => r.quote && r.author_name)
+    .filter((r) => r.quote && r.author_name && isCmsTestimonialPubliclyVisible(r))
     .map((r) => ({
       quote: String(r.quote),
       author: String(r.author_name),

@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+export function isPubliclyVisibleTestimonial(row: { published?: unknown; consent_confirmed?: unknown }): boolean {
+  return row.published === true && row.consent_confirmed === true;
+}
+
+export function assertEffectiveTestimonialConsent(row: { published?: unknown; consent_confirmed?: unknown }): void {
+  if (row.published === true && row.consent_confirmed !== true) {
+    throw new Error('Published testimonials require consent_confirmed=true.');
+  }
+}
+
 export const announcementCreate = z.object({
   title: z.string().min(1).max(200),
   body: z.string().min(1).max(5000),
@@ -67,16 +77,31 @@ export const insuranceCreate = z.object({
 });
 export const insuranceUpdate = insuranceCreate.partial();
 
-export const testimonialCreate = z.object({
+const testimonialBase = z.object({
   quote: z.string().min(1).max(2000),
   author_name: z.string().min(1).max(120),
   author_role: z.string().max(120).optional().nullable(),
   rating: z.number().int().min(1).max(5).optional().nullable(),
-  published: z.boolean().default(true),
-  consent_confirmed: z.boolean().default(true),
+  published: z.boolean().default(false),
+  consent_confirmed: z.boolean().default(false),
   sort_order: z.number().int().default(0),
 });
-export const testimonialUpdate = testimonialCreate.partial();
+
+export const testimonialCreate = testimonialBase.refine(
+  (data: { published?: boolean; consent_confirmed?: boolean }) => !(data.published === true && data.consent_confirmed !== true),
+  {
+    message: 'Published testimonials require explicit consent_confirmed=true.',
+    path: ['consent_confirmed'],
+  }
+);
+
+export const testimonialUpdate = testimonialBase.partial().refine(
+  (data: { published?: boolean; consent_confirmed?: boolean }) => !(data.published === true && data.consent_confirmed === false),
+  {
+    message: 'Published testimonials require consent_confirmed=true.',
+    path: ['consent_confirmed'],
+  }
+);
 
 export const faqCreate = z.object({
   question: z.string().min(1).max(500),
