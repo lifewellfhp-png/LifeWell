@@ -332,4 +332,88 @@ A psychiatric evaluation by telehealth works the same way as an in-person visit 
 )
 on conflict (slug) do nothing;
 
+-- P4-I2A: Marketing Contacts / Email Directory.
+--
+-- A marketing contact list, NOT a clinical patient database — no diagnosis,
+-- medication, symptom, clinical-note, treatment-plan, appointment-note, or
+-- psychiatric-history field exists here, and none should ever be added.
+-- Deliberately excludes a free-text `notes` column for the same reason this
+-- codebase already minimizes other free-text fields (leads.message/subject,
+-- the public Contact form's reason enum): an open narrative field on a
+-- contact record invites exactly the kind of accidental sensitive content
+-- this table must never hold.
+--
+-- Consent/status invariant: `marketing_status` defaults to 'pending', never
+-- 'subscribed' — no default or trigger here can ever make a contact
+-- sendable. Only a future, explicit application-layer action may do that.
+create table if not exists marketing_contacts (
+  id uuid primary key default gen_random_uuid(),
+  -- As-submitted email, preserved for display.
+  email text not null check (length(trim(email)) > 0),
+  -- Authoritative dedupe key. GENERATED (not a plain column the app writes
+  -- to) so email/email_normalized can never disagree — Postgres computes
+  -- and stores this itself on every insert/update, and rejects any attempt
+  -- to write to it directly. This is what makes normalized uniqueness a
+  -- database guarantee rather than an application-trusted convention.
+  email_normalized text generated always as (lower(trim(email))) stored unique,
+  first_name text,
+  last_name text,
+  -- Segmentation only — must never be read as implying marketing consent.
+  audience_type text not null default 'other'
+    check (audience_type in ('existing_patient', 'prospective_patient', 'subscriber', 'other')),
+  -- Provenance. Limited to mechanisms that actually exist in this
+  -- repository today — no integration-specific source is listed until the
+  -- integration itself exists.
+  source text not null default 'manual'
+    check (source in ('manual', 'csv_import', 'website_signup', 'other')),
+  -- The actual sendability gate. 'subscribed' is the only sendable value;
+  -- everything else (including the default) is non-sendable.
+  marketing_status text not null default 'pending'
+    check (marketing_status in ('pending', 'subscribed', 'unsubscribed', 'suppressed')),
+  -- Reuses the same controlled vocabulary as `source` rather than inventing
+  -- a second, unevidenced enum for how consent was obtained.
+  consent_source text
+    check (consent_source is null or consent_source in ('manual', 'csv_import', 'website_signup', 'other')),
+  -- Nullable on purpose: a legitimately-consented historical import may not
+  -- carry an exact original timestamp. The CHECK below requires knowing HOW
+  -- consent was obtained (consent_source) before a row may be 'subscribed',
+  -- without also requiring WHEN, which would make honest historical imports
+  -- impossible to represent.
+  consent_at timestamptz,
+  unsubscribed_at timestamptz,
+  suppressed_at timestamptz,
+  -- Deliberately left as unconstrained text, not a controlled enum: no
+  -- repository or product evidence yet establishes a real suppression-cause
+  -- taxonomy, and inventing one here would be a guess. This is a known,
+  -- disclosed tradeoff — a future Server/Admin layer should constrain this
+  -- to a fixed set of accepted values via application-level validation once
+  -- real usage patterns are observed, the same way every other business
+  -- rule in this app lives in Zod rather than a DB CHECK.
+  suppression_reason text,
+  created_at timestamptz not null default now(),
+  -- No trigger — matches every other table in this schema; the future
+  -- Server API sets this explicitly on update, the same way crudFactory.ts
+  -- already does for every other resource.
+  updated_at timestamptz not null default now(),
+  -- The one status/consent consistency rule enforced at the DB level: a
+  -- 'subscribed' row must at least know HOW consent was obtained. Every
+  -- other status/timestamp combination (including an unsubscribed/
+  -- suppressed row with no timestamp, e.g. an imported list that doesn't
+  -- carry an exact historical date) is deliberately left unconstrained so a
+  -- legitimate historical import is never impossible to represent. Sticky
+  -- unsubscribe/suppression transition rules belong to the future Server
+  -- API and CSV import logic, not a DB trigger — this phase does not
+  -- introduce one.
+  check (marketing_status <> 'subscribed' or consent_source is not null)
+);
+
+create index if not exists marketing_contacts_status_idx on marketing_contacts (marketing_status);
+create index if not exists marketing_contacts_audience_idx on marketing_contacts (audience_type);
+create index if not exists marketing_contacts_created_idx on marketing_contacts (created_at desc);
+
+alter table marketing_contacts enable row level security;
+-- Zero policies — same default-deny posture as every other table (see the
+-- RLS posture note in schema.sql). Access will be exclusively through the
+-- future authenticated Server API using the existing service-role client.
+
 notify pgrst, 'reload schema';
