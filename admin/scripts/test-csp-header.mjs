@@ -14,6 +14,7 @@ import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -75,10 +76,36 @@ test('G. img-src permits staff-managed https images, data:, and blob:', async ()
   assert.match(value, /img-src 'self' https: data: blob:/);
 });
 
-test('H. frame-src permits only the youtube-nocookie.com preview host', async () => {
+test('H. frame-src permits the youtube-nocookie.com and player.vimeo.com preview hosts, and nothing else (P4-G3A)', async () => {
   const value = await getCspValue();
-  assert.match(value, /frame-src https:\/\/www\.youtube-nocookie\.com/);
-  assert.doesNotMatch(value, /frame-src[^;]*vimeo/i);
+  const directive = value.split(';').map((d) => d.trim()).find((d) => d.startsWith('frame-src'));
+  assert.ok(directive, 'frame-src directive must be present');
+  assert.equal(
+    directive,
+    'frame-src https://www.youtube-nocookie.com https://player.vimeo.com',
+    'frame-src must contain exactly these two origins, nothing more'
+  );
+  assert.doesNotMatch(directive, /\*/, 'no wildcard frame source may be introduced');
+});
+
+test('H2. SitePreviews renders its Vimeo iframe at an origin covered by frame-src', async () => {
+  const value = await getCspValue();
+  const sitePreviews = readFileSync(
+    join(__dirname, '..', 'src', 'components', 'SitePreviews.tsx'),
+    'utf8'
+  );
+  assert.match(sitePreviews, /https:\/\/player\.vimeo\.com\/video\/\$\{resolved\.id\}/);
+  assert.match(value, /frame-src[^;]*https:\/\/player\.vimeo\.com/);
+});
+
+test('H3. the other CSP directives are unchanged by the frame-src correction (P4-G3A)', async () => {
+  const value = await getCspValue();
+  assert.match(value, /script-src 'self' 'unsafe-inline'/);
+  assert.match(value, /style-src 'self' 'unsafe-inline'/);
+  assert.match(value, /connect-src 'self' https:\/\/lifewellfhp-server\.vercel\.app/);
+  assert.match(value, /frame-ancestors 'none'/);
+  assert.match(value, /object-src 'none'/);
+  assert.match(value, /report-uri \/api\/csp-report\b/);
 });
 
 test('I. style-src allows unsafe-inline (existing React inline styles) — documented, not silently dropped', () => {

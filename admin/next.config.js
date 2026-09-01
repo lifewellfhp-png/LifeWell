@@ -24,7 +24,7 @@ const nextConfig = {
       "img-src 'self' https: data: blob:",
       "font-src 'self'",
       `connect-src 'self' ${apiOrigin}`,
-      'frame-src https://www.youtube-nocookie.com',
+      'frame-src https://www.youtube-nocookie.com https://player.vimeo.com',
       "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",
