@@ -39,6 +39,10 @@ import {
   createMarketingContact,
   updateMarketingContact,
 } from '../controllers/marketingContacts.controller.js';
+import {
+  previewMarketingContactsImport,
+  confirmMarketingContactsImport,
+} from '../controllers/marketingContactsImport.controller.js';
 import { getSupabase } from '../lib/supabase.js';
 import { badRequest } from '../utils/errors.js';
 
@@ -431,6 +435,26 @@ adminRouter.patch(
   requireAdmin,
   requirePermission('marketing_contacts'),
   asyncHandler(updateMarketingContact)
+);
+
+/**
+ * CSV import (P4-I2E). Two-stage: preview parses/validates/classifies with
+ * zero database writes and returns a signed, short-lived preview token;
+ * confirm re-validates that token and inserts only rows still classified
+ * new. Same permission gate as the rest of the directory. No DELETE
+ * endpoint here either — import can only ever add new contacts.
+ */
+adminRouter.post(
+  '/marketing-contacts/import/preview',
+  requireAdmin,
+  requirePermission('marketing_contacts'),
+  asyncHandler(previewMarketingContactsImport)
+);
+adminRouter.post(
+  '/marketing-contacts/import/confirm',
+  requireAdmin,
+  requirePermission('marketing_contacts'),
+  asyncHandler(confirmMarketingContactsImport)
 );
 
 adminRouter.get('/users', requireAdmin, requireSuperAdmin, asyncHandler(listAdminUsers));

@@ -372,9 +372,13 @@ export type MarketingAudienceType = (typeof MARKETING_AUDIENCE_TYPES)[number];
 export type MarketingSource = (typeof MARKETING_SOURCES)[number];
 export type MarketingStatus = (typeof MARKETING_STATUSES)[number];
 
+// 254 is the practical maximum total email address length (RFC 5321/5322).
+// Exported so the CSV import path (P4-I2E) validates each row's email with
+// the exact same rule as manual create/update, rather than a re-typed copy.
+export const marketingContactEmail = z.string().trim().min(1).max(254).email();
+
 const marketingContactBase = z.object({
-  // 254 is the practical maximum total email address length (RFC 5321/5322).
-  email: z.string().trim().min(1).max(254).email(),
+  email: marketingContactEmail,
   first_name: z.string().trim().max(120).optional().nullable(),
   last_name: z.string().trim().max(120).optional().nullable(),
   // Segmentation only — must never be read as implying marketing consent.
@@ -451,6 +455,30 @@ export function assertMarketingStatusTransition(before: string, next: string): v
     throw new Error(`Cannot change marketing_status from ${before} to ${next} through this endpoint.`);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Marketing contacts CSV import (P4-I2E). Two-stage: an in-memory
+// preview/classify step that never writes to the database, followed by a
+// separate confirm step gated on a server-signed token — see
+// server/src/lib/marketingImportToken.ts and
+// server/src/controllers/marketingContactsImport.controller.ts.
+// ---------------------------------------------------------------------------
+
+export const marketingContactsImportPreviewSchema = z
+  .object({
+    // Raw CSV text, not base64 — CSV is already plain UTF-8 text, so
+    // encoding it would only add overhead. Generously bounded here; the
+    // authoritative 5 MB byte-length limit is enforced in the controller
+    // (this char-count max is just an outer backstop before parsing runs).
+    csv: z.string().min(1).max(6_000_000),
+  })
+  .strict();
+
+export const marketingContactsImportConfirmSchema = z
+  .object({
+    preview_token: z.string().min(1).max(3_000_000),
+  })
+  .strict();
 
 export const DEFAULT_SITE_SETTINGS = {
   id: 'default',
