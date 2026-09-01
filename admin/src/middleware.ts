@@ -1,17 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
- * Nonce-based Content-Security-Policy-Report-Only header (P4-G3D, Stage 1 of
- * the P4-G3C design). Generates one cryptographically random nonce per
+ * Nonce-based Content-Security-Policy header (P4-G3F; enforced — Stage 5 of
+ * the P4-G3C design, following Report-Only rollout in P4-G3D and Preview
+ * verification in P4-G3E). Generates one cryptographically random nonce per
  * request so script-src can drop 'unsafe-inline' in favor of
  * 'nonce-{value}' 'strict-dynamic' — Next.js auto-applies the nonce to its
  * own framework/page scripts once it can read it from the request's CSP
  * header (verified against the installed 15.5.23 package, not assumed from
  * newer-version docs).
- *
- * Still Report-Only — this file must never set the enforced
- * Content-Security-Policy header. Enforcement is a separate, later,
- * explicitly-authorized phase (see P4-G3C).
  *
  * Runs on the Edge Runtime, so nonce generation avoids Buffer (not present
  * in Next's compiled edge runtime) in favor of Web Crypto + btoa.
@@ -31,7 +28,7 @@ export function middleware(request: NextRequest) {
   const nonce = generateNonce();
   const apiOrigin = process.env.NEXT_PUBLIC_API_URL || 'https://lifewellfhp-server.vercel.app';
 
-  const cspReportOnly = [
+  const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
     "style-src 'self' 'unsafe-inline'",
@@ -49,14 +46,14 @@ export function middleware(request: NextRequest) {
   // Set on the forwarded request so Next.js's SSR nonce parser can read it
   // (it inspects the incoming request's CSP header, not just the response).
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('Content-Security-Policy-Report-Only', cspReportOnly);
+  requestHeaders.set('Content-Security-Policy', csp);
 
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   });
 
   // And on the response so the browser actually receives it.
-  response.headers.set('Content-Security-Policy-Report-Only', cspReportOnly);
+  response.headers.set('Content-Security-Policy', csp);
 
   return response;
 }

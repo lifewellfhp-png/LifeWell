@@ -1,6 +1,7 @@
 /**
- * Regression tests for the nonce-based Content-Security-Policy-Report-Only
- * header (P4-G3D), generated per-request in admin/src/middleware.ts.
+ * Regression tests for the nonce-based, enforced Content-Security-Policy
+ * header (P4-G3F — Stage 5 of the P4-G3C design), generated per-request in
+ * admin/src/middleware.ts.
  *
  * Calls the actual `middleware()` function Next.js invokes per request, so
  * this is testing the real implementation, not a copy of it. The forwarded
@@ -16,7 +17,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -41,12 +42,12 @@ function invoke(path = '/login', env = {}) {
   return response;
 }
 
-function responseCsp(response) {
-  return response.headers.get('Content-Security-Policy-Report-Only');
+function enforcedCsp(response) {
+  return response.headers.get('Content-Security-Policy');
 }
 
 function requestCsp(response) {
-  return response.headers.get('x-middleware-request-content-security-policy-report-only');
+  return response.headers.get('x-middleware-request-content-security-policy');
 }
 
 function directive(csp, name) {
@@ -62,115 +63,117 @@ function extractNonce(csp) {
   return match ? match[1] : null;
 }
 
-test('A. the header key is Content-Security-Policy-Report-Only, and the enforced key is absent', () => {
+test('1/2. the enforced Content-Security-Policy header is emitted, and Content-Security-Policy-Report-Only is absent', () => {
   const response = invoke();
-  assert.ok(responseCsp(response), 'Report-Only header must be present');
-  assert.equal(response.headers.get('Content-Security-Policy'), null, 'enforced CSP must never be set');
+  assert.ok(enforcedCsp(response), 'enforced CSP header must be present');
+  assert.equal(
+    response.headers.get('Content-Security-Policy-Report-Only'),
+    null,
+    'Report-Only key must not be emitted alongside the enforced key'
+  );
 });
 
-test('B. middleware.ts source never calls .set() with the enforced Content-Security-Policy key (only the Report-Only key)', () => {
-  // Matches only an actual .set('Content-Security-Policy', ...) call — the
-  // closing quote must immediately follow "Policy", so this cannot match
-  // 'Content-Security-Policy-Report-Only' or a prose comment.
-  const setCalls = middlewareSource.match(/\.set\(\s*'Content-Security-Policy'\s*,/g) || [];
-  assert.equal(setCalls.length, 0);
+test('B. middleware.ts source sets only the enforced Content-Security-Policy key, never the Report-Only key', () => {
+  // The Report-Only key must not appear anywhere in the source at all —
+  // this file must not silently keep both.
+  assert.doesNotMatch(middlewareSource, /Content-Security-Policy-Report-Only/);
+  const enforcedSetCalls = middlewareSource.match(/\.set\(\s*'Content-Security-Policy'\s*,/g) || [];
+  assert.equal(enforcedSetCalls.length, 2, 'expected exactly two .set() calls: request headers + response headers');
 });
 
-test('C. next.config.js no longer constructs or emits any CSP header', () => {
-  assert.doesNotMatch(nextConfigSource, /Content-Security-Policy/);
-  assert.doesNotMatch(nextConfigSource, /cspReportOnly/);
-});
-
-test('D. every middleware invocation generates a nonce', () => {
-  const nonce = extractNonce(responseCsp(invoke()));
+test('3. every middleware invocation generates a nonce', () => {
+  const nonce = extractNonce(enforcedCsp(invoke()));
   assert.ok(nonce, 'script-src must contain a nonce token');
 });
 
-test('E. two independent invocations generate different nonces', () => {
-  const n1 = extractNonce(responseCsp(invoke()));
-  const n2 = extractNonce(responseCsp(invoke()));
+test('4. two independent invocations generate different nonces', () => {
+  const n1 = extractNonce(enforcedCsp(invoke()));
+  const n2 = extractNonce(enforcedCsp(invoke()));
   assert.notEqual(n1, n2);
 });
 
 test('F. the nonce matches the exact format the installed Next.js parser accepts (CSP_NONCE_SOURCE_REGEX)', () => {
-  const nonce = extractNonce(responseCsp(invoke()));
+  const nonce = extractNonce(enforcedCsp(invoke()));
   assert.match(nonce, /^[A-Za-z0-9+/_-]+={0,2}$/);
 });
 
-test('G. the SAME nonce appears in the forwarded request CSP and the response CSP', () => {
+test('5. the SAME nonce appears in the forwarded request CSP and the response CSP', () => {
   const response = invoke();
   const reqNonce = extractNonce(requestCsp(response));
-  const resNonce = extractNonce(responseCsp(response));
+  const resNonce = extractNonce(enforcedCsp(response));
   assert.ok(reqNonce, 'forwarded request CSP must be present and contain a nonce');
   assert.equal(reqNonce, resNonce);
 });
 
-test('H. script-src contains the nonce and strict-dynamic, and does not contain unsafe-inline or unsafe-eval', () => {
-  const csp = responseCsp(invoke());
+test('6/7/8/9. script-src contains the matching nonce and strict-dynamic, and does not contain unsafe-inline or unsafe-eval', () => {
+  const csp = enforcedCsp(invoke());
   const nonce = extractNonce(csp);
   const scriptSrc = directive(csp, 'script-src');
-  assert.match(scriptSrc, new RegExp(`'nonce-${nonce}'`));
+  // Plain substring check, not a RegExp built from the nonce — a base64
+  // nonce can contain '+' (a regex quantifier), which broke this exact
+  // assertion when a sampled nonce happened to contain one.
+  assert.equal(scriptSrc.includes(`'nonce-${nonce}'`), true);
   assert.match(scriptSrc, /'strict-dynamic'/);
   assert.doesNotMatch(scriptSrc, /'unsafe-inline'/);
   assert.doesNotMatch(scriptSrc, /'unsafe-eval'/);
 });
 
-test('I. style-src remains self + unsafe-inline (intentional — documented React inline styles)', () => {
-  const csp = responseCsp(invoke());
+test('10. style-src remains self + unsafe-inline (intentional — documented React inline styles)', () => {
+  const csp = enforcedCsp(invoke());
   assert.equal(directive(csp, 'style-src'), "style-src 'self' 'unsafe-inline'");
 });
 
-test('J. img-src is unchanged', () => {
-  const csp = responseCsp(invoke());
+test('11. img-src is unchanged', () => {
+  const csp = enforcedCsp(invoke());
   assert.equal(directive(csp, 'img-src'), "img-src 'self' https: data: blob:");
 });
 
-test('K. connect-src is unchanged (default fallback)', () => {
-  const csp = responseCsp(invoke());
+test('12. connect-src is unchanged (default fallback)', () => {
+  const csp = enforcedCsp(invoke());
   assert.equal(directive(csp, 'connect-src'), "connect-src 'self' https://lifewellfhp-server.vercel.app");
 });
 
-test('K2. connect-src follows NEXT_PUBLIC_API_URL when overridden', () => {
-  const csp = responseCsp(invoke('/login', { NEXT_PUBLIC_API_URL: 'https://example-preview.vercel.app' }));
+test('12b. connect-src follows NEXT_PUBLIC_API_URL when overridden', () => {
+  const csp = enforcedCsp(invoke('/login', { NEXT_PUBLIC_API_URL: 'https://example-preview.vercel.app' }));
   assert.equal(directive(csp, 'connect-src'), 'connect-src \'self\' https://example-preview.vercel.app');
 });
 
-test('L. YouTube remains allowed in frame-src', () => {
-  const csp = responseCsp(invoke());
+test('13. YouTube remains allowed in frame-src', () => {
+  const csp = enforcedCsp(invoke());
   assert.match(directive(csp, 'frame-src'), /https:\/\/www\.youtube-nocookie\.com/);
 });
 
-test('M. Vimeo remains allowed in frame-src', () => {
-  const csp = responseCsp(invoke());
+test('14. Vimeo remains allowed in frame-src', () => {
+  const csp = enforcedCsp(invoke());
   assert.match(directive(csp, 'frame-src'), /https:\/\/player\.vimeo\.com/);
 });
 
-test('N. frame-ancestors remains none', () => {
-  const csp = responseCsp(invoke());
+test('15. frame-ancestors remains none', () => {
+  const csp = enforcedCsp(invoke());
   assert.equal(directive(csp, 'frame-ancestors'), "frame-ancestors 'none'");
 });
 
-test('O. object-src remains none', () => {
-  const csp = responseCsp(invoke());
+test('16. object-src remains none', () => {
+  const csp = enforcedCsp(invoke());
   assert.equal(directive(csp, 'object-src'), "object-src 'none'");
 });
 
-test('P. base-uri remains self', () => {
-  const csp = responseCsp(invoke());
+test('17. base-uri remains self', () => {
+  const csp = enforcedCsp(invoke());
   assert.equal(directive(csp, 'base-uri'), "base-uri 'self'");
 });
 
-test('Q. form-action remains self', () => {
-  const csp = responseCsp(invoke());
+test('18. form-action remains self', () => {
+  const csp = enforcedCsp(invoke());
   assert.equal(directive(csp, 'form-action'), "form-action 'self'");
 });
 
-test('R. report-uri remains /api/csp-report', () => {
-  const csp = responseCsp(invoke());
+test('19. report-uri remains /api/csp-report', () => {
+  const csp = enforcedCsp(invoke());
   assert.equal(directive(csp, 'report-uri'), 'report-uri /api/csp-report');
 });
 
-test('S. the nonce is never logged, persisted outside the request/response, or placed in cookies/storage', () => {
+test('20/21/22. the nonce is never logged, persisted outside the request/response, or placed in cookies/storage', () => {
   assert.doesNotMatch(middlewareSource, /console\.|logger\./);
   assert.doesNotMatch(middlewareSource, /\.cookies\.set/);
   assert.doesNotMatch(middlewareSource, /localStorage|sessionStorage/);
@@ -183,16 +186,16 @@ test('T. nonce generation uses Web Crypto (getRandomValues), never Math.random, 
   assert.doesNotMatch(middlewareSource, /request\.ip|request\.cookies|request\.nextUrl|Date\.now\(\)/);
 });
 
-test('U. the root layout forces dynamic rendering (required for per-request nonce correctness)', () => {
+test('25. the root layout forces dynamic rendering (required for per-request nonce correctness)', () => {
   assert.match(layoutSource, /export const dynamic = 'force-dynamic';/);
 });
 
-test('V. the middleware matcher covers page paths and excludes /api, /_next/static, /_next/image, favicon.ico', () => {
+test('26/27. the middleware matcher is unchanged and still excludes /api (so /api/csp-report is excluded), /_next/static, /_next/image, favicon.ico', () => {
   assert.equal(config.matcher.length, 1);
   assert.match(config.matcher[0], /\(\?!api\|_next\/static\|_next\/image\|favicon\.ico\)/);
 });
 
-test('W. existing non-CSP security headers in next.config.js are unchanged, and next.config.js sets no CSP', async () => {
+test('23/24. next.config.js sets no CSP header, and the other security headers are unchanged', async () => {
   delete require.cache[require.resolve(join(root, 'next.config.js'))];
   const nextConfig = require(join(root, 'next.config.js'));
   const rules = await nextConfig.headers();
@@ -205,8 +208,16 @@ test('W. existing non-CSP security headers in next.config.js are unchanged, and 
   assert.equal(byKey['Content-Security-Policy'], undefined);
 });
 
-test('X. the CSP report endpoint is unchanged (still force-dynamic, still allowlist-only field extraction)', () => {
+test('28. the CSP report endpoint is unchanged (still force-dynamic, still allowlist-only field extraction)', () => {
   assert.match(cspReportSource, /export const dynamic = 'force-dynamic';/);
   assert.match(cspReportSource, /documentUri:/);
   assert.match(cspReportSource, /blockedUri:/);
+});
+
+test('Y. the Preview-only csp-probe diagnostic fixture never entered main — no such route exists', () => {
+  assert.equal(
+    existsSync(join(root, 'src', 'app', 'csp-probe')),
+    false,
+    'admin/src/app/csp-probe must not exist on main — it is a Preview-branch-only fixture (P4-G3E)'
+  );
 });
