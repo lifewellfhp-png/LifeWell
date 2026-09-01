@@ -39,11 +39,15 @@ export const generatedLegalPages: LegalPage[] = [
           },
           {
             "type": "text",
-            "text": "Health Information: Information related to your mental health, medical history, and treatment necessary to provide appropriate care."
+            "text": "Health Information: Information related to your mental health, medical history, and treatment necessary to provide appropriate care, collected through secure clinical channels — not through the public website."
           },
           {
             "type": "text",
             "text": "Technical Information: IP address, browser type, device information, and website usage data collected automatically for security and performance purposes."
+          },
+          {
+            "type": "text",
+            "text": "Our public Contact form is for scheduling and administrative questions only. Please do not include medical information in the Contact form. For clinical matters, please call our office."
           }
         ]
       },
@@ -169,14 +173,22 @@ export const generatedLegalPages: LegalPage[] = [
           },
           {
             "type": "text",
-            "text": "LifeWell Family Health & PsychiatryEmail: info@lifewellfhp.comPhone: (407) 603 – 1717"
+            "text": "LifeWell Family Health & Psychiatry"
+          },
+          {
+            "type": "text",
+            "text": "Email: contact@lifewellfhp.com"
+          },
+          {
+            "type": "text",
+            "text": "Phone: (407) 603-1717"
           }
         ]
       }
     ],
     "seoTitle": "Telehealth Mental Health Privacy Policy: 5 Important Patient Rights",
     "seoDescription": "Review our telehealth mental health privacy policy to understand how your personal and health information is securely collected, used, and protected.",
-    "updatedAt": "2026-02-25T00:51:51Z",
+    "updatedAt": "2026-09-01T00:00:00Z",
     "wpId": 51013
   },
   {
@@ -308,18 +320,26 @@ export const generatedLegalPages: LegalPage[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "If you have questions about this Privacy Policy or how your information is handled, please contact:"
+            "text": "If you have questions about these Terms and Conditions, please contact:"
           },
           {
             "type": "text",
-            "text": "LifeWell Family Health & PsychiatryEmail: info@lifewellfhp.comPhone: (407) 603 – 1717"
+            "text": "LifeWell Family Health & Psychiatry"
+          },
+          {
+            "type": "text",
+            "text": "Email: contact@lifewellfhp.com"
+          },
+          {
+            "type": "text",
+            "text": "Phone: (407) 603-1717"
           }
         ]
       }
     ],
     "seoTitle": "Telehealth Mental Health Terms and Conditions: 5 Important Patient Guidelines",
     "seoDescription": "Review our telehealth mental health terms and conditions to understand website usage, telehealth policies, and patient responsibilities.",
-    "updatedAt": "2026-02-25T01:39:07Z",
+    "updatedAt": "2026-09-01T00:00:00Z",
     "wpId": 51042
   },
   {
@@ -372,7 +392,7 @@ export const generatedLegalPages: LegalPage[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Our telehealth platform is designed to be accessible across multiple devices, including computers, tablets, and smartphones. Virtual sessions can be accessed from home, providing flexibility and convenience."
+            "text": "We aim to make our website and digital services accessible across multiple devices, including computers, tablets, and smartphones. Virtual sessions can be accessed from home, providing flexibility and convenience."
           },
           {
             "type": "text",
@@ -411,14 +431,22 @@ export const generatedLegalPages: LegalPage[] = [
           },
           {
             "type": "text",
-            "text": "LifeWell Family Health & PsychiatryEmail: info@lifewellfhp.comPhone: (407) 603 – 1717"
+            "text": "LifeWell Family Health & Psychiatry"
+          },
+          {
+            "type": "text",
+            "text": "Email: contact@lifewellfhp.com"
+          },
+          {
+            "type": "text",
+            "text": "Phone: (407) 603-1717"
           }
         ]
       }
     ],
     "seoTitle": "Telehealth Mental Health Accessibility Statement: 5 Accessibility Commitments",
     "seoDescription": "Read our telehealth mental health accessibility statement and learn how we ensure accessible, inclusive, and user-friendly online mental health services.",
-    "updatedAt": "2026-02-25T01:05:10Z",
+    "updatedAt": "2026-09-01T00:00:00Z",
     "wpId": 51022
   },
   {
@@ -514,7 +542,6 @@ export const generatedLegalPages: LegalPage[] = [
           {
             "type": "list",
             "items": [
-              "Replying “STOP” to any message",
               "Contacting our office directly",
               "Requesting removal from SMS communication lists"
             ]
@@ -535,6 +562,19 @@ export const generatedLegalPages: LegalPage[] = [
         ]
       },
       {
+        "heading": "SMS Is Not for Emergencies",
+        "blocks": [
+          {
+            "type": "text",
+            "text": "SMS and other electronic messaging are not monitored continuously and must never be used to report a medical or mental health emergency."
+          },
+          {
+            "type": "text",
+            "text": "If you are experiencing a crisis or emergency, call 911 or the 988 Suicide & Crisis Lifeline immediately."
+          }
+        ]
+      },
+      {
         "heading": "Contact Information",
         "blocks": [
           {
@@ -543,14 +583,22 @@ export const generatedLegalPages: LegalPage[] = [
           },
           {
             "type": "text",
-            "text": "LifeWell Family Health & PsychiatryEmail: info@lifewellfhp.comPhone: (407) 603 – 1717"
+            "text": "LifeWell Family Health & Psychiatry"
+          },
+          {
+            "type": "text",
+            "text": "Email: contact@lifewellfhp.com"
+          },
+          {
+            "type": "text",
+            "text": "Phone: (407) 603-1717"
           }
         ]
       }
     ],
     "seoTitle": "Telehealth Mental Health SMS Consent Policy: 5 Important Communication Terms",
     "seoDescription": "Review our telehealth mental health SMS consent policy to understand how text messages are used for appointment reminders and service communication.",
-    "updatedAt": "2026-02-25T01:12:06Z",
+    "updatedAt": "2026-09-01T00:00:00Z",
     "wpId": 51027
   }
 ];
