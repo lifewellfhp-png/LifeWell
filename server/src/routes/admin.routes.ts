@@ -52,6 +52,7 @@ import {
   archiveMarketingCampaign,
   previewMarketingCampaignRecipients,
 } from '../controllers/marketingCampaigns.controller.js';
+import { sendMarketingCampaign } from '../services/marketingCampaignDelivery.service.js';
 import { getSupabase } from '../lib/supabase.js';
 import { badRequest } from '../utils/errors.js';
 
@@ -521,6 +522,18 @@ adminRouter.get(
   requireAdmin,
   requirePermission('marketing_campaigns'),
   asyncHandler(previewMarketingCampaignRecipients)
+);
+/**
+ * Manual campaign delivery (P4-I5B). Same permission as the rest of this
+ * resource — no separate delivery permission was introduced. POST only;
+ * no GET path can ever trigger a send. No scheduling, no queue, no
+ * automatic retry — see marketingCampaignDelivery.service.ts.
+ */
+adminRouter.post(
+  '/marketing-campaigns/:id/send',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(sendMarketingCampaign)
 );
 
 adminRouter.get('/users', requireAdmin, requireSuperAdmin, asyncHandler(listAdminUsers));

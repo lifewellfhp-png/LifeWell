@@ -518,6 +518,18 @@ const marketingCampaignBase = z.object({
 export const marketingCampaignCreate = marketingCampaignBase.strict();
 export const marketingCampaignUpdate = marketingCampaignBase.strict().partial();
 
+/**
+ * Campaign send confirmation (P4-I5B). `.strict()` + a literal-`true`
+ * `confirm` means the request can carry no campaign content at all — the
+ * server always uses the already-persisted campaign row, never anything
+ * from this request body.
+ */
+export const marketingCampaignSendSchema = z
+  .object({
+    confirm: z.literal(true),
+  })
+  .strict();
+
 // ---------------------------------------------------------------------------
 // Marketing contacts CSV import (P4-I2E). Two-stage: an in-memory
 // preview/classify step that never writes to the database, followed by a

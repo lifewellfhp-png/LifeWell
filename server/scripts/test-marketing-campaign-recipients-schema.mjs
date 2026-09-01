@@ -240,12 +240,22 @@ function findFilesContaining(dir, needle, hits = []) {
   return hits;
 }
 
-test('27. no runtime code anywhere references marketing_campaign_recipients (the critical deployment boundary)', () => {
+test('27. (retired) the P4-I5A pre-migration deployment boundary no longer applies now that P4-I5B has shipped', () => {
+  // At P4-I5A's own time — schema prepared but NOT YET applied to
+  // Production — this test asserted ZERO runtime references anywhere in
+  // the repo, since any code touching an unapplied table would have been
+  // unsafe to auto-deploy. That precondition changed: the P4-I5A migration
+  // was applied and independently verified against Production (P4-I5A-V)
+  // BEFORE P4-I5B was authorized to add the runtime delivery code that
+  // legitimately references this table today
+  // (server/src/services/marketingCampaignDelivery.service.ts). This test
+  // is kept, retitled, as a historical record of that now-satisfied
+  // precondition rather than deleted outright or left as a permanent false
+  // failure.
   const repoRoot = join(root, '..');
-  const hits = [
-    ...findFilesContaining(join(repoRoot, 'server', 'src'), 'marketing_campaign_recipients'),
-    ...findFilesContaining(join(repoRoot, 'admin', 'src'), 'marketing_campaign_recipients'),
-    ...findFilesContaining(join(repoRoot, 'client', 'src'), 'marketing_campaign_recipients'),
-  ];
-  assert.deepEqual(hits, [], `expected no runtime references, found: ${hits.join(', ')}`);
+  const hits = findFilesContaining(join(repoRoot, 'server', 'src'), 'marketing_campaign_recipients');
+  assert.ok(
+    hits.some((f) => f.includes('marketingCampaignDelivery.service.ts')),
+    'expected the P4-I5B delivery service to be the (now-authorized) runtime reference'
+  );
 });

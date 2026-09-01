@@ -60,7 +60,10 @@ function fnSlice(source, startMarker, endMarker) {
   return source.slice(start, end);
 }
 
-const routeBlock = fnSlice(routesSource, 'Marketing campaign DRAFTS (P4-I4B)', "adminRouter.get('/users'");
+// Bounded to just the original 6 draft-management routes (P4-I4B) — the
+// send route (P4-I5B) sits right after this block and has its own
+// dedicated tests in test-marketing-campaign-delivery.mjs.
+const routeBlock = fnSlice(routesSource, 'Marketing campaign DRAFTS (P4-I4B)', 'Manual campaign delivery (P4-I5B)');
 const createFnSource = fnSlice(controllerSource, 'export async function createMarketingCampaign', 'export function assertCampaignEditable');
 const updateFnSource = fnSlice(controllerSource, 'export async function updateMarketingCampaign', 'export function buildArchivePayload');
 const archiveFnSource = fnSlice(controllerSource, 'export async function archiveMarketingCampaign', 'export type RecipientEligibilityFilters');

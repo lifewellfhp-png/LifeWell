@@ -146,8 +146,8 @@ test('18. there is no unarchive/restore action', () => {
 });
 
 // 19-22. No send/schedule anywhere.
-test('19/20/21. no Send, Send Now, or Test Send action exists', () => {
-  assert.doesNotMatch(pageSource, />\s*Send( Now)?\s*</);
+test('19/20/21. no Send Now or Test Send action exists (plain "Send" is now explicitly authorized by P4-I5B, with its own dedicated tests in test-marketing-campaign-delivery-admin.mjs)', () => {
+  assert.doesNotMatch(pageSource, /Send Now/i);
   assert.doesNotMatch(pageSource, /Test Send/i);
 });
 
@@ -156,10 +156,16 @@ test('22. no Schedule action exists', () => {
 });
 
 // 23/24. No provider integration or delivery metrics.
-test('23. no email-provider integration exists on this page', () => {
-  for (const term of ['paubox', 'mailchimp', 'convertkit', 'newsletter.service', 'email.service']) {
+test('23. no direct email-provider API integration exists on this page', () => {
+  // "Paubox" now legitimately appears as a plain-text billing/limits
+  // caveat in the P4-I5B Send review dialog (explicitly required) — the
+  // Admin never calls Paubox directly either way (only the Server does);
+  // what must still never appear is Mailchimp/ConvertKit or any other
+  // provider integration.
+  for (const term of ['mailchimp', 'convertkit', 'newsletter.service', 'email.service']) {
     assert.doesNotMatch(pageSource, new RegExp(term, 'i'), `unexpected email-provider reference "${term}"`);
   }
+  assert.doesNotMatch(pageSource, /fetch\(['"]https:\/\/api\.paubox\.com/);
 });
 
 test('24. no delivery metrics are displayed', () => {

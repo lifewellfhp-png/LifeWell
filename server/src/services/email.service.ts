@@ -19,10 +19,10 @@ import { getSupabase, supabaseConfigured } from '../lib/supabase.js';
 const PAUBOX_API_KEY = env.SMTP_PASSWORD;
 const PAUBOX_ENDPOINT = 'https://api.paubox.com/v1/email/messages';
 const PAUBOX_TIMEOUT_MS = 20_000;
-const pauboxConfigured = Boolean(PAUBOX_API_KEY);
+export const pauboxConfigured = Boolean(PAUBOX_API_KEY);
 
 /** Escapes a value for safe interpolation into the HTML email body. */
-const escapeHtml = (value: string) =>
+export const escapeHtml = (value: string) =>
   value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -54,9 +54,9 @@ export async function resolveInboxEmail(): Promise<string> {
   return env.CONTACT_EMAIL;
 }
 
-type PauboxAddress = { name?: string; address: string };
+export type PauboxAddress = { name?: string; address: string };
 
-type PauboxApiResult = {
+export type PauboxApiResult = {
   ok: boolean;
   httpStatus: number;
   sourceTrackingId?: string;
@@ -77,8 +77,13 @@ const formatAddress = (addr: PauboxAddress) => (addr.name ? `${addr.name} <${add
  * errorMessage is always a short, sanitized, provider-controlled or
  * category string — never the raw response body, which could in principle
  * echo back submitted content.
+ *
+ * Exported (P4-I5B) so marketingCampaignDelivery.service.ts reuses this
+ * exact, already-reviewed transport — the approved From/Authorization/
+ * timeout/error-normalization behavior — rather than a second copy of the
+ * same security-sensitive HTTP call.
  */
-async function sendViaPauboxApi(params: {
+export async function sendViaPauboxApi(params: {
   to: PauboxAddress;
   subject: string;
   text: string;

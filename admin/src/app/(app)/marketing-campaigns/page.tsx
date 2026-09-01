@@ -33,6 +33,7 @@ type Campaign = {
 type Pagination = { page: number; pageSize: number; total: number; totalPages: number };
 type ListData = { items: Campaign[]; pagination: Pagination };
 type RecipientPreviewData = { eligible_count: number; audience_type: AudienceType | null };
+type SendResult = { requested: number; snapshotted: number; sent: number; failed: number; skipped: number };
 
 const STATUS_LABELS: Record<CampaignStatus, string> = { draft: 'Draft', archived: 'Archived' };
 const AUDIENCE_LABELS: Record<AudienceType, string> = {
@@ -96,6 +97,14 @@ export default function MarketingCampaignsPage() {
   const [previewEligible, setPreviewEligible] = useState<number | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
+  const [sending, setSending] = useState<Campaign | null>(null);
+  const [sendEligible, setSendEligible] = useState<number | null>(null);
+  const [sendEligibleLoading, setSendEligibleLoading] = useState(false);
+  const [sendChecked, setSendChecked] = useState(false);
+  const [sendSubmitting, setSendSubmitting] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sendResult, setSendResult] = useState<SendResult | null>(null);
+
   async function load() {
     const params = new URLSearchParams();
     params.set('page', String(page));
@@ -131,11 +140,11 @@ export default function MarketingCampaignsPage() {
   }, [searchInput]);
 
   useEffect(() => {
-    document.body.style.overflow = createOpen || editing || viewing || previewing ? 'hidden' : '';
+    document.body.style.overflow = createOpen || editing || viewing || previewing || sending ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [createOpen, editing, viewing, previewing]);
+  }, [createOpen, editing, viewing, previewing, sending]);
 
   function openCreate() {
     setCreateForm(emptyCampaignForm);
@@ -266,6 +275,48 @@ export default function MarketingCampaignsPage() {
     setPreviewing(null);
   }
 
+  function openSend(campaign: Campaign) {
+    setSending(campaign);
+    setSendChecked(false);
+    setSendError(null);
+    setSendResult(null);
+    setSendEligible(null);
+    setSendEligibleLoading(true);
+    void api<RecipientPreviewData>(`/api/admin/marketing-campaigns/${campaign.id}/recipient-preview`).then((res) => {
+      setSendEligibleLoading(false);
+      if (!res.success) {
+        setSendError(res.message || 'Could not load the current eligible contact count.');
+        return;
+      }
+      setSendEligible(res.data?.eligible_count ?? null);
+    });
+  }
+
+  function closeSend() {
+    if (sendSubmitting) return;
+    setSending(null);
+  }
+
+  async function onConfirmSend() {
+    if (!sending || !sendChecked) return;
+    setSendSubmitting(true);
+    setSendError(null);
+    // Dedicated endpoint only — never generic PATCH, and no campaign
+    // content in the request: the server uses the already-persisted
+    // campaign row exclusively.
+    const res = await api<SendResult>(`/api/admin/marketing-campaigns/${sending.id}/send`, {
+      method: 'POST',
+      body: JSON.stringify({ confirm: true }),
+    });
+    setSendSubmitting(false);
+    if (!res.success) {
+      setSendError(res.message || 'Could not send this campaign.');
+      return;
+    }
+    setSendResult(res.data ?? null);
+    await load();
+  }
+
   const hasActiveFilter = Boolean(searchInput || statusFilter || audienceFilter);
 
   return (
@@ -393,6 +444,11 @@ export default function MarketingCampaignsPage() {
                               Archive
                             </button>
                           ) : null}
+                          {row.status === 'draft' ? (
+                            <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
+                              Send
+                            </button>
+                          ) : null}
                         </div>
                       </td>
                     </tr>
@@ -435,6 +491,11 @@ export default function MarketingCampaignsPage() {
                     {row.status === 'draft' ? (
                       <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
                         Archive
+                      </button>
+                    ) : null}
+                    {row.status === 'draft' ? (
+                      <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
+                        Send
                       </button>
                     ) : null}
                   </div>
@@ -750,6 +811,120 @@ export default function MarketingCampaignsPage() {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {sending ? (
+        <div className="overlay modal-overlay">
+          <div className="card card-pad modal-card">
+            <div className="modal-head">
+              <div>
+                <p className="modal-kicker">Marketing Campaigns</p>
+                <h2>Send {sending.name}</h2>
+              </div>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={closeSend}
+                aria-label="Close"
+                disabled={sendSubmitting}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {sendError ? <div className="error-banner">{sendError}</div> : null}
+
+            {!sendResult ? (
+              <>
+                <div className="detail-grid" style={{ marginBottom: '1rem' }}>
+                  <p>
+                    <span>Campaign name</span>
+                    <strong>{sending.name}</strong>
+                  </p>
+                  <p>
+                    <span>Subject</span>
+                    <strong>{sending.subject}</strong>
+                  </p>
+                  <p>
+                    <span>Audience</span>
+                    <strong>{audienceLabel(sending.audience_type)}</strong>
+                  </p>
+                  <p>
+                    <span>Current eligible contacts</span>
+                    <strong>{sendEligibleLoading ? 'Loading…' : sendEligible !== null ? sendEligible : '—'}</strong>
+                  </p>
+                </div>
+
+                <p className="muted" style={{ marginTop: 0 }}>
+                  Content preview:
+                </p>
+                <div className="card card-pad" style={{ whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
+                  {sending.content}
+                </div>
+
+                <ul className="muted" style={{ paddingLeft: '1.1rem', margin: '0 0 1rem' }}>
+                  <li>Unsubscribed and suppressed contacts will not receive this campaign.</li>
+                  <li>Eligibility is checked again for each contact at the moment of sending.</li>
+                  <li>Paubox account limits and billing may apply.</li>
+                </ul>
+
+                <label className="access-tile" style={{ marginBottom: '1rem' }}>
+                  <input type="checkbox" checked={sendChecked} onChange={(e) => setSendChecked(e.target.checked)} />
+                  <span>
+                    I confirm this campaign is ready to send to currently subscribed marketing contacts.
+                  </span>
+                </label>
+
+                <div className="modal-actions">
+                  <button type="button" className="btn btn-ghost" onClick={closeSend} disabled={sendSubmitting}>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={onConfirmSend}
+                    disabled={!sendChecked || sendSubmitting || sendEligibleLoading}
+                  >
+                    {sendSubmitting ? 'Sending…' : 'Send'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="detail-grid" style={{ marginBottom: '1rem' }}>
+                  <p>
+                    <span>Requested</span>
+                    <strong>{sendResult.requested}</strong>
+                  </p>
+                  <p>
+                    <span>Snapshotted</span>
+                    <strong>{sendResult.snapshotted}</strong>
+                  </p>
+                  <p>
+                    <span>Accepted by email provider</span>
+                    <strong>{sendResult.sent}</strong>
+                  </p>
+                  <p>
+                    <span>Failed</span>
+                    <strong>{sendResult.failed}</strong>
+                  </p>
+                  <p>
+                    <span>Skipped (no longer subscribed)</span>
+                    <strong>{sendResult.skipped}</strong>
+                  </p>
+                </div>
+                <p className="muted">
+                  &ldquo;Accepted&rdquo; means the email provider accepted the message for processing — it does not
+                  confirm the message reached the recipient&rsquo;s inbox.
+                </p>
+                <div className="modal-actions">
+                  <button type="button" className="btn btn-primary" onClick={closeSend}>
+                    Done
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       ) : null}

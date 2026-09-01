@@ -60,6 +60,18 @@ const schema = z.object({
 
   GA4_MEASUREMENT_ID: z.string().optional(),
   GOOGLE_SEARCH_CONSOLE_SITE: z.string().optional(),
+
+  /**
+   * P4-I5B: canonical public Client origin, needed server-side to build a
+   * marketing-unsubscribe link for outbound campaign email
+   * (<origin>/unsubscribe?token=...). The Client already has its own
+   * equivalent (client/src/data/site.ts's NEXT_PUBLIC_SITE_URL), but there
+   * is no shared code between apps, so the Server needs its own copy of
+   * the same default rather than reusing CORS_ORIGINS (a multi-origin
+   * allowlist that also includes localhost/preview domains — the wrong
+   * tool for "the one canonical link destination").
+   */
+  PUBLIC_SITE_URL: z.string().url().default('https://www.lifewellfhp.com'),
 });
 
 const parsed = schema.safeParse(process.env);
