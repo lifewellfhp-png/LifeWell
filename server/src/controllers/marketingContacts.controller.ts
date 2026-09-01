@@ -6,6 +6,7 @@ import { fieldErrors } from '../validation/schemas.js';
 import {
   marketingContactCreate,
   marketingContactUpdate,
+  marketingContactResubscribeSchema,
   assertEffectiveMarketingConsent,
   assertMarketingStatusTransition,
   MARKETING_STATUSES,
@@ -304,6 +305,104 @@ export async function updateMarketingContact(req: Request, res: Response): Promi
     resourceId: data.id,
     summary: statusChanged ? 'Changed marketing contact status' : 'Updated marketing contact',
     meta: changes ? { changes } : undefined,
+  });
+
+  res.json({ success: true, data });
+}
+
+/**
+ * The eligibility decision for resubscription, as a pure function of the
+ * contact's CURRENT status — extracted so it is directly unit-testable
+ * without a live Supabase connection. Throws the exact same AppError the
+ * controller used to construct inline; the controller below just calls it.
+ * suppressed is permanently ineligible (P4-I3 section 12); subscribed is a
+ * 409 conflict (already in the target state); anything other than
+ * unsubscribed (chiefly pending) is a 422 — this endpoint is specifically
+ * the unsubscribed -> subscribed reactivation path, not a general-purpose
+ * "make subscribed" endpoint.
+ */
+export function assertResubscribeEligible(currentStatus: string): void {
+  if (currentStatus === 'suppressed') {
+    throw new AppError('This contact is suppressed and cannot be resubscribed.', 422, { expose: true });
+  }
+  if (currentStatus === 'subscribed') {
+    throw new AppError('This contact is already subscribed.', 409, { expose: true });
+  }
+  if (currentStatus !== 'unsubscribed') {
+    throw new AppError('Only an unsubscribed contact can be resubscribed through this endpoint.', 422, {
+      expose: true,
+    });
+  }
+}
+
+/**
+ * The resubscription write payload, as a pure function of the server-
+ * computed timestamp — extracted so a test can assert exactly which keys
+ * it does and does not touch without a live Supabase connection.
+ * Deliberately excludes `unsubscribed_at`: omitting a key from a Supabase
+ * partial update leaves the existing stored value untouched, which is
+ * exactly how the prior opt-out is preserved as permanent history.
+ */
+export function buildResubscribePayload(now: string): Record<string, unknown> {
+  return {
+    marketing_status: 'subscribed',
+    consent_source: 'manual',
+    consent_at: now,
+    updated_at: now,
+  };
+}
+
+/**
+ * The ONLY Admin path that may perform unsubscribed -> subscribed (P4-I3).
+ * Generic PATCH (above) permanently refuses this transition via
+ * assertMarketingStatusTransition — that stays unchanged. A resubscription
+ * is treated as a brand-new affirmative consent event, not a continuation
+ * of the old one: consent_source is forced to 'manual' (the only source
+ * this Admin-driven workflow can truthfully claim) and consent_at is
+ * always the current server time — a caller can never supply either (the
+ * request schema accepts only `confirm`).
+ */
+export async function resubscribeMarketingContact(req: Request, res: Response): Promise<void> {
+  const parsedId = uuidParam.safeParse(req.params.id);
+  if (!parsedId.success) throw badRequest('Invalid contact id.');
+
+  const parsed = marketingContactResubscribeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw badRequest('Explicit confirmation is required to resubscribe a contact.', fieldErrors(parsed.error));
+  }
+
+  const { data: before, error: beforeError } = await getSupabase()
+    .from('marketing_contacts')
+    .select('*')
+    .eq('id', parsedId.data)
+    .maybeSingle();
+  if (beforeError) throw badRequest(beforeError.message);
+  if (!before) throw notFound('Marketing contact not found.');
+
+  assertResubscribeEligible(before.marketing_status as string);
+
+  const now = new Date().toISOString();
+  const { data, error } = await getSupabase()
+    .from('marketing_contacts')
+    .update(buildResubscribePayload(now))
+    .eq('id', parsedId.data)
+    .select('*')
+    .maybeSingle();
+  if (error) throw badRequest(error.message);
+  if (!data) throw notFound('Marketing contact not found.');
+
+  const actor = (req as AuthedRequest).admin;
+  await writeAuditLog({
+    actor,
+    action: 'resubscribe',
+    resource: 'marketing_contacts',
+    resourceId: data.id,
+    summary: 'Resubscribed marketing contact',
+    meta: {
+      previous_status: before.marketing_status,
+      new_status: data.marketing_status,
+      consent_source: data.consent_source,
+    },
   });
 
   res.json({ success: true, data });

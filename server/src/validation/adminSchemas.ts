@@ -457,6 +457,22 @@ export function assertMarketingStatusTransition(before: string, next: string): v
 }
 
 // ---------------------------------------------------------------------------
+// Marketing contact resubscription (P4-I3). A deliberately separate,
+// explicit-confirmation-only path for the one transition generic PATCH
+// (assertMarketingStatusTransition above) permanently refuses:
+// unsubscribed -> subscribed. `confirm` must be the literal boolean `true`
+// — not merely truthy — so the server itself enforces that an affirmative
+// attestation was actually sent, rather than trusting the Admin UI's
+// checkbox alone.
+// ---------------------------------------------------------------------------
+
+export const marketingContactResubscribeSchema = z
+  .object({
+    confirm: z.literal(true),
+  })
+  .strict();
+
+// ---------------------------------------------------------------------------
 // Marketing contacts CSV import (P4-I2E). Two-stage: an in-memory
 // preview/classify step that never writes to the database, followed by a
 // separate confirm step gated on a server-signed token — see

@@ -109,6 +109,20 @@ export const newsletterSchema = z.object({
 
 export type NewsletterInput = z.infer<typeof newsletterSchema>;
 
+/**
+ * Public marketing unsubscribe (P4-I3). The caller supplies only the opaque
+ * signed token — never a raw email address or contact id — so there is no
+ * way to submit an arbitrary email/id pair and mutate someone else's
+ * record. Bounded length is generous but finite, well above any real JWT
+ * this system issues, purely to reject obviously-garbage oversized input
+ * before it ever reaches jwt.verify.
+ */
+export const marketingUnsubscribeSchema = z
+  .object({
+    token: z.string().min(1).max(4000),
+  })
+  .strict();
+
 /** Flattens Zod issues into a field -> message map for the client. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

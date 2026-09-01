@@ -97,6 +97,21 @@ export const conversionLimiter = limiter(
   'Too many tracking requests. Please try again later.'
 );
 
+/**
+ * Public marketing unsubscribe (P4-I3). Unauthenticated and low-stakes —
+ * the worst a flood can do is repeatedly no-op an already-unsubscribed
+ * contact (the operation is idempotent) — so, like analyticsLimiter/
+ * conversionLimiter, this is a simple hardcoded per-IP bound rather than an
+ * env-configurable one. Generous relative to a single real click: a shared
+ * office/NAT IP could plausibly have several people unsubscribing the same
+ * hour, and a mail client may retry a link-open once or twice.
+ */
+export const marketingUnsubscribeLimiter = limiter(
+  60 * 60 * 1000,
+  20,
+  'Too many requests. Please try again later.'
+);
+
 /** Wraps async handlers so rejections reach the error middleware. */
 export const asyncHandler =
   (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>): RequestHandler =>

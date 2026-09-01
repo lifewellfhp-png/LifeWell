@@ -9,12 +9,14 @@ import {
   handleAnalyticsIngest,
   handleConversionIngest,
 } from '../controllers/analytics.controller.js';
+import { handleMarketingUnsubscribe } from '../controllers/marketingUnsubscribe.controller.js';
 import {
   asyncHandler,
   contactLimiter,
   newsletterLimiter,
   analyticsLimiter,
   conversionLimiter,
+  marketingUnsubscribeLimiter,
 } from '../middleware/index.js';
 import { mailConfigured, env } from '../config/env.js';
 import { adminRouter } from './admin.routes.js';
@@ -49,6 +51,10 @@ router.get('/api/public/content', asyncHandler(getPublicContent));
 router.get('/api/public/blog/:slug', asyncHandler(getPublicBlogPost));
 router.post('/api/public/analytics', analyticsLimiter, asyncHandler(handleAnalyticsIngest));
 router.post('/api/public/conversions', conversionLimiter, asyncHandler(handleConversionIngest));
+
+// Public marketing unsubscribe (P4-I3). Authorized by an opaque signed
+// token only — no Admin auth, no raw email address accepted.
+router.post('/api/marketing/unsubscribe', marketingUnsubscribeLimiter, asyncHandler(handleMarketingUnsubscribe));
 
 // Admin CMS API
 router.use('/api/admin', adminRouter);

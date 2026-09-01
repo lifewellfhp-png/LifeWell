@@ -38,6 +38,7 @@ import {
   getMarketingContact,
   createMarketingContact,
   updateMarketingContact,
+  resubscribeMarketingContact,
 } from '../controllers/marketingContacts.controller.js';
 import {
   previewMarketingContactsImport,
@@ -435,6 +436,19 @@ adminRouter.patch(
   requireAdmin,
   requirePermission('marketing_contacts'),
   asyncHandler(updateMarketingContact)
+);
+
+/**
+ * Explicit resubscription (P4-I3). The ONLY Admin path allowed to perform
+ * unsubscribed -> subscribed — generic PATCH above continues to reject it.
+ * Same permission gate as every other marketing-contacts route; no
+ * separate "campaigns" permission, no public access.
+ */
+adminRouter.post(
+  '/marketing-contacts/:id/resubscribe',
+  requireAdmin,
+  requirePermission('marketing_contacts'),
+  asyncHandler(resubscribeMarketingContact)
 );
 
 /**

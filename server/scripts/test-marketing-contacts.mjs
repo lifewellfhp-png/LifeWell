@@ -343,10 +343,11 @@ test('25. no DELETE route exists for marketing-contacts', () => {
 
 test('26. every marketing-contacts route requires both requireAdmin and requirePermission(marketing_contacts)', () => {
   const start = routesSource.indexOf('Marketing contact directory (P4-I2C)');
-  // Bounded to just the original 4 CRUD routes (P4-I2C) — the CSV import
-  // routes added in P4-I2E sit right after this block and have their own
-  // dedicated route-count assertion in test-marketing-contacts-import.mjs.
-  const end = routesSource.indexOf('CSV import (P4-I2E)', start);
+  // Bounded to just the original 4 CRUD routes (P4-I2C) — the resubscribe
+  // route (P4-I3) and the CSV import routes (P4-I2E) sit right after this
+  // block and have their own dedicated route-count assertions in
+  // test-marketing-unsubscribe.mjs and test-marketing-contacts-import.mjs.
+  const end = routesSource.indexOf('Explicit resubscription (P4-I3)', start);
   assert.ok(start > -1, 'expected to find the marketing contacts route block comment');
   assert.ok(end > start, 'expected to find the next route block after it, to bound the slice');
   const block = routesSource.slice(start, end);

@@ -212,6 +212,11 @@ export default function MarketingContactsPage() {
 
   const [viewing, setViewing] = useState<MarketingContact | null>(null);
 
+  const [resubscribing, setResubscribing] = useState<MarketingContact | null>(null);
+  const [resubscribeChecked, setResubscribeChecked] = useState(false);
+  const [resubscribeSaving, setResubscribeSaving] = useState(false);
+  const [resubscribeError, setResubscribeError] = useState<string | null>(null);
+
   const [importOpen, setImportOpen] = useState(false);
   const [importStep, setImportStep] = useState<'select' | 'preview' | 'result'>('select');
   const [importFileName, setImportFileName] = useState<string | null>(null);
@@ -258,11 +263,11 @@ export default function MarketingContactsPage() {
   }, [searchInput]);
 
   useEffect(() => {
-    document.body.style.overflow = createOpen || editing || viewing || importOpen ? 'hidden' : '';
+    document.body.style.overflow = createOpen || editing || viewing || importOpen || resubscribing ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [createOpen, editing, viewing, importOpen]);
+  }, [createOpen, editing, viewing, importOpen, resubscribing]);
 
   function openCreate() {
     setCreateForm(emptyCreateForm);
@@ -374,6 +379,38 @@ export default function MarketingContactsPage() {
     setEditing(null);
     setEditForm(null);
     setMessage('Marketing contact updated.');
+    await load();
+  }
+
+  function openResubscribe(contact: MarketingContact) {
+    setResubscribing(contact);
+    setResubscribeChecked(false);
+    setResubscribeError(null);
+  }
+
+  function closeResubscribe() {
+    if (resubscribeSaving) return;
+    setResubscribing(null);
+  }
+
+  async function onConfirmResubscribe() {
+    if (!resubscribing || !resubscribeChecked) return;
+    setResubscribeSaving(true);
+    setResubscribeError(null);
+    // Dedicated endpoint only — never generic PATCH, and no consent_source
+    // picker: the server always records consent_source: 'manual' for this
+    // Admin-driven workflow.
+    const res = await api(`/api/admin/marketing-contacts/${resubscribing.id}/resubscribe`, {
+      method: 'POST',
+      body: JSON.stringify({ confirm: true }),
+    });
+    setResubscribeSaving(false);
+    if (!res.success) {
+      setResubscribeError(res.message || 'Could not resubscribe this contact.');
+      return;
+    }
+    setResubscribing(null);
+    setMessage('Contact resubscribed.');
     await load();
   }
 
@@ -595,6 +632,11 @@ export default function MarketingContactsPage() {
                           <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
                             Edit
                           </button>
+                          {row.marketing_status === 'unsubscribed' ? (
+                            <button type="button" className="btn btn-ghost" onClick={() => openResubscribe(row)}>
+                              Resubscribe
+                            </button>
+                          ) : null}
                         </div>
                       </td>
                     </tr>
@@ -633,6 +675,11 @@ export default function MarketingContactsPage() {
                     <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
                       Edit
                     </button>
+                    {row.marketing_status === 'unsubscribed' ? (
+                      <button type="button" className="btn btn-ghost" onClick={() => openResubscribe(row)}>
+                        Resubscribe
+                      </button>
+                    ) : null}
                   </div>
                 </article>
               ))}
@@ -931,6 +978,55 @@ export default function MarketingContactsPage() {
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={() => setViewing(null)}>
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {resubscribing ? (
+        <div className="overlay modal-overlay">
+          <div className="card card-pad modal-card">
+            <div className="modal-head">
+              <div>
+                <p className="modal-kicker">Marketing Contacts</p>
+                <h2>Resubscribe {contactName(resubscribing)}</h2>
+              </div>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={closeResubscribe}
+                aria-label="Close"
+                disabled={resubscribeSaving}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {resubscribeError ? <div className="error-banner">{resubscribeError}</div> : null}
+            <ul className="muted" style={{ paddingLeft: '1.1rem', margin: '0 0 1rem' }}>
+              <li>This records a new marketing consent event, dated today.</li>
+              <li>The previous unsubscribe is preserved as history — it is not erased.</li>
+              <li>Only use this when the person has explicitly asked to receive marketing communications again.</li>
+            </ul>
+            <label className="access-tile" style={{ marginBottom: '1rem' }}>
+              <input
+                type="checkbox"
+                checked={resubscribeChecked}
+                onChange={(e) => setResubscribeChecked(e.target.checked)}
+              />
+              <span>I confirm this contact explicitly requested to receive marketing communications again.</span>
+            </label>
+            <div className="modal-actions">
+              <button type="button" className="btn btn-ghost" onClick={closeResubscribe} disabled={resubscribeSaving}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={onConfirmResubscribe}
+                disabled={!resubscribeChecked || resubscribeSaving}
+              >
+                {resubscribeSaving ? 'Resubscribing…' : 'Resubscribe'}
               </button>
             </div>
           </div>

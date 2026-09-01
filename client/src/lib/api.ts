@@ -58,3 +58,11 @@ export const submitContact = (payload: ContactPayload) => post('/api/contact', p
 
 export const submitNewsletter = (payload: { email: string; company?: string }) =>
   post('/api/newsletter', payload);
+
+/**
+ * Marketing unsubscribe (P4-I3). Only the opaque signed token is ever
+ * sent — no email address, no other identifying data. Reuses the same
+ * post() helper (and its network-failure/JSON-parse fallbacks) as every
+ * other public form on this site.
+ */
+export const submitUnsubscribe = (token: string) => post('/api/marketing/unsubscribe', { token });
