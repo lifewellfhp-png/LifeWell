@@ -144,10 +144,15 @@ test('19. a useful created_at index exists', () => {
 });
 
 // 20-22. No recipient/delivery/event tables.
-test('20. no recipient table is created', () => {
-  for (const name of ['marketing_campaign_recipients', 'campaign_recipients']) {
-    assert.doesNotMatch(opsSource, new RegExp(`create table if not exists ${name}\\b`));
-  }
+test('20. no recipient table is created by the P4-I4A block itself', () => {
+  // Scoped to this phase's own block, not the whole file — P4-I5A later
+  // adds marketing_campaign_recipients in its own separate block further
+  // down ops.sql (explicitly authorized, and covered by its own
+  // test-marketing-campaign-recipients-schema.mjs). "campaign_recipients"
+  // (the alternate name never used) remains checked file-wide since it
+  // genuinely does not exist anywhere.
+  assert.doesNotMatch(block, /create table if not exists marketing_campaign_recipients\b/);
+  assert.doesNotMatch(opsSource, /create table if not exists campaign_recipients\b/);
 });
 
 test('21. no delivery table is created', () => {

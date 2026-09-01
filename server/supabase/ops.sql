@@ -496,3 +496,94 @@ alter table marketing_campaigns enable row level security;
 -- Server API using the existing service-role client.
 
 notify pgrst, 'reload schema';
+
+-- P4-I5A: Marketing Campaign Delivery — recipient/delivery schema
+-- preparation ONLY. No runtime delivery code exists yet (P4-I5B). This is
+-- the single new table this phase introduces — see the P4-I5A report for
+-- why one table (not separate recipient/delivery/event tables) is
+-- sufficient: one row IS one campaign/contact delivery attempt record, and
+-- its `status` column carries the full lifecycle a future sender needs.
+--
+-- marketing_campaigns.status is deliberately NOT changed by this
+-- migration — see the P4-I5A report's "Campaign Lifecycle" section for the
+-- full analysis. In short: the safety property that might have motivated a
+-- campaign-level 'sending' state (preventing a double-initiated send) is
+-- already provided by this table's own UNIQUE(campaign_id, contact_id)
+-- constraint plus an atomic per-row claim pattern
+-- (UPDATE ... SET status='processing' WHERE status='pending' RETURNING *)
+-- that a future P4-I5B sender would use — so expanding the campaign status
+-- CHECK is a query-convenience question for P4-I5B to decide, not a
+-- prerequisite safety mechanism this migration must provide.
+create table if not exists marketing_campaign_recipients (
+  id uuid primary key default gen_random_uuid(),
+  -- No ON DELETE clause on either FK below (Postgres default: NO ACTION,
+  -- i.e. RESTRICT-like — the delete is simply refused). This matches the
+  -- rest of the schema's archive/no-delete posture: neither
+  -- marketing_campaigns nor marketing_contacts has a DELETE endpoint in the
+  -- application today, so this is a defensive backstop against a row being
+  -- removed out from under an existing delivery record via direct SQL, not
+  -- a behavior the app is expected to routinely hit.
+  campaign_id uuid not null references marketing_campaigns (id),
+  contact_id uuid not null references marketing_contacts (id),
+  -- The actual destination address used for this delivery attempt,
+  -- preserved even if marketing_contacts.email is edited afterward — an
+  -- audit/support question like "why didn't this person get campaign X"
+  -- must be answerable against what was true AT SEND TIME, not today's
+  -- value. Sensitive marketing-contact data, same as marketing_contacts.
+  -- email itself: never expose in bulk Admin lists/logs, and see
+  -- deliberately NOT snapshotting first_name/last_name/audience_type/
+  -- consent_source below — this table stores only what correctness
+  -- requires, nothing else.
+  email_snapshot text not null check (length(trim(email_snapshot)) > 0),
+  -- Deliberately provider-neutral naming (not "paubox_status") and a small,
+  -- closed set — no open/clicked/read/engaged: no tracking exists in this
+  -- phase. See the P4-I5A report for exact semantics of each value,
+  -- including why 'sent' means "provider accepted the request", never
+  -- "delivered" (Paubox's REST API only confirms acceptance — see
+  -- server/src/services/email.service.ts's sendViaPauboxApi).
+  status text not null default 'pending'
+    check (status in ('pending', 'processing', 'sent', 'failed', 'skipped')),
+  -- Maps to Paubox's sourceTrackingId today (see email.service.ts) under a
+  -- provider-neutral name, consistent with `status` above. Diagnostic only
+  -- — never a delivery guarantee.
+  provider_message_id text,
+  attempt_count integer not null default 0 check (attempt_count >= 0),
+  last_attempt_at timestamptz,
+  sent_at timestamptz,
+  failed_at timestamptz,
+  -- Deliberately unconstrained text, not a controlled enum — mirrors
+  -- marketing_contacts.suppression_reason's own documented tradeoff: no
+  -- repository/product evidence yet establishes a real provider-failure
+  -- taxonomy (see P4-I5A's Paubox capability audit: today's wrapper only
+  -- distinguishes timeout/network-error from a generic non-2xx status, not
+  -- specific failure categories). A future Server layer should constrain
+  -- this via Zod once real failure patterns are observed, the same way
+  -- every other business rule in this app lives in Zod rather than a DB
+  -- CHECK. Never a raw provider response body, request body, header, or
+  -- stack trace — see the P4-I5A report's data-minimization section.
+  failure_code text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  -- The critical idempotency boundary (P4-I5A section 10): the same
+  -- contact can never receive more than one delivery *record* for the same
+  -- campaign, regardless of how many times initiation is (accidentally or
+  -- deliberately) retried. Combined with an atomic per-row claim pattern in
+  -- the future sender, this is what actually prevents a double-send from a
+  -- double-clicked or retried initiation — not a campaign-level flag.
+  unique (campaign_id, contact_id)
+);
+
+-- No separate campaign_id-only index: the UNIQUE (campaign_id, contact_id)
+-- constraint above already creates a composite btree index whose leading
+-- column is campaign_id, which Postgres can use directly for "all
+-- recipients of campaign X" lookups — a second, separate campaign_id index
+-- would be redundant (see "Do not over-index" in the P4-I5A task).
+create index if not exists marketing_campaign_recipients_status_idx on marketing_campaign_recipients (status);
+create index if not exists marketing_campaign_recipients_contact_idx on marketing_campaign_recipients (contact_id);
+
+alter table marketing_campaign_recipients enable row level security;
+-- Zero policies — same default-deny posture as every other table in this
+-- schema. Access will be exclusively through a future authenticated Server
+-- API using the existing service-role client; no direct browser access.
+
+notify pgrst, 'reload schema';
