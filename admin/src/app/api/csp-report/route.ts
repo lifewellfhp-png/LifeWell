@@ -4,7 +4,8 @@ import { NextResponse } from 'next/server';
  * Content-Security-Policy-Report-Only violation collector (P4-E4).
  *
  * Receives the browser's automatic POST when a resource violates the
- * Report-Only policy set in next.config.js. This endpoint exists purely to
+ * Report-Only policy set in src/middleware.ts (P4-G3D; previously
+ * next.config.js). This endpoint exists purely to
  * observe those violations during the Stage 1 rollout (see P4-E2) — it
  * never enforces anything, never stores anything in Supabase, and never
  * forwards to a third-party monitoring vendor. Every field from the
@@ -15,7 +16,7 @@ import { NextResponse } from 'next/server';
  *
  * Only the classic `report-uri` shape is handled
  * (Content-Type: application/csp-report, body: { "csp-report": {...} } )
- * because that's the only reporting mechanism configured in next.config.js
+ * because that's the only reporting mechanism configured in the CSP header
  * — no `report-to`/`Reporting-Endpoints` header is set. If a later stage
  * adds `report-to`, this handler will need a matching update for the
  * newer `application/reports+json` array format.

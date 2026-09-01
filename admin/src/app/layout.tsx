@@ -18,6 +18,11 @@ const sourceSans = Source_Sans_3({
   variable: '--font-source-sans',
 });
 
+// Required for nonce-based CSP (P4-G3D): Next.js applies nonces during
+// per-request SSR, so every route sharing this root layout must be
+// dynamically rendered rather than statically prerendered.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'LifeWell Admin',
   description: 'Website content and leads control center for LifeWell Family Health & Psychiatry.',
