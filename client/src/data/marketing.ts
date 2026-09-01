@@ -200,7 +200,10 @@ export const testimonials: Testimonial[] = [
     quote:
       'Extremely present and responsive team of providers. You can feel they are here to help you improve your quality of life, whether that is working to find a medication with them or continuing therapy and alternative life changes outside of this practice.',
     author: 'Mary Mayers',
-    rating: 5,
+    // No repository evidence verifies a 5-star rating was actually
+    // supplied — only the quote/attribution above are sourced from the
+    // live site (see comment above). Left null rather than inferred (P4-G7B).
+    rating: null,
   },
 ];
 

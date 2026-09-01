@@ -229,7 +229,11 @@ export function mapTestimonials(cms: PublicCmsPayload | null, live: boolean): Te
       quote: String(r.quote),
       author: String(r.author_name),
       role: r.author_role ? String(r.author_role) : undefined,
-      rating: typeof r.rating === 'number' ? r.rating : 5,
+      // Absence of a rating means no rating was supplied — never inferred as
+      // 5 stars (P4-G7B). The DB/Server already model rating as an optional,
+      // nullable 1-5 integer; this preserves that distinction rather than
+      // fabricating a value.
+      rating: typeof r.rating === 'number' ? r.rating : null,
     }));
   if (live) return mapped;
   return mapped.length ? mapped : staticTestimonials;
