@@ -103,6 +103,19 @@ import {
 
 export const adminRouter: Router = Router();
 
+/**
+ * Every response under /api/admin is private and must never be cached — by
+ * the browser, a shared/corporate proxy, or a CDN — regardless of whether
+ * the request succeeds, fails auth, fails authorization, or errors.
+ * Registered first, before any route, so it applies universally: this is
+ * what makes it cover /auth/login (which sits outside requireAdmin) and
+ * every error response, not just successful authenticated reads (P4-G4B1).
+ */
+adminRouter.use((_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+
 adminRouter.post('/auth/login', adminLoginLimiter, asyncHandler(handleAdminLogin));
 adminRouter.get('/auth/me', requireAdmin, asyncHandler(handleAdminMe));
 adminRouter.post(
