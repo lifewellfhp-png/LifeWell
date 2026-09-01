@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Container, Section, SectionHeading } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { Hero } from '@/components/sections/Hero';
@@ -51,6 +53,48 @@ export default async function HomePage() {
         states={cms.telehealthStates}
       />
       <WelcomeSection welcome={cms.welcome} />
+
+      <Section tone="muted" spacing="sm" aria-labelledby="preceptorship-home-heading" className="bg-[#F4F7FA]">
+        <Container>
+          <div className="grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-10">
+            <div>
+              <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--lw-accent)] sm:text-[13px]">
+                Preceptorship Program
+              </p>
+              <h2 id="preceptorship-home-heading" className="max-w-[16ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] text-[var(--lw-primary)] sm:text-[42px] min-[1181px]:text-[52px]">
+                Clinical learning for PMHNP and FNP students
+              </h2>
+              <p className="mt-5 max-w-[62ch] text-[15px] leading-[1.55] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+                LifeWell Family Health &amp; Psychiatry offers structured preceptorship opportunities for PMHNP and Family Nurse Practitioner students seeking meaningful clinical learning experiences. Our program emphasizes professional mentorship, clinical reasoning, guided learning, and the development of confidence in advanced practice nursing.
+              </p>
+              <p className="mt-4 max-w-[62ch] text-[15px] leading-[1.55] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+                Opportunities are based on preceptor availability, student qualifications, academic requirements, and completion of required school or affiliation agreements.
+              </p>
+              <div className="mt-8 flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+                <SwapButton href="/preceptorship-program">Explore Preceptorship Opportunities</SwapButton>
+                <Link
+                  href="/contact-telehealth-mental-health-provider"
+                  className="inline-flex min-h-[51px] items-center justify-center rounded-[30px] border border-[var(--lw-primary)] px-[30px] py-[14px] text-[16px] font-semibold text-[var(--lw-primary)] no-underline transition-colors duration-300 hover:bg-[var(--lw-primary)] hover:text-white min-[1181px]:text-[18px]"
+                >
+                  Contact Us
+                </Link>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-[22px] border border-[#dfeaf3] bg-white p-3 shadow-[0_12px_40px_rgba(37,73,96,0.08)] sm:p-4">
+              <Image
+                src="/images/preceptorship/student-mentor-education.svg"
+                alt="Advanced practice nursing student receiving clinical mentorship"
+                width={800}
+                height={600}
+                priority={false}
+                sizes="(min-width: 1024px) 40vw, 92vw"
+                className="h-auto w-full rounded-[18px] object-cover"
+              />
+            </div>
+          </div>
+        </Container>
+      </Section>
 
       <Section tone="raised" aria-labelledby="services-heading">
         <Container>

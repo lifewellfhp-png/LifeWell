@@ -28,6 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: abs('/bio'), lastModified: now, changeFrequency: 'yearly', priority: 0.8 },
     { url: abs('/fees-insurance'), lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     {
+      url: abs('/preceptorship-program'),
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
       url: abs('/new-patients'),
       lastModified: now,
       changeFrequency: 'monthly',
