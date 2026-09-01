@@ -20,6 +20,7 @@ export const NAV_ITEMS = [
   { href: '/seo', label: 'SEO', module: 'seo', icon: 'Search' },
   { href: '/analytics', label: 'Analytics', module: 'analytics', icon: 'BarChart3' },
   { href: '/marketing-contacts', label: 'Marketing Contacts', module: 'marketing_contacts', icon: 'Contact' },
+  { href: '/marketing-campaigns', label: 'Campaigns', module: 'marketing_campaigns', icon: 'Rocket' },
   { href: '/logs', label: 'Audit log', module: 'users', icon: 'ScrollText', superAdminOnly: true },
   { href: '/users', label: 'Staff', module: 'users', icon: 'Users', superAdminOnly: true },
 ] as const;
@@ -45,7 +46,7 @@ export const NAV_GROUPS = [
   },
   { label: 'Library', hrefs: ['/media', '/videos', '/blog'] },
   { label: 'Growth', hrefs: ['/seo', '/analytics'] },
-  { label: 'Marketing', hrefs: ['/marketing-contacts'] },
+  { label: 'Marketing', hrefs: ['/marketing-contacts', '/marketing-campaigns'] },
   { label: 'System', hrefs: ['/logs', '/users'] },
 ] as const;
 

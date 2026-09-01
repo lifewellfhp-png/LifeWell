@@ -44,6 +44,14 @@ import {
   previewMarketingContactsImport,
   confirmMarketingContactsImport,
 } from '../controllers/marketingContactsImport.controller.js';
+import {
+  listMarketingCampaigns,
+  getMarketingCampaign,
+  createMarketingCampaign,
+  updateMarketingCampaign,
+  archiveMarketingCampaign,
+  previewMarketingCampaignRecipients,
+} from '../controllers/marketingCampaigns.controller.js';
 import { getSupabase } from '../lib/supabase.js';
 import { badRequest } from '../utils/errors.js';
 
@@ -469,6 +477,50 @@ adminRouter.post(
   requireAdmin,
   requirePermission('marketing_contacts'),
   asyncHandler(confirmMarketingContactsImport)
+);
+
+/**
+ * Marketing campaign DRAFTS (P4-I4B). Gated by its own dedicated
+ * marketing_campaigns permission — deliberately NOT marketing_contacts,
+ * since managing the contact directory and managing campaign drafts are
+ * different responsibilities. No DELETE route (no delete exists in this
+ * phase) and no send/schedule route (delivery does not exist yet — P4-I5).
+ */
+adminRouter.get(
+  '/marketing-campaigns',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(listMarketingCampaigns)
+);
+adminRouter.get(
+  '/marketing-campaigns/:id',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(getMarketingCampaign)
+);
+adminRouter.post(
+  '/marketing-campaigns',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(createMarketingCampaign)
+);
+adminRouter.patch(
+  '/marketing-campaigns/:id',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(updateMarketingCampaign)
+);
+adminRouter.post(
+  '/marketing-campaigns/:id/archive',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(archiveMarketingCampaign)
+);
+adminRouter.get(
+  '/marketing-campaigns/:id/recipient-preview',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(previewMarketingCampaignRecipients)
 );
 
 adminRouter.get('/users', requireAdmin, requireSuperAdmin, asyncHandler(listAdminUsers));

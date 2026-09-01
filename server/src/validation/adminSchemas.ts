@@ -473,6 +473,52 @@ export const marketingContactResubscribeSchema = z
   .strict();
 
 // ---------------------------------------------------------------------------
+// Marketing campaign drafts (P4-I4B). Mirrors marketing_campaigns (P4-I4A,
+// Production-verified). Draft management only — no delivery/schedule/send
+// status exists. `.strict()` means status/created_by/created_at/updated_at/
+// archived_at are structurally impossible for a caller to set: they simply
+// are not fields on this schema, on Create or Update.
+// ---------------------------------------------------------------------------
+
+export const MARKETING_CAMPAIGN_STATUSES = ['draft', 'archived'] as const;
+export type MarketingCampaignStatus = (typeof MARKETING_CAMPAIGN_STATUSES)[number];
+
+/**
+ * A trimmed, nonblank, length-bounded, single-line string. Applied to both
+ * `name` (an internal label — no functional email-header risk, but a
+ * newline-free single-line value is still the right shape for a table
+ * column) and `subject` (a future email subject line, where CR/LF
+ * rejection is a real email-header-injection safeguard, not just cosmetic).
+ */
+const singleLine = (max: number, label: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, `${label} is required.`)
+    .max(max, `${label} must be ${max} characters or fewer.`)
+    .refine((v) => !/[\r\n]/.test(v), { message: `${label} cannot contain line breaks.` });
+
+const marketingCampaignBase = z.object({
+  name: singleLine(200, 'Campaign name'),
+  subject: singleLine(200, 'Subject'),
+  preview_text: z
+    .string()
+    .max(500, 'Preview text must be 500 characters or fewer.')
+    .refine((v) => !/[\r\n]/.test(v), { message: 'Preview text cannot contain line breaks.' })
+    .optional()
+    .nullable(),
+  // Multi-line plain-text body — only outer whitespace is trimmed, internal
+  // line breaks are preserved. No CR/LF restriction (unlike name/subject/
+  // preview_text) and no upper length bound, matching the P4-I4A DB check
+  // (nonblank only).
+  content: z.string().trim().min(1, 'Content is required.'),
+  audience_type: z.enum(MARKETING_AUDIENCE_TYPES).optional().nullable(),
+});
+
+export const marketingCampaignCreate = marketingCampaignBase.strict();
+export const marketingCampaignUpdate = marketingCampaignBase.strict().partial();
+
+// ---------------------------------------------------------------------------
 // Marketing contacts CSV import (P4-I2E). Two-stage: an in-memory
 // preview/classify step that never writes to the database, followed by a
 // separate confirm step gated on a server-signed token — see

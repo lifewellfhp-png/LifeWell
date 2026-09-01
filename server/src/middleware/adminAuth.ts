@@ -46,9 +46,13 @@ const ALL_MODULES = [
   'users',
   'emails',
   'settings',
-  // P4-I2C: marketing contact directory only — campaign sending is a
-  // separate, later module, not added yet.
+  // P4-I2C: marketing contact directory.
   'marketing_contacts',
+  // P4-I4B: campaign DRAFT management only (create/edit/archive drafts,
+  // recipient-count preview). A separate, later module would gate actual
+  // send/delivery once that exists — not added yet, and this module does
+  // not grant it.
+  'marketing_campaigns',
 ] as const;
 
 export type AdminModule = (typeof ALL_MODULES)[number];

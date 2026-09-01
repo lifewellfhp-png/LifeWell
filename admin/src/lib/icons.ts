@@ -23,6 +23,7 @@ import {
   Users,
   ScrollText,
   Contact,
+  Rocket,
 } from 'lucide-react';
 import type { NavIconName } from './nav';
 
@@ -50,4 +51,5 @@ export const NAV_ICONS: Record<NavIconName, LucideIcon> = {
   Users,
   ScrollText,
   Contact,
+  Rocket,
 };

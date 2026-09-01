@@ -40,7 +40,11 @@ function count(source, needle) {
 test('1. nav.ts registers a Marketing Contacts destination', () => {
   assert.match(navSource, /href:\s*'\/marketing-contacts'/);
   assert.match(navSource, /label:\s*'Marketing Contacts'/);
-  assert.match(navSource, /NAV_GROUPS[\s\S]*hrefs:\s*\['\/marketing-contacts'\]/);
+  // The Marketing group's hrefs array contains '/marketing-contacts' — it
+  // may also contain other Marketing-area routes (e.g. '/marketing-campaigns',
+  // added later by the separately-authorized P4-I4B), so this only checks
+  // membership, not that it's the sole entry.
+  assert.match(navSource, /label:\s*'Marketing',\s*hrefs:\s*\[[^\]]*'\/marketing-contacts'[^\]]*\]/);
   assert.match(iconsSource, /\bContact\b/);
 });
 
@@ -63,9 +67,15 @@ test('3. the Staff permission screen renders its checkbox list from STAFF_ACCESS
 });
 
 // 4. Campaigns permission/nav NOT introduced.
-test('4. no campaigns permission or nav entry was added', () => {
-  assert.doesNotMatch(navSource, /campaign/i);
-  assert.doesNotMatch(iconsSource, /campaign/i);
+test('4. campaigns (P4-I4B, a later authorized phase) use their own dedicated module, never marketing_contacts', () => {
+  // At P4-I2D's own time, no campaign nav/permission existed at all. P4-I4B
+  // later explicitly authorized adding one — with its own separate
+  // marketing_campaigns module (see test-marketing-campaigns-admin.mjs) —
+  // so this test's surviving job is narrower: marketing_contacts' own nav
+  // line must never have been broadened to also cover campaigns.
+  const marketingContactsLine = navSource.split('\n').find((l) => l.includes("href: '/marketing-contacts'"));
+  assert.ok(marketingContactsLine);
+  assert.doesNotMatch(marketingContactsLine, /campaign/i);
   assert.doesNotMatch(usersSource, /campaign/i);
 });
 

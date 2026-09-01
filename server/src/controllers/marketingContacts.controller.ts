@@ -34,7 +34,7 @@ const uuidParam = z.string().uuid();
  * treated as literal data, never as filter syntax — the search box can
  * never be used to construct an arbitrary query.
  */
-function escapeForFilter(value: string): string {
+export function escapeForFilter(value: string): string {
   return value.replace(/[%_,()]/g, (ch) => `\\${ch}`);
 }
 

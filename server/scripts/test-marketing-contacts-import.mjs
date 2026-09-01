@@ -134,7 +134,10 @@ test('3. confirm requires Admin auth', async () => {
 
 test('2/4. preview and confirm routes are wired with requireAdmin + requirePermission(marketing_contacts)', () => {
   const start = routesSource.indexOf('CSV import (P4-I2E)');
-  const end = routesSource.indexOf("adminRouter.get('/users'", start);
+  // Bounded to just this block — the marketing-campaigns block (P4-I4B)
+  // sits right after it and has its own dedicated route-count assertion in
+  // test-marketing-campaigns.mjs.
+  const end = routesSource.indexOf('Marketing campaign DRAFTS (P4-I4B)', start);
   const block = routesSource.slice(start, end);
   assert.match(block, /'\/marketing-contacts\/import\/preview'/);
   assert.match(block, /'\/marketing-contacts\/import\/confirm'/);
