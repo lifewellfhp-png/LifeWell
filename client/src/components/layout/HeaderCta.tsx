@@ -7,6 +7,8 @@ import { LongArrow } from '@/components/ui/SwapButton';
  * the arrow inside it, unlike the site-wide `SwapButton` (pill + a visually
  * detached circular arrow chip). Kept local to the header so the shared
  * `SwapButton` used everywhere else on the site is untouched.
+ *
+ * Arrow rendered as a single `<svg>` icon (LongArrow), not a separate button.
  */
 export function HeaderCta({
   href,
