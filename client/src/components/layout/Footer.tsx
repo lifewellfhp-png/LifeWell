@@ -129,52 +129,21 @@ export async function Footer() {
             <FooterNav heading="Explore" links={footerExploreLinks} className="xl:col-span-2" />
           </div>
 
-          {/* Telehealth Care utility row */}
-          <div className="border-t border-white/20 py-6">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="font-heading text-[15px] font-normal text-white sm:text-[16px]">
-                Telehealth Care
-              </span>
-              <ul className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
-                {footerTelehealthLinks.map((link, index) => (
-                  <li key={link.href} className="flex items-center gap-2.5">
-                    {index > 0 ? (
-                      <span aria-hidden="true" className="text-white/40">
-                        •
-                      </span>
-                    ) : null}
-                    <Link
-                      href={link.href}
-                      className="font-body text-[14px] text-white/85 no-underline transition-colors duration-300 hover:text-white hover:underline sm:text-[15px]"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+          {/* Telehealth Care + Policies & Accessibility */}
+          <div className="border-t border-white/20 py-8 sm:py-10">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-16">
+              <FooterUtilityColumn heading="Telehealth Care" links={footerTelehealthLinks} />
+              <FooterUtilityColumn heading="Policies & Accessibility" links={legalLinks} />
             </div>
           </div>
 
-          {/* Legal / copyright bar */}
-          <div className="border-t border-white/20 py-5 sm:py-6">
-            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
-              <p className="font-body text-[12px] leading-relaxed text-white/70 sm:text-[13px]">
-                © 2026 {site.name}. All Rights Reserved. | Website Design &amp; Development by Wesly
-                Chachoute, M.S. in Cybersecurity | DBA Candidate
-              </p>
-              <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
-                {legalLinks.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="font-body text-[12px] text-white/70 no-underline transition-colors duration-300 hover:text-white hover:underline sm:text-[13px]"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* Copyright */}
+          <div className="border-t border-white/20 py-6 text-center">
+            <p className="font-body text-[12px] leading-relaxed text-white/70 sm:text-[13px]">
+              © 2026 {site.shortName}. All Rights Reserved.
+              <br />
+              Designed &amp; Engineered by Wesly Chachoute
+            </p>
           </div>
         </Container>
       </div>
@@ -195,6 +164,28 @@ function FooterNav({ heading, links, className }: { heading: string; links: NavL
               href={link.href}
               prefetch
               className="break-words font-body text-[15px] font-normal leading-snug text-white no-underline transition-opacity duration-300 hover:opacity-80 sm:text-[16px]"
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+function FooterUtilityColumn({ heading, links }: { heading: string; links: NavLink[] }) {
+  return (
+    <nav aria-label={heading}>
+      <h3 className="text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+        {heading}
+      </h3>
+      <ul className="mt-4 flex flex-col gap-2.5">
+        {links.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className="font-body text-[14px] text-white no-underline transition-colors duration-300 hover:text-white/80 hover:underline sm:text-[15px]"
             >
               {link.label}
             </Link>
