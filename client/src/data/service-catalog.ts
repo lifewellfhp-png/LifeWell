@@ -24,27 +24,27 @@ export const serviceCategories: Record<ServiceCategory, { label: string; shortLa
 
 const SUMMARY: Record<string, string> = {
   'psychiatric-evaluations':
-    'I provide thorough psychiatric evaluations through secure telehealth, or in person at my Orlando office, to assess your symptoms, understand your mental health history, and develop a personalized treatment plan that supports your long-term emotional and psychological well-being.',
+    'We provide thorough psychiatric evaluations through secure telehealth, or in person at our Orlando office, to assess your symptoms, understand your mental health history, and develop a personalized treatment plan that supports your long-term emotional and psychological well-being.',
   'medication-management':
-    'I provide ongoing psychiatric medication management through secure telehealth, or in person at my Orlando office, to ensure your treatment is safe, effective, and tailored to your individual mental health needs.',
+    'We provide ongoing psychiatric medication management through secure telehealth, or in person at our Orlando office, to ensure your treatment is safe, effective, and tailored to your individual mental health needs.',
   'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd':
-    'I provide personalized, evidence-based treatment through secure telehealth services to help you manage symptoms, restore emotional balance, and achieve long-term mental wellness.',
+    'We provide personalized, evidence-based treatment through secure telehealth services to help you manage symptoms, restore emotional balance, and achieve long-term mental wellness.',
   'psychiatric-follow-up-visits-telehealth':
     'Mental health treatment is an ongoing process that requires consistent monitoring, communication, and adjustments over time — delivered through secure telehealth follow-up visits.',
   'annual-physical-exam-telehealth':
-    'I provide annual physical exams and preventive screenings through secure telehealth visits to help you stay ahead of health risks and maintain your long-term wellbeing.',
+    'We provide annual physical exams and preventive screenings through secure telehealth visits to help you stay ahead of health risks and maintain your long-term wellbeing.',
   'chronic-disease-management-telehealth':
-    'I provide ongoing chronic disease management through secure telehealth visits for conditions such as hypertension, diabetes, hyperlipidemia, and thyroid disorders.',
+    'We provide ongoing chronic disease management through secure telehealth visits for conditions such as hypertension, diabetes, hyperlipidemia, and thyroid disorders.',
   'preventive-care-telehealth':
-    'I provide comprehensive preventive care through secure telehealth visits to help identify health risks early, support healthy lifestyle habits, and protect your long-term physical and mental well-being.',
+    'We provide comprehensive preventive care through secure telehealth visits to help identify health risks early, support healthy lifestyle habits, and protect your long-term physical and mental well-being.',
   'telehealth-sick-visits-primary-care':
-    'I provide telehealth sick visits for adults to evaluate and treat common acute medical concerns such as cold symptoms, sinus infections, UTIs, allergies, and minor health issues—helping you receive timely care without leaving your home.',
+    'We provide telehealth sick visits for adults to evaluate and treat common acute medical concerns such as cold symptoms, sinus infections, UTIs, allergies, and minor health issues—helping you receive timely care without leaving your home.',
   'weight-management-telehealth':
-    'I provide comprehensive weight management through secure telehealth visits, including metabolic evaluation, personalized treatment plans, and medication-assisted weight loss when appropriate to support your long-term health.',
+    'We provide comprehensive weight management through secure telehealth visits, including metabolic evaluation, personalized treatment plans, and medication-assisted weight loss when appropriate to support your long-term health.',
   'wellness-and-lifestyle-counseling-telehealth':
-    'I provide personalized wellness and lifestyle counseling through secure telehealth visits to help you improve nutrition, sleep, stress management, and daily habits that support long-term physical and mental health.',
+    'We provide personalized wellness and lifestyle counseling through secure telehealth visits to help you improve nutrition, sleep, stress management, and daily habits that support long-term physical and mental health.',
   'lab-testing-coordination-telehealth':
-    'I provide lab testing coordination through secure telehealth visits, including ordering appropriate laboratory tests, reviewing results, and explaining findings to help guide your treatment and protect your long-term health.',
+    'We provide lab testing coordination through secure telehealth visits, including ordering appropriate laboratory tests, reviewing results, and explaining findings to help guide your treatment and protect your long-term health.',
 };
 
 const MENU_LABEL: Record<string, string> = {
@@ -61,6 +61,16 @@ const MENU_LABEL: Record<string, string> = {
   'weight-management-telehealth': 'Weight Management',
   'wellness-and-lifestyle-counseling-telehealth': 'Wellness and Lifestyle Counseling',
   'lab-testing-coordination-telehealth': 'Lab Testing Coordination',
+};
+
+/**
+ * Card/grid-only display label overrides — shorter than the real `title`
+ * used for the page H1, SEO title, and CMS title, which stay unchanged.
+ * Only affects how a service's name appears inside a ServiceCard grid tile.
+ */
+const CARD_LABEL_OVERRIDES: Record<string, string> = {
+  'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd': 'Conditions We Treat',
+  'telehealth-sick-visits-primary-care': 'Sick Visits',
 };
 
 const PRECEPTORSHIP_SUMMARY = {
@@ -149,6 +159,7 @@ export const serviceSummaries: ServiceSummary[] = CATALOG.map((item) => {
   return {
     slug: item.slug,
     title: item.slug === 'preceptorship-program' ? PRECEPTORSHIP_SUMMARY.title : MENU_LABEL[item.slug] ?? item.slug,
+    cardLabel: CARD_LABEL_OVERRIDES[item.slug],
     category: item.category,
     description:
       item.slug === 'preceptorship-program'

@@ -138,7 +138,7 @@ export const generatedPosts: BlogPost[] = [
     "slug": "when-to-consider-therapy-for-your-teen",
     "title": "When to Consider Therapy for Your Teen",
     "excerpt": "Teen therapy can provide crucial support during periods of emotional, social, and academic stress, helping adolescents navigate challenges in a healthy way.",
-    "category": "Teen Therapy",
+    "category": "Teen Mental Health",
     "tags": [
       "adolescent therapy",
       "family support",
@@ -265,7 +265,7 @@ export const generatedPosts: BlogPost[] = [
     "slug": "individual-therapy-a-safe-space-for-personal-growth",
     "title": "Individual Therapy: A Safe Space for Personal Growth",
     "excerpt": "Individual therapy offers a confidential environment to explore emotions, overcome challenges, and build resilience at your own pace.",
-    "category": "Individual Therapy",
+    "category": "Mental Health Education",
     "tags": [
       "emotional health",
       "individual therapy",
@@ -370,7 +370,7 @@ export const generatedPosts: BlogPost[] = [
     "slug": "how-online-couples-therapy-strengthens-relationships",
     "title": "How Online Couples Therapy Strengthens Relationships",
     "excerpt": "Obsessive-Compulsive Disorder can feel overwhelming, but with the right therapeutic support, individuals can learn to manage intrusive thoughts and reduce compulsive behaviors.",
-    "category": "Couples Therapy",
+    "category": "Relationship Wellness",
     "tags": [
       "communication",
       "couples therapy",
@@ -437,7 +437,7 @@ export const generatedPosts: BlogPost[] = [
     "slug": "family-therapy-online-healing-together",
     "title": "Family Therapy Online: Healing Together",
     "excerpt": "Family therapy online supports healthier dynamics by helping family members understand each other and resolve ongoing conflicts.",
-    "category": "Family Therapy",
+    "category": "Family Wellness",
     "tags": [
       "family relationships",
       "family therapy",
@@ -493,7 +493,7 @@ export const generatedPosts: BlogPost[] = [
     "slug": "online-therapy-for-teens-support-during-critical-years",
     "title": "Online Therapy for Teens: Support During Critical Years",
     "excerpt": "Teen therapy provides emotional support during adolescence, helping teens navigate stress, identity, and social pressures.",
-    "category": "Teen Therapy",
+    "category": "Teen Mental Health",
     "tags": [
       "adolescent mental health",
       "teen therapy",

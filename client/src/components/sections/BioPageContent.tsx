@@ -90,7 +90,7 @@ export function BioPageContent({
               </div>
 
               <h3 className="mt-12 font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:text-[36px] min-[1181px]:text-[42px]">
-                Short Biography
+                Credentials
               </h3>
 
               <dl className="mt-8">

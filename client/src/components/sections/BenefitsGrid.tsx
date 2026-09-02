@@ -4,7 +4,7 @@ import { benefits as staticBenefits, benefitsSection } from '@/data/marketing';
 import type { Benefit } from '@/types/content';
 
 /**
- * “Why Patients Choose My Telehealth Clinic”
+ * “Why Patients Choose LifeWell”
  *
  * Live Elementor `cmsmasters-list-hover` rows: number + title + description
  * + arrow. On hover the row fills green, copy turns white, the number fades

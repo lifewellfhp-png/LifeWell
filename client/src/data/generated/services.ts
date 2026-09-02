@@ -12,8 +12,8 @@ export const generatedServices: Service[] = [
     "lead": "Comprehensive Psychiatric Evaluations for Accurate Diagnosis and Personalized Care",
     "intro": [
       "A psychiatric evaluation is an essential first step in understanding your mental health and identifying the most effective path forward. Whether you are experiencing anxiety, depression, difficulty focusing, mood changes, or sleep disturbances, a comprehensive evaluation helps clarify what you are experiencing and how it can be treated.",
-      "As a dual-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner with over 15 years of clinical experience, I provide detailed psychiatric evaluations for adults age 18 and older through secure telehealth appointments. My goal is to create a safe, respectful, and judgment-free environment where you feel comfortable sharing your experiences openly.",
-      "A psychiatric evaluation is not just about diagnosing a condition—it is about understanding you as a whole person. I carefully review your symptoms, medical history, lifestyle factors, and emotional experiences to develop a treatment plan tailored to your specific needs and goals.",
+      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner with over 15 years of clinical experience, we provide detailed psychiatric evaluations for adults age 18 and older through secure telehealth appointments. Our goal is to create a safe, respectful, and judgment-free environment where you feel comfortable sharing your experiences openly.",
+      "A psychiatric evaluation is not just about diagnosing a condition—it is about understanding you as a whole person. We carefully review your symptoms, medical history, lifestyle factors, and emotional experiences to develop a treatment plan tailored to your specific needs and goals.",
       "This process provides clarity, direction, and a foundation for effective mental health treatment."
     ],
     "sections": [
@@ -55,16 +55,16 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "What My Psychiatric Evaluation Includes",
+        "heading": "What Our Psychiatric Evaluation Includes",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My comprehensive psychiatric evaluations are structured and thorough to ensure accurate diagnosis and personalized care."
+            "text": "Our comprehensive psychiatric evaluations are structured and thorough to ensure accurate diagnosis and personalized care."
           },
           {
             "type": "text",
-            "text": "During your evaluation, I will assess multiple aspects of your mental and physical health, including:"
+            "text": "During your evaluation, we will assess multiple aspects of your mental and physical health, including:"
           },
           {
             "type": "text",
@@ -72,7 +72,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I review your mental health history, past diagnoses, medical conditions, family history, and lifestyle factors that may influence your emotional well-being."
+            "text": "We review your mental health history, past diagnoses, medical conditions, family history, and lifestyle factors that may influence your emotional well-being."
           },
           {
             "type": "text",
@@ -84,7 +84,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I evaluate your current symptoms, including emotional, cognitive, behavioral, and physical experiences. This helps determine the severity, duration, and impact of your symptoms."
+            "text": "We evaluate your current symptoms, including emotional, cognitive, behavioral, and physical experiences. This helps determine the severity, duration, and impact of your symptoms."
           },
           {
             "type": "text",
@@ -96,7 +96,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "If you have taken psychiatric medications in the past or currently use them, I review effectiveness, side effects, and treatment response."
+            "text": "If you have taken psychiatric medications in the past or currently use them, we review effectiveness, side effects, and treatment response."
           },
           {
             "type": "text",
@@ -108,7 +108,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Your safety is always a priority. I assess risk factors such as severe depression, trauma, or emotional distress to ensure appropriate support and care planning."
+            "text": "Your safety is always a priority. We assess risk factors such as severe depression, trauma, or emotional distress to ensure appropriate support and care planning."
           },
           {
             "type": "text",
@@ -120,7 +120,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Based on the evaluation, I develop an individualized treatment plan tailored to your needs. This may include:"
+            "text": "Based on the evaluation, we develop an individualized treatment plan tailored to your needs. This may include:"
           },
           {
             "type": "list",
@@ -134,13 +134,13 @@ export const generatedServices: Service[] = [
               "Medication management if appropriate",
               "Lifestyle and wellness guidance",
               "Follow-up care planning",
-              "My goal is to provide a clear path forward and ensure you feel supported and informed."
+              "Our goal is to provide a clear path forward and ensure you feel supported and informed."
             ]
           }
         ]
       },
       {
-        "heading": "Conditions I Commonly Evaluate",
+        "heading": "Conditions We Commonly Evaluate",
         "sourceLevel": 3,
         "blocks": [
           {
@@ -167,16 +167,16 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "My Approach to Psychiatric Evaluations",
+        "heading": "Our Approach to Psychiatric Evaluations",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach is compassionate, thorough, and patient-centered. I understand that discussing mental health can feel vulnerable, and I prioritize creating a supportive and respectful environment."
+            "text": "Our approach is compassionate, thorough, and patient-centered. We understand that discussing mental health can feel vulnerable, and we prioritize creating a supportive and respectful environment."
           },
           {
             "type": "text",
-            "text": "I focus on:"
+            "text": "We focus on:"
           },
           {
             "type": "list",
@@ -190,7 +190,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I believe mental health care should be personalized, transparent, and empowering. My goal is to help you gain clarity, understand your condition, and feel confident in your treatment plan."
+            "text": "We believe mental health care should be personalized, transparent, and empowering. Our goal is to help you gain clarity, understand your condition, and feel confident in your treatment plan."
           }
         ]
       },
@@ -265,8 +265,8 @@ export const generatedServices: Service[] = [
     "lead": "Telehealth Psychiatric Medication Management for Safe and Personalized Treatment",
     "intro": [
       "Psychiatric medication management plays an important role in treating many mental health conditions, including anxiety, depression, ADHD, mood disorders, and sleep disturbances. While medications can significantly improve symptoms and quality of life, effective treatment requires careful evaluation, monitoring, and ongoing adjustment.",
-      "As a dual-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner, I provide comprehensive medication management for adults through secure telehealth appointments. My goal is to ensure that every medication prescribed is appropriate for your diagnosis, effective in reducing symptoms, and safe for your overall health.",
-      "Medication management is not simply about prescribing medication. It is an ongoing process that includes evaluating your symptoms, monitoring progress, managing side effects, and making adjustments when necessary. I work closely with you to ensure you understand your treatment and feel confident in your care plan.",
+      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner, we provide comprehensive medication management for adults through secure telehealth appointments. Our goal is to ensure that every medication prescribed is appropriate for your diagnosis, effective in reducing symptoms, and safe for your overall health.",
+      "Medication management is not simply about prescribing medication. It is an ongoing process that includes evaluating your symptoms, monitoring progress, managing side effects, and making adjustments when necessary. We work closely with you to ensure you understand your treatment and feel confident in your care plan.",
       "Every treatment decision is personalized based on your medical history, symptoms, and individual goals."
     ],
     "sections": [
@@ -308,12 +308,12 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "What My Medication Management Services Include",
+        "heading": "What Our Medication Management Services Include",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My medication management services are structured to provide comprehensive, safe, and individualized care."
+            "text": "Our medication management services are structured to provide comprehensive, safe, and individualized care."
           },
           {
             "type": "text",
@@ -321,11 +321,11 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "If medication is appropriate, I carefully select and prescribe medications based on your diagnosis, medical history, and treatment goals."
+            "text": "If medication is appropriate, we carefully select and prescribe medications based on your diagnosis, medical history, and treatment goals."
           },
           {
             "type": "text",
-            "text": "I monitor your response and adjust dosage or medication as needed to improve effectiveness and minimize side effects."
+            "text": "We monitor your response and adjust dosage or medication as needed to improve effectiveness and minimize side effects."
           },
           {
             "type": "text",
@@ -337,7 +337,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Mental health symptoms can change over time. During follow-up appointments, I assess your emotional, cognitive, and physical symptoms to determine how well your treatment is working."
+            "text": "Mental health symptoms can change over time. During follow-up appointments, we assess your emotional, cognitive, and physical symptoms to determine how well your treatment is working."
           },
           {
             "type": "text",
@@ -349,7 +349,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "All medications have potential side effects. I monitor your physical and emotional response to medication and make adjustments if necessary to protect your safety and comfort."
+            "text": "All medications have potential side effects. We monitor your physical and emotional response to medication and make adjustments if necessary to protect your safety and comfort."
           },
           {
             "type": "text",
@@ -361,7 +361,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I provide clear information about:"
+            "text": "We provide clear information about:"
           },
           {
             "type": "list",
@@ -380,7 +380,7 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "Types of Medications I May Prescribe",
+        "heading": "Types of Medications We May Prescribe",
         "sourceLevel": 3,
         "blocks": [
           {
@@ -467,7 +467,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Mental health treatment is an ongoing process. Regular follow-up appointments allow me to monitor your progress and ensure your treatment remains effective."
+            "text": "Mental health treatment is an ongoing process. Regular follow-up appointments allow us to monitor your progress and ensure your treatment remains effective."
           },
           {
             "type": "text",
@@ -532,9 +532,9 @@ export const generatedServices: Service[] = [
     "lead": "Telehealth Treatment for Depression, Anxiety, ADHD, Bipolar Disorder & PTSD",
     "intro": [
       "Mental health conditions such as depression, anxiety, ADHD, bipolar disorder, and PTSD can affect every aspect of your life—including your mood, focus, relationships, sleep, and overall well-being. These conditions are medical conditions, not personal weaknesses, and effective treatment is available.",
-      "As a dual-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner, I provide comprehensive, individualized treatment for adults through secure telehealth appointments. My approach focuses on understanding your symptoms, identifying underlying causes, and developing a personalized treatment plan tailored to your needs and goals.",
-      "Treatment is not limited to medication alone. I use a holistic, evidence-based approach that may include medication management, lifestyle guidance, sleep support strategies, and education to help you better understand and manage your condition.",
-      "My goal is to help you achieve symptom relief, emotional stability, and long-term mental wellness while ensuring you feel heard, respected, and supported throughout the process."
+      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner, we provide comprehensive, individualized treatment for adults through secure telehealth appointments. Our approach focuses on understanding your symptoms, identifying underlying causes, and developing a personalized treatment plan tailored to your needs and goals.",
+      "Treatment is not limited to medication alone. We use a holistic, evidence-based approach that may include medication management, lifestyle guidance, sleep support strategies, and education to help you better understand and manage your condition.",
+      "Our goal is to help you achieve symptom relief, emotional stability, and long-term mental wellness while ensuring you feel heard, respected, and supported throughout the process."
     ],
     "sections": [
       {
@@ -573,12 +573,12 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "Conditions I Treat",
+        "heading": "Conditions We Treat",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "I provide professional telehealth treatment for a wide range of mental health conditions, including:"
+            "text": "We provide professional telehealth treatment for a wide range of mental health conditions, including:"
           },
           {
             "type": "text",
@@ -627,12 +627,12 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "My Approach to Treatment",
+        "heading": "Our Approach to Treatment",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My treatment approach is patient-centered, collaborative, and evidence-based. I focus on understanding your unique experiences and developing a plan that supports your long-term well-being."
+            "text": "Our treatment approach is patient-centered, collaborative, and evidence-based. We focus on understanding your unique experiences and developing a plan that supports your long-term well-being."
           },
           {
             "type": "text",
@@ -644,7 +644,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "When appropriate, I prescribe and manage medications to help reduce symptoms and improve emotional stability. I carefully monitor effectiveness and adjust treatment as needed."
+            "text": "When appropriate, we prescribe and manage medications to help reduce symptoms and improve emotional stability. We carefully monitor effectiveness and adjust treatment as needed."
           },
           {
             "type": "text",
@@ -660,7 +660,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I provide guidance on practical strategies that support emotional balance and overall wellness."
+            "text": "We provide guidance on practical strategies that support emotional balance and overall wellness."
           },
           {
             "type": "text",
@@ -668,7 +668,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Sleep disturbances are common in many mental health conditions. I help identify sleep-related issues and recommend strategies or treatments to improve sleep quality."
+            "text": "Sleep disturbances are common in many mental health conditions. We help identify sleep-related issues and recommend strategies or treatments to improve sleep quality."
           },
           {
             "type": "text",
@@ -680,7 +680,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Understanding your condition is an important part of treatment. I provide education about your diagnosis, treatment options, and coping strategies so you can actively participate in your care."
+            "text": "Understanding your condition is an important part of treatment. We provide education about your diagnosis, treatment options, and coping strategies so you can actively participate in your care."
           },
           {
             "type": "text",
@@ -692,7 +692,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "When therapy is beneficial, I may recommend referral to a licensed therapist for additional support. Medication management and therapy often work together to provide the best outcomes."
+            "text": "When therapy is beneficial, we may recommend referral to a licensed therapist for additional support. Medication management and therapy often work together to provide the best outcomes."
           },
           {
             "type": "text",
@@ -706,11 +706,11 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "I believe mental health treatment should be collaborative. You are an active participant in your care, and your experiences and goals guide treatment decisions."
+            "text": "We believe mental health treatment should be collaborative. You are an active participant in your care, and your experiences and goals guide treatment decisions."
           },
           {
             "type": "text",
-            "text": "My focus is on:"
+            "text": "Our focus is on:"
           },
           {
             "type": "list",
@@ -724,7 +724,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "My goal is to help you feel supported, informed, and confident in your treatment."
+            "text": "Our goal is to help you feel supported, informed, and confident in your treatment."
           }
         ]
       },
@@ -793,7 +793,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Mental health treatment is an ongoing process. Regular follow-up appointments allow me to monitor your progress and ensure your treatment remains effective."
+            "text": "Mental health treatment is an ongoing process. Regular follow-up appointments allow us to monitor your progress and ensure your treatment remains effective."
           },
           {
             "type": "text",
@@ -832,8 +832,8 @@ export const generatedServices: Service[] = [
     "lead": "Psychiatric Follow-Up Visits Telehealth for Safe and Ongoing Care",
     "intro": [
       "Mental health treatment is not a one-time event—it is an ongoing process that requires consistent monitoring, communication, and adjustments over time. Follow-up visits are an essential part of psychiatric care, helping ensure that your treatment remains safe, effective, and aligned with your evolving needs.",
-      "As a board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC), I provide structured follow-up appointments through secure telehealth services. These visits allow me to monitor your symptoms, review medication effectiveness, manage side effects, and make treatment adjustments when necessary.",
-      "Follow-up care provides continuity, helping maintain progress and prevent setbacks. My goal is to support you consistently and help you achieve long-term emotional stability, improved functioning, and overall mental wellness.",
+      "As a board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC), we provide structured follow-up appointments through secure telehealth services. These visits allow us to monitor your symptoms, review medication effectiveness, manage side effects, and make treatment adjustments when necessary.",
+      "Follow-up care provides continuity, helping maintain progress and prevent setbacks. Our goal is to support you consistently and help you achieve long-term emotional stability, improved functioning, and overall mental wellness.",
       "These appointments also provide an opportunity for you to ask questions, discuss concerns, and actively participate in your treatment."
     ],
     "sections": [
@@ -866,7 +866,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Consistent follow-up allows me to respond quickly and help maintain your progress."
+            "text": "Consistent follow-up allows us to respond quickly and help maintain your progress."
           }
         ]
       },
@@ -915,7 +915,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I assess how your symptoms have changed since your last visit. This includes evaluating mood, anxiety levels, sleep patterns, focus, energy levels, and daily functioning."
+            "text": "We assess how your symptoms have changed since your last visit. This includes evaluating mood, anxiety levels, sleep patterns, focus, energy levels, and daily functioning."
           },
           {
             "type": "text",
@@ -927,7 +927,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "If you are taking psychiatric medication, I evaluate how well it is helping your symptoms."
+            "text": "If you are taking psychiatric medication, we evaluate how well it is helping your symptoms."
           },
           {
             "type": "text",
@@ -952,15 +952,15 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Some medications may cause side effects. During follow-up visits, I assess whether you are experiencing any physical or emotional side effects."
+            "text": "Some medications may cause side effects. During follow-up visits, we assess whether you are experiencing any physical or emotional side effects."
           },
           {
             "type": "text",
-            "text": "If necessary, I may adjust your treatment to improve safety and comfort."
+            "text": "If necessary, we may adjust your treatment to improve safety and comfort."
           },
           {
             "type": "text",
-            "text": "Your safety and well-being are always my priority."
+            "text": "Your safety and well-being are always our priority."
           },
           {
             "type": "text",
@@ -993,7 +993,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Follow-up visits also provide an opportunity for education and support. I help you understand your condition, treatment options, and strategies for maintaining stability."
+            "text": "Follow-up visits also provide an opportunity for education and support. We help you understand your condition, treatment options, and strategies for maintaining stability."
           },
           {
             "type": "text",
@@ -1002,16 +1002,16 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "My Approach to Follow-Up Care",
+        "heading": "Our Approach to Follow-Up Care",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach to follow-up care is collaborative, compassionate, and individualized. I take time to listen to your experiences and ensure your treatment plan reflects your needs and goals."
+            "text": "Our approach to follow-up care is collaborative, compassionate, and individualized. We take time to listen to your experiences and ensure your treatment plan reflects your needs and goals."
           },
           {
             "type": "text",
-            "text": "My focus includes:"
+            "text": "Our focus includes:"
           },
           {
             "type": "list",
@@ -1025,7 +1025,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I believe consistent follow-up care builds trust, improves outcomes, and supports long-term recovery."
+            "text": "We believe consistent follow-up care builds trust, improves outcomes, and supports long-term recovery."
           }
         ]
       },
@@ -1065,11 +1065,11 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Follow-up visits allow me to provide continuous monitoring, guidance, and support while helping you adapt to life changes and treatment needs."
+            "text": "Follow-up visits allow us to provide continuous monitoring, guidance, and support while helping you adapt to life changes and treatment needs."
           },
           {
             "type": "text",
-            "text": "My goal is to help you maintain stability, improve your quality of life, and achieve lasting mental wellness."
+            "text": "Our goal is to help you maintain stability, improve your quality of life, and achieve lasting mental wellness."
           }
         ]
       }
@@ -1089,9 +1089,9 @@ export const generatedServices: Service[] = [
     "category": "primary-care",
     "lead": "Annual Physical Exam Telehealth and Preventive Screenings for Proactive Health",
     "intro": [
-      "Annual physical exams are an essential part of maintaining your overall health and preventing serious medical conditions. Even if you feel healthy, regular checkups allow me to evaluate your current health status, identify early signs of illness, and provide personalized recommendations to keep you well.",
-      "As a dual-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, I take a holistic approach to preventive care. I understand that physical health and mental health are closely connected, and my goal is to support both aspects of your well-being.",
-      "Through telehealth annual physical visits and preventive care consultations, I review your medical history, lifestyle habits, risk factors, and screening needs. Preventive care helps identify conditions such as high blood pressure, diabetes, heart disease, and other chronic conditions before they become serious.",
+      "Annual physical exams are an essential part of maintaining your overall health and preventing serious medical conditions. Even if you feel healthy, regular checkups allow us to evaluate your current health status, identify early signs of illness, and provide personalized recommendations to keep you well.",
+      "As a dual board-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, we take a holistic approach to preventive care. We understand that physical health and mental health are closely connected, and our goal is to support both aspects of your well-being.",
+      "Through telehealth annual physical visits and preventive care consultations, we review your medical history, lifestyle habits, risk factors, and screening needs. Preventive care helps identify conditions such as high blood pressure, diabetes, heart disease, and other chronic conditions before they become serious.",
       "Early detection allows for timely treatment, improved outcomes, and better long-term health."
     ],
     "sections": [
@@ -1120,12 +1120,12 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Preventive care allows me to address concerns early and provide guidance tailored to your individual health needs."
+            "text": "Preventive care allows us to address concerns early and provide guidance tailored to your individual health needs."
           }
         ]
       },
       {
-        "heading": "What I Review During an Annual Physical",
+        "heading": "What We Review During an Annual Physical",
         "sourceLevel": 3,
         "blocks": [
           {
@@ -1138,7 +1138,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I review your personal and family medical history, including previous diagnoses, surgeries, medications, and risk factors. Understanding your history helps identify potential health risks and guide preventive care."
+            "text": "We review your personal and family medical history, including previous diagnoses, surgeries, medications, and risk factors. Understanding your history helps identify potential health risks and guide preventive care."
           },
           {
             "type": "text",
@@ -1146,7 +1146,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Lifestyle plays an important role in overall health. I discuss areas such as:"
+            "text": "Lifestyle plays an important role in overall health. We discuss areas such as:"
           },
           {
             "type": "list",
@@ -1168,7 +1168,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Based on your age, medical history, and risk factors, I recommend appropriate preventive screenings. These screenings help detect health conditions early."
+            "text": "Based on your age, medical history, and risk factors, we recommend appropriate preventive screenings. These screenings help detect health conditions early."
           },
           {
             "type": "text",
@@ -1195,7 +1195,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "If you are currently taking medications, I review effectiveness, safety, and possible side effects. Medication review ensures your treatment remains appropriate for your current health needs."
+            "text": "If you are currently taking medications, we review effectiveness, safety, and possible side effects. Medication review ensures your treatment remains appropriate for your current health needs."
           },
           {
             "type": "text",
@@ -1203,7 +1203,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Mental health is an important part of preventive care. I assess emotional well-being, stress levels, sleep quality, and mental health symptoms when appropriate."
+            "text": "Mental health is an important part of preventive care. We assess emotional well-being, stress levels, sleep quality, and mental health symptoms when appropriate."
           },
           {
             "type": "text",
@@ -1236,21 +1236,21 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Screenings allow me to develop personalized recommendations for improving your health."
+            "text": "Screenings allow us to develop personalized recommendations for improving your health."
           }
         ]
       },
       {
-        "heading": "My Approach to Preventive and Primary Care",
+        "heading": "Our Approach to Preventive and Primary Care",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach to primary care focuses on prevention, early detection, and personalized treatment. I believe preventive care helps reduce long-term health risks and improves quality of life."
+            "text": "Our approach to primary care focuses on prevention, early detection, and personalized treatment. We believe preventive care helps reduce long-term health risks and improves quality of life."
           },
           {
             "type": "text",
-            "text": "My approach includes:"
+            "text": "Our approach includes:"
           },
           {
             "type": "list",
@@ -1265,11 +1265,11 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I work collaboratively with you to help you understand your health and make informed decisions."
+            "text": "We work collaboratively with you to help you understand your health and make informed decisions."
           },
           {
             "type": "text",
-            "text": "My goal is to help you stay healthy—not just treat illness."
+            "text": "Our goal is to help you stay healthy—not just treat illness."
           }
         ]
       },
@@ -1279,7 +1279,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Telehealth allows you to receive preventive care consultations conveniently and securely. While certain physical measurements or labs may be completed locally when needed, telehealth allows me to review your health, provide preventive guidance, and coordinate necessary screenings."
+            "text": "Telehealth allows you to receive preventive care consultations conveniently and securely. While certain physical measurements or labs may be completed locally when needed, telehealth allows us to review your health, provide preventive guidance, and coordinate necessary screenings."
           },
           {
             "type": "text",
@@ -1333,7 +1333,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Preventive care is an ongoing process. I provide continued support, follow-up recommendations, and monitoring based on your individual health needs."
+            "text": "Preventive care is an ongoing process. We provide continued support, follow-up recommendations, and monitoring based on your individual health needs."
           },
           {
             "type": "text",
@@ -1351,7 +1351,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "My goal is to provide continuous, personalized primary care."
+            "text": "Our goal is to provide continuous, personalized primary care."
           }
         ]
       }
@@ -1372,8 +1372,8 @@ export const generatedServices: Service[] = [
     "lead": "Chronic Disease Management Telehealth for Hypertension, Diabetes, Thyroid, and Long-Term Health",
     "intro": [
       "Chronic medical conditions such as hypertension, diabetes, hyperlipidemia, and thyroid disorders require ongoing monitoring, treatment, and lifestyle support. Without proper management, these conditions can lead to serious health complications, including heart disease, stroke, organ damage, and reduced quality of life.",
-      "As a dual-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, I provide personalized chronic disease management focused on prevention, early intervention, and long-term stability. My goal is to help you understand your condition, monitor your progress, and develop a treatment plan that supports your overall health.",
-      "Chronic disease management is not only about controlling symptoms—it is about improving your quality of life and preventing complications. Through regular telehealth visits, I work closely with you to monitor your condition, review medications, and provide guidance tailored to your individual needs.",
+      "As a dual board-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, we provide personalized chronic disease management focused on prevention, early intervention, and long-term stability. Our goal is to help you understand your condition, monitor your progress, and develop a treatment plan that supports your overall health.",
+      "Chronic disease management is not only about controlling symptoms—it is about improving your quality of life and preventing complications. Through regular telehealth visits, we work closely with you to monitor your condition, review medications, and provide guidance tailored to your individual needs.",
       "Consistent care and early intervention are key to maintaining long-term health and preventing serious complications."
     ],
     "sections": [
@@ -1410,12 +1410,12 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "Conditions I Manage",
+        "heading": "Conditions We Manage",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "I provide ongoing management and monitoring for a variety of chronic health conditions."
+            "text": "We provide ongoing management and monitoring for a variety of chronic health conditions."
           },
           {
             "type": "text",
@@ -1537,12 +1537,12 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "What My Chronic Disease Management Includes",
+        "heading": "What Our Chronic Disease Management Includes",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach focuses on comprehensive, personalized care."
+            "text": "Our approach focuses on comprehensive, personalized care."
           },
           {
             "type": "text",
@@ -1550,7 +1550,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I regularly evaluate your symptoms and overall health to track progress and identify concerns early."
+            "text": "We regularly evaluate your symptoms and overall health to track progress and identify concerns early."
           },
           {
             "type": "text",
@@ -1562,7 +1562,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "If medications are part of your treatment, I monitor effectiveness, safety, and side effects."
+            "text": "If medications are part of your treatment, we monitor effectiveness, safety, and side effects."
           },
           {
             "type": "text",
@@ -1574,7 +1574,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Preventive care helps reduce the risk of complications. I provide guidance on lifestyle changes that support long-term health."
+            "text": "Preventive care helps reduce the risk of complications. We provide guidance on lifestyle changes that support long-term health."
           },
           {
             "type": "text",
@@ -1586,7 +1586,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Lifestyle factors play a major role in managing chronic conditions. I provide guidance on:"
+            "text": "Lifestyle factors play a major role in managing chronic conditions. We provide guidance on:"
           },
           {
             "type": "list",
@@ -1617,16 +1617,16 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "My Approach to Chronic Disease Management",
+        "heading": "Our Approach to Chronic Disease Management",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach is patient-centered, preventive, and evidence-based. I focus on understanding your health history, current symptoms, and personal goals."
+            "text": "Our approach is patient-centered, preventive, and evidence-based. We focus on understanding your health history, current symptoms, and personal goals."
           },
           {
             "type": "text",
-            "text": "My priorities include:"
+            "text": "Our priorities include:"
           },
           {
             "type": "list",
@@ -1640,11 +1640,11 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I work collaboratively with you to help you manage your condition confidently."
+            "text": "We work collaboratively with you to help you manage your condition confidently."
           },
           {
             "type": "text",
-            "text": "My goal is to support both your physical and mental well-being."
+            "text": "Our goal is to support both your physical and mental well-being."
           }
         ]
       },
@@ -1745,9 +1745,9 @@ export const generatedServices: Service[] = [
     "lead": "Preventive Care Telehealth Services for Long-Term Health and Wellness",
     "intro": [
       "Preventive care is one of the most important steps you can take to protect your health and reduce the risk of serious illness. Rather than waiting for symptoms to appear, preventive care focuses on identifying potential health concerns early, supporting healthy lifestyle habits, and helping you maintain overall wellness.",
-      "As a dual-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, I take a holistic approach to preventive care. I understand that your physical health, emotional health, and lifestyle habits are deeply connected. My goal is to help you stay healthy, prevent disease, and improve your quality of life through personalized, evidence-based care.",
+      "As a dual board-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, we take a holistic approach to preventive care. We understand that your physical health, emotional health, and lifestyle habits are deeply connected. Our goal is to help you stay healthy, prevent disease, and improve your quality of life through personalized, evidence-based care.",
       "Preventive care includes health screenings, lifestyle evaluation, nutrition guidance, sleep support, stress management, and ongoing monitoring. These services help identify risk factors early and provide strategies to prevent chronic conditions such as heart disease, diabetes, and other long-term health concerns.",
-      "Through secure telehealth preventive care visits, I provide guidance, monitoring, and support tailored to your individual needs and health goals."
+      "Through secure telehealth preventive care visits, we provide guidance, monitoring, and support tailored to your individual needs and health goals."
     ],
     "sections": [
       {
@@ -1790,7 +1790,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "During preventive care visits, I evaluate your overall health and identify potential risk factors based on your medical history, age, and lifestyle."
+            "text": "During preventive care visits, we evaluate your overall health and identify potential risk factors based on your medical history, age, and lifestyle."
           },
           {
             "type": "text",
@@ -1824,7 +1824,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I assess important health factors such as:"
+            "text": "We assess important health factors such as:"
           },
           {
             "type": "list",
@@ -1849,7 +1849,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Proper nutrition plays a critical role in preventing chronic disease and maintaining energy levels. I provide personalized guidance to help you develop sustainable, healthy eating habits."
+            "text": "Proper nutrition plays a critical role in preventing chronic disease and maintaining energy levels. We provide personalized guidance to help you develop sustainable, healthy eating habits."
           },
           {
             "type": "text",
@@ -1880,7 +1880,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "During preventive care visits, I evaluate your sleep habits and provide guidance to improve sleep quality."
+            "text": "During preventive care visits, we evaluate your sleep habits and provide guidance to improve sleep quality."
           },
           {
             "type": "text",
@@ -1911,7 +1911,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I provide guidance on:"
+            "text": "We provide guidance on:"
           },
           {
             "type": "list",
@@ -1953,16 +1953,16 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "My Approach to Preventive Care",
+        "heading": "Our Approach to Preventive Care",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My preventive care approach is personalized, proactive, and evidence-based. I focus on identifying risks early and helping you develop sustainable habits that support your health."
+            "text": "Our preventive care approach is personalized, proactive, and evidence-based. We focus on identifying risks early and helping you develop sustainable habits that support your health."
           },
           {
             "type": "text",
-            "text": "My approach includes:"
+            "text": "Our approach includes:"
           },
           {
             "type": "list",
@@ -1977,11 +1977,11 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I work collaboratively with you to help you understand your health and take proactive steps toward wellness."
+            "text": "We work collaboratively with you to help you understand your health and take proactive steps toward wellness."
           },
           {
             "type": "text",
-            "text": "My goal is to help you stay healthy—not just treat illness."
+            "text": "Our goal is to help you stay healthy—not just treat illness."
           }
         ]
       },
@@ -1991,7 +1991,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Telehealth makes preventive care convenient, accessible, and confidential. Through secure telehealth visits, I can evaluate your health, provide guidance, and develop preventive care plans."
+            "text": "Telehealth makes preventive care convenient, accessible, and confidential. Through secure telehealth visits, we can evaluate your health, provide guidance, and develop preventive care plans."
           },
           {
             "type": "text",
@@ -2044,7 +2044,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Preventive care is an ongoing process. Regular visits allow me to monitor your health and provide updated recommendations based on your needs."
+            "text": "Preventive care is an ongoing process. Regular visits allow us to monitor your health and provide updated recommendations based on your needs."
           },
           {
             "type": "text",
@@ -2082,7 +2082,7 @@ export const generatedServices: Service[] = [
     "lead": "Telehealth Sick Visits Primary Care for Fast, Convenient Acute Treatment",
     "intro": [
       "Acute illnesses and minor health concerns can develop unexpectedly and disrupt your daily life. Whether you are experiencing cold symptoms, sinus pressure, urinary discomfort, digestive issues, or allergy flare-ups, prompt medical evaluation can help relieve symptoms, prevent complications, and support faster recovery.",
-      "As a dual-certified Family Nurse Practitioner, I provide acute primary care sick visits for adults through secure telehealth appointments. My goal is to assess your symptoms, determine the likely cause, and develop a safe and effective treatment plan tailored to your needs.",
+      "As a dual board-certified Family Nurse Practitioner, we provide acute primary care sick visits for adults through secure telehealth appointments. Our goal is to assess your symptoms, determine the likely cause, and develop a safe and effective treatment plan tailored to your needs.",
       "Telehealth sick visits allow you to receive professional medical care quickly and conveniently, without waiting for in-person appointments or urgent care visits. Many common acute conditions can be safely evaluated and treated through telehealth, allowing you to recover comfortably at home.",
       "Timely treatment helps reduce symptom severity, prevent worsening illness, and support your overall health."
     ],
@@ -2124,12 +2124,12 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "Conditions I Commonly Treat During Sick Visits",
+        "heading": "Conditions We Commonly Treat During Sick Visits",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "I provide telehealth evaluation and treatment for a wide range of acute primary care conditions."
+            "text": "We provide telehealth evaluation and treatment for a wide range of acute primary care conditions."
           },
           {
             "type": "text",
@@ -2151,7 +2151,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I evaluate your symptoms and recommend appropriate treatment, symptom relief strategies, and medications when necessary."
+            "text": "We evaluate your symptoms and recommend appropriate treatment, symptom relief strategies, and medications when necessary."
           },
           {
             "type": "text",
@@ -2177,7 +2177,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I assess your symptoms to determine whether your condition may benefit from supportive care or medication."
+            "text": "We assess your symptoms to determine whether your condition may benefit from supportive care or medication."
           },
           {
             "type": "text",
@@ -2206,7 +2206,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I evaluate your symptoms and prescribe treatment when appropriate, helping prevent worsening infection."
+            "text": "We evaluate your symptoms and prescribe treatment when appropriate, helping prevent worsening infection."
           },
           {
             "type": "text",
@@ -2231,7 +2231,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I provide allergy evaluation and treatment recommendations, including medications and preventive strategies."
+            "text": "We provide allergy evaluation and treatment recommendations, including medications and preventive strategies."
           },
           {
             "type": "text",
@@ -2256,7 +2256,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I assess symptoms visually and provide treatment recommendations to support healing."
+            "text": "We assess symptoms visually and provide treatment recommendations to support healing."
           },
           {
             "type": "text",
@@ -2272,7 +2272,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I provide evaluation and treatment guidance for:"
+            "text": "We provide evaluation and treatment guidance for:"
           },
           {
             "type": "list",
@@ -2298,7 +2298,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "During your appointment, I conduct a comprehensive evaluation to understand your symptoms and medical history."
+            "text": "During your appointment, we conduct a comprehensive evaluation to understand your symptoms and medical history."
           },
           {
             "type": "text",
@@ -2320,21 +2320,21 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "My goal is to ensure safe, effective, and timely treatment."
+            "text": "Our goal is to ensure safe, effective, and timely treatment."
           }
         ]
       },
       {
-        "heading": "My Approach to Acute Primary Care",
+        "heading": "Our Approach to Acute Primary Care",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach to acute care is patient-centered, evidence-based, and focused on safety. I take time to listen carefully to your symptoms and develop a treatment plan tailored to your needs."
+            "text": "Our approach to acute care is patient-centered, evidence-based, and focused on safety. We take time to listen carefully to your symptoms and develop a treatment plan tailored to your needs."
           },
           {
             "type": "text",
-            "text": "My priorities include:"
+            "text": "Our priorities include:"
           },
           {
             "type": "list",
@@ -2348,7 +2348,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I focus on helping you recover quickly while protecting your long-term health."
+            "text": "We focus on helping you recover quickly while protecting your long-term health."
           }
         ]
       },
@@ -2442,7 +2442,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I am committed to providing accessible, compassionate primary care that supports both your immediate and long-term health needs."
+            "text": "We are committed to providing accessible, compassionate primary care that supports both your immediate and long-term health needs."
           }
         ]
       }
@@ -2463,9 +2463,9 @@ export const generatedServices: Service[] = [
     "lead": "Weight Management Telehealth for Safe, Personalized, and Effective Weight Loss",
     "intro": [
       "Maintaining a healthy weight is an important part of overall wellness. Weight can affect many aspects of your health, including heart health, blood pressure, blood sugar levels, sleep, energy, and emotional well-being. For many individuals, weight management can be challenging due to medical, metabolic, hormonal, or lifestyle factors.",
-      "As a dual-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, I provide personalized weight management services designed to help you achieve sustainable, healthy weight loss and improve your overall health. My approach focuses on identifying underlying causes, reviewing metabolic factors, and developing individualized treatment plans tailored to your specific needs.",
+      "As a dual board-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, we provide personalized weight management services designed to help you achieve sustainable, healthy weight loss and improve your overall health. Our approach focuses on identifying underlying causes, reviewing metabolic factors, and developing individualized treatment plans tailored to your specific needs.",
       "Weight management is not about quick fixes or extreme dieting. It involves understanding your body, addressing medical factors, and building sustainable lifestyle habits that support long-term success.",
-      "Through telehealth weight management visits, I provide ongoing monitoring, medication management when appropriate, and continuous support to help you reach your health goals safely."
+      "Through telehealth weight management visits, we provide ongoing monitoring, medication management when appropriate, and continuous support to help you reach your health goals safely."
     ],
     "sections": [
       {
@@ -2478,7 +2478,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "During your weight management consultation, I conduct a comprehensive health and metabolic review, including:"
+            "text": "During your weight management consultation, we conduct a comprehensive health and metabolic review, including:"
           },
           {
             "type": "list",
@@ -2512,7 +2512,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "When clinically appropriate, I may prescribe FDA-approved medications to support weight loss safely."
+            "text": "When clinically appropriate, we may prescribe FDA-approved medications to support weight loss safely."
           },
           {
             "type": "text",
@@ -2533,7 +2533,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "Safety and individualized care are always my priority."
+            "text": "Safety and individualized care are always our priority."
           }
         ]
       },
@@ -2543,7 +2543,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Every individual’s body and health needs are different. I develop personalized weight management plans tailored to your medical history, lifestyle, and goals."
+            "text": "Every individual’s body and health needs are different. We develop personalized weight management plans tailored to your medical history, lifestyle, and goals."
           },
           {
             "type": "text",
@@ -2565,7 +2565,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "My goal is to help you achieve sustainable, healthy results."
+            "text": "Our goal is to help you achieve sustainable, healthy results."
           }
         ]
       },
@@ -2592,7 +2592,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I evaluate metabolic risk factors and provide appropriate treatment and monitoring."
+            "text": "We evaluate metabolic risk factors and provide appropriate treatment and monitoring."
           }
         ]
       },
@@ -2602,7 +2602,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Healthy lifestyle habits play a key role in weight management. I provide guidance on realistic and sustainable changes that support your goals."
+            "text": "Healthy lifestyle habits play a key role in weight management. We provide guidance on realistic and sustainable changes that support your goals."
           },
           {
             "type": "text",
@@ -2630,7 +2630,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Weight management requires ongoing monitoring and adjustment. Regular follow-up visits allow me to evaluate progress and modify your treatment plan as needed."
+            "text": "Weight management requires ongoing monitoring and adjustment. Regular follow-up visits allow us to evaluate progress and modify your treatment plan as needed."
           },
           {
             "type": "text",
@@ -2653,16 +2653,16 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "My Approach to Weight Management",
+        "heading": "Our Approach to Weight Management",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach is compassionate, evidence-based, and patient-centered. I understand that weight management can be complex, and I focus on providing supportive, realistic, and medically appropriate care."
+            "text": "Our approach is compassionate, evidence-based, and patient-centered. We understand that weight management can be complex, and we focus on providing supportive, realistic, and medically appropriate care."
           },
           {
             "type": "text",
-            "text": "My priorities include:"
+            "text": "Our priorities include:"
           },
           {
             "type": "list",
@@ -2676,7 +2676,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "My goal is to support both your physical health and emotional well-being."
+            "text": "Our goal is to support both your physical health and emotional well-being."
           }
         ]
       },
@@ -2740,7 +2740,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Weight management is a long-term process. I provide ongoing monitoring and support to help you maintain progress and protect your health."
+            "text": "Weight management is a long-term process. We provide ongoing monitoring and support to help you maintain progress and protect your health."
           },
           {
             "type": "text",
@@ -2765,9 +2765,9 @@ export const generatedServices: Service[] = [
     "lead": "Wellness and Lifestyle Counseling Telehealth for Nutrition, Sleep, and Stress Balance",
     "intro": [
       "Your daily habits play a powerful role in your overall health. Nutrition, sleep, stress levels, physical activity, and lifestyle routines can affect your energy, immune system, emotional well-being, and risk of chronic disease. Many health concerns—including high blood pressure, diabetes, anxiety, fatigue, and weight gain—are closely connected to lifestyle factors.",
-      "As a dual-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, I provide comprehensive wellness and lifestyle counseling designed to help you develop sustainable, healthy habits. My approach focuses on understanding your current lifestyle, identifying areas for improvement, and creating realistic strategies that support your long-term health.",
+      "As a dual board-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, we provide comprehensive wellness and lifestyle counseling designed to help you develop sustainable, healthy habits. Our approach focuses on understanding your current lifestyle, identifying areas for improvement, and creating realistic strategies that support your long-term health.",
       "Wellness counseling is not about perfection or extreme changes. It is about making practical, achievable adjustments that improve your physical and emotional well-being over time.",
-      "Through telehealth wellness visits, I provide guidance, education, and ongoing support to help you build healthier routines and improve your overall quality of life."
+      "Through telehealth wellness visits, we provide guidance, education, and ongoing support to help you build healthier routines and improve your overall quality of life."
     ],
     "sections": [
       {
@@ -2812,7 +2812,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "During your visit, I evaluate:"
+            "text": "During your visit, we evaluate:"
           },
           {
             "type": "list",
@@ -2845,7 +2845,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I provide guidance on:"
+            "text": "We provide guidance on:"
           },
           {
             "type": "list",
@@ -2859,7 +2859,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "My goal is to help you develop realistic nutrition habits that support long-term wellness."
+            "text": "Our goal is to help you develop realistic nutrition habits that support long-term wellness."
           },
           {
             "type": "text",
@@ -2877,7 +2877,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I evaluate your sleep habits and help identify factors affecting your sleep quality."
+            "text": "We evaluate your sleep habits and help identify factors affecting your sleep quality."
           },
           {
             "type": "text",
@@ -2908,7 +2908,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I provide guidance on managing stress through practical lifestyle strategies."
+            "text": "We provide guidance on managing stress through practical lifestyle strategies."
           },
           {
             "type": "text",
@@ -2968,7 +2968,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Every individual’s health needs are different. I develop personalized wellness plans tailored to your goals, medical history, and lifestyle."
+            "text": "Every individual’s health needs are different. We develop personalized wellness plans tailored to your goals, medical history, and lifestyle."
           },
           {
             "type": "text",
@@ -2990,21 +2990,21 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "My goal is to help you build healthy habits that last."
+            "text": "Our goal is to help you build healthy habits that last."
           }
         ]
       },
       {
-        "heading": "My Approach to Wellness and Lifestyle Counseling",
+        "heading": "Our Approach to Wellness and Lifestyle Counseling",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach is holistic, patient-centered, and evidence-based. I focus on understanding your lifestyle and helping you make realistic improvements."
+            "text": "Our approach is holistic, patient-centered, and evidence-based. We focus on understanding your lifestyle and helping you make realistic improvements."
           },
           {
             "type": "text",
-            "text": "My priorities include:"
+            "text": "Our priorities include:"
           },
           {
             "type": "list",
@@ -3018,11 +3018,11 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I believe lifestyle changes can significantly improve both physical and mental health."
+            "text": "We believe lifestyle changes can significantly improve both physical and mental health."
           },
           {
             "type": "text",
-            "text": "I work collaboratively with you to help you achieve your wellness goals."
+            "text": "We work collaboratively with you to help you achieve your wellness goals."
           }
         ]
       },
@@ -3086,7 +3086,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Lifestyle changes take time and consistency. Follow-up visits allow me to monitor your progress and adjust your wellness plan as needed."
+            "text": "Lifestyle changes take time and consistency. Follow-up visits allow us to monitor your progress and adjust your wellness plan as needed."
           },
           {
             "type": "text",
@@ -3124,9 +3124,9 @@ export const generatedServices: Service[] = [
     "lead": "Lab Testing Coordination Telehealth for Accurate Diagnosis and Preventive Care",
     "intro": [
       "Laboratory testing is an essential part of preventive care, diagnosis, and chronic disease management. Lab tests provide important information about your overall health, helping detect medical conditions early, monitor existing conditions, and guide treatment decisions.",
-      "As a dual-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, I coordinate laboratory testing as part of comprehensive primary care. My goal is to ensure you receive the appropriate tests, understand your results clearly, and receive personalized recommendations based on your health needs.",
+      "As a dual board-certified Family Nurse Practitioner and Psychiatric Mental Health Nurse Practitioner, we coordinate laboratory testing as part of comprehensive primary care. Our goal is to ensure you receive the appropriate tests, understand your results clearly, and receive personalized recommendations based on your health needs.",
       "Lab testing can identify important health concerns such as diabetes, thyroid disorders, high cholesterol, anemia, metabolic conditions, and other medical issues—often before symptoms appear. Early detection allows for timely treatment and improved long-term outcomes.",
-      "Through telehealth visits, I coordinate testing, review results with you, and develop a personalized plan to support your physical and mental well-being."
+      "Through telehealth visits, we coordinate testing, review results with you, and develop a personalized plan to support your physical and mental well-being."
     ],
     "sections": [
       {
@@ -3190,12 +3190,12 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "Common Laboratory Tests I Coordinate",
+        "heading": "Common Laboratory Tests We Coordinate",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "I coordinate a variety of laboratory tests based on your medical history, symptoms, and preventive care needs."
+            "text": "We coordinate a variety of laboratory tests based on your medical history, symptoms, and preventive care needs."
           },
           {
             "type": "text",
@@ -3398,11 +3398,11 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Understanding lab results can be confusing. I review your results carefully and explain what they mean in clear, understandable terms."
+            "text": "Understanding lab results can be confusing. We review your results carefully and explain what they mean in clear, understandable terms."
           },
           {
             "type": "text",
-            "text": "During your follow-up visit, I discuss:"
+            "text": "During your follow-up visit, we discuss:"
           },
           {
             "type": "list",
@@ -3415,7 +3415,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "My goal is to help you understand your health and make informed decisions."
+            "text": "Our goal is to help you understand your health and make informed decisions."
           }
         ]
       },
@@ -3425,7 +3425,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Based on your lab results, I develop personalized recommendations that may include:"
+            "text": "Based on your lab results, we develop personalized recommendations that may include:"
           },
           {
             "type": "list",
@@ -3443,16 +3443,16 @@ export const generatedServices: Service[] = [
         ]
       },
       {
-        "heading": "My Approach to Lab Testing Coordination",
+        "heading": "Our Approach to Lab Testing Coordination",
         "sourceLevel": 3,
         "blocks": [
           {
             "type": "text",
-            "text": "My approach focuses on prevention, accuracy, and personalized care. I ensure that lab testing is appropriate, necessary, and helpful in guiding your treatment."
+            "text": "Our approach focuses on prevention, accuracy, and personalized care. We ensure that lab testing is appropriate, necessary, and helpful in guiding your treatment."
           },
           {
             "type": "text",
-            "text": "My priorities include:"
+            "text": "Our priorities include:"
           },
           {
             "type": "list",
@@ -3466,7 +3466,7 @@ export const generatedServices: Service[] = [
           },
           {
             "type": "text",
-            "text": "I focus on helping you understand and manage your health confidently."
+            "text": "We focus on helping you understand and manage your health confidently."
           }
         ]
       },
@@ -3476,7 +3476,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "Telehealth allows me to coordinate lab testing conveniently and efficiently. I can order lab tests electronically and review results with you through secure telehealth visits."
+            "text": "Telehealth allows us to coordinate lab testing conveniently and efficiently. We can order lab tests electronically and review results with you through secure telehealth visits."
           },
           {
             "type": "text",

@@ -21,7 +21,7 @@ export function InsuranceGrid({
   accent,
   body = 'We offer self-pay options for all patients. Insurance participation is limited by state and plan. Massachusetts and Arizona visits are self-pay only at this time.',
   disclaimer = 'Insurance coverage and network participation vary by plan. Please contact us to verify your benefits and eligibility before scheduling.',
-  ctaLabel = 'View fees & insurance details',
+  ctaLabel = 'View Fees & Insurance',
   ctaHref = '/fees-insurance',
   carriers = staticCarriers,
 }: {

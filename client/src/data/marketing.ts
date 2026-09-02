@@ -35,8 +35,8 @@ export const welcome = {
 /* ----------------------------------------------------------- services --- */
 
 export const servicesSection = {
-  eyebrow: 'My Services',
-  heading: 'How I Help',
+  eyebrow: 'Our Services',
+  heading: 'How We Help',
   /* Source typo "View All Serices" corrected. */
   body: 'Specialized telehealth services tailored to meet your unique mental health needs.',
   cta: { label: 'View All Services', href: '/our-services' },
@@ -45,7 +45,7 @@ export const servicesSection = {
 /* ----------------------------------------------------------- benefits --- */
 
 export const benefitsSection = {
-  heading: 'Why Patients Choose My Telehealth Clinic',
+  heading: 'Why Patients Choose LifeWell',
 };
 
 export const benefits: Benefit[] = [
@@ -78,7 +78,7 @@ export const benefits: Benefit[] = [
   {
     title: 'Compassionate, Judgment-Free Support',
     description:
-      'I provide a safe and supportive environment where you can openly discuss your concerns without fear of stigma or judgment.',
+      'We provide a safe and supportive environment where you can openly discuss your concerns without fear of stigma or judgment.',
     image: {
       src: '/images/benefits/Compassionate-Judgment-Free-Support.avif',
       width: 1180,
@@ -88,7 +88,7 @@ export const benefits: Benefit[] = [
   {
     title: 'Evidence-Based Treatment Approach',
     description:
-      'My care is guided by my clinical experience and evidence-based treatment methods, allowing me to provide effective, compassionate, and personalized mental health support.',
+      'Our care is guided by clinical experience and evidence-based treatment methods, allowing us to provide effective, compassionate, and personalized mental health support.',
     image: {
       src: '/images/benefits/Evidence-Based-Treatment-Approach.avif',
       width: 1180,
@@ -101,7 +101,7 @@ export const benefits: Benefit[] = [
 
 export const howItWorks = {
   eyebrow: 'How It Works',
-  heading: 'How My Simple Telehealth Process Works',
+  heading: 'How Our Simple Telehealth Process Works',
   body: 'Getting started is simple. Follow these three easy steps to begin your mental wellness journey.',
   cta: { label: 'Book an Appointment' },
   image: { src: '/images/sections/How-It-Works.avif', width: 633, height: 570 },
@@ -111,12 +111,12 @@ export const steps: Step[] = [
   {
     title: 'Book Your Appointment',
     description:
-      'Schedule your appointment online through my secure booking system and choose a date and time that works best for you.',
+      'Schedule your appointment online through our secure booking system and choose a date and time that works best for you.',
   },
   {
     title: 'Attend Your Virtual Session',
     description:
-      'You will meet with me through a secure telehealth platform, allowing you to receive care from the comfort and privacy of your home.',
+      'You will meet with your provider through a secure telehealth platform, allowing you to receive care from the comfort and privacy of your home.',
   },
   {
     title: 'Begin Your Personalized Care Plan',
@@ -134,7 +134,7 @@ export const steps: Step[] = [
 
 export const insuranceSection = {
   heading: 'Insurance & Self-Pay Options',
-  body: 'We believe in transparent and accessible care. I accept select insurance plans and also offer self-pay options.',
+  body: 'We believe in transparent and accessible care. We accept select insurance plans and also offer self-pay options.',
   /**
    * The source site displays these carrier marks without qualifying which are
    * in-network. Copy retains the "select insurance plans" wording. Flagged for
@@ -213,7 +213,7 @@ export const faqs: Faq[] = [
   {
     question: 'What is telehealth mental health care?',
     answer:
-      'Telehealth mental health care allows you to receive therapy, psychiatric evaluation, and medication management through secure video appointments instead of in-person visits.',
+      'Telehealth mental health care allows you to receive psychiatric evaluation and medication management through secure video appointments instead of in-person visits.',
   },
   {
     question: 'How do I schedule an appointment?',

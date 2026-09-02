@@ -54,7 +54,7 @@ export function ServiceCard({
             href={service.href}
             className="rounded-xs text-inherit no-underline transition-colors duration-300 after:absolute after:inset-0 after:content-[''] group-hover:text-[var(--lw-primary)]"
           >
-            {service.title}
+            {service.cardLabel ?? service.title}
           </Link>
         </h3>
 

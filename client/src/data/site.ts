@@ -11,7 +11,7 @@ export const site = {
   legalName: 'LifeWell Family Health & Psychiatry',
   tagline: 'Compassionate telehealth mental health care',
   description:
-    'Compassionate telehealth mental health care by a board-certified PMHNP. Personalized online therapy, medication management, and secure virtual appointments.',
+    'Compassionate telehealth mental health care by a board-certified PMHNP. Personalized psychiatric evaluation, medication management, and secure virtual appointments.',
   footerBlurb:
     'LifeWell Family Health & Psychiatry provides compassionate, secure telehealth mental health care tailored to your individual needs.',
 

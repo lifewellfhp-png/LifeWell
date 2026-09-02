@@ -9,12 +9,6 @@ import {
 import type { Testimonial } from '@/types/content';
 import type { BookingProfiles } from '@/lib/cms-resolve';
 
-const DISPLAY_NAME: Record<string, string> = {
-  'Elisa Smith': 'Elisa M.',
-  'Sofia Taylor': 'Sofia R.',
-  'Marco Davies': 'Marco D.',
-};
-
 /**
  * /telehealth-mental-health-testimonials — Elementor post 50982.
  * Lorem / John Doe placeholders from the live page are omitted.
@@ -75,7 +69,7 @@ export function TestimonialsPageContent({
                 </p>
                 {item.author && (
                   <p className="mt-6 text-center text-[14px] font-bold text-[#374151] sm:text-[16px]">
-                    {DISPLAY_NAME[item.author] ?? item.author}
+                    {item.author}
                   </p>
                 )}
               </li>

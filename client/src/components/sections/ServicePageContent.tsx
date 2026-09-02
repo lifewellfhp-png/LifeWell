@@ -151,7 +151,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
                   href="/fees-insurance"
                   className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
                 >
-                  View fees &amp; insurance
+                  View Fees &amp; Insurance
                 </Link>
                 .
               </p>

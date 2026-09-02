@@ -41,6 +41,12 @@ export interface Service {
 export interface ServiceSummary {
   slug: string;
   title: string;
+  /**
+   * Optional shorter label for grid/card display only — never the page H1,
+   * SEO title, or CMS title. Used when `title` is long enough to hurt card
+   * scannability (e.g. a compound condition list).
+   */
+  cardLabel?: string;
   category: ServiceCategory;
   description: string;
   href: string;

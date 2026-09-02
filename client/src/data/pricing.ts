@@ -129,7 +129,7 @@ export const pricingPackages: PricingPackage[] = [
 
 export const additionalInfo = {
   heading: 'Additional Information',
-  body: 'We are committed to providing transparent pricing and high-quality care. If you have questions about services or fees, you are welcome to contact me before scheduling your appointment.',
+  body: 'We are committed to providing transparent pricing and high-quality care. If you have questions about services or fees, you are welcome to contact us before scheduling your appointment.',
   notes: [
     'We can provide a detailed receipt (superbill) upon request for patients who wish to seek possible out-of-network reimbursement from their insurance provider. Reimbursement eligibility depends on your individual insurance plan.',
     'Accepted payment methods include major credit and debit cards, as well as secure online payment options for your convenience and privacy.',
@@ -140,21 +140,21 @@ export const feesFaqs = [
   {
     question: 'What insurance plans do you accept?',
     answer:
-      'I accept select insurance plans for mental health services. Coverage may vary depending on your insurance provider and individual policy. Please contact me directly to confirm whether your plan is accepted and to verify your mental health benefits.',
+      'We accept select insurance plans for mental health services. Coverage may vary depending on your insurance provider and individual policy. Please contact us directly to confirm whether your plan is accepted and to verify your mental health benefits.',
   },
   {
     question: 'Do you offer self-pay options?',
     answer:
-      'Yes, I offer self-pay options for individuals who prefer not to use insurance or whose plans are out-of-network. Transparent fees will be discussed before your appointment so you can make an informed and confident decision about your care.',
+      'Yes, we offer self-pay options for individuals who prefer not to use insurance or whose plans are out-of-network. Transparent fees will be discussed before your appointment so you can make an informed and confident decision about your care.',
   },
   {
-    question: 'How much does a telehealth therapy session cost?',
+    question: 'How much does a telehealth appointment cost?',
     answer:
-      'My session fees vary depending on the type of service provided, such as individual therapy, couples therapy, or medication management. I provide detailed fee and insurance information during the scheduling process to ensure full transparency and help you make an informed decision.',
+      'Our fees vary depending on the type of visit, such as a psychiatric evaluation, medication management follow-up, or primary care service. We provide detailed fee and insurance information during the scheduling process to ensure full transparency and help you make an informed decision.',
   },
   {
     question: 'Do you provide superbills for out-of-network reimbursement?',
     answer:
-      'Yes, upon request, I can provide a superbill for patients seeking out-of-network reimbursement from their insurance provider. Reimbursement eligibility depends on your individual insurance policy.',
+      'Yes, upon request, we can provide a superbill for patients seeking out-of-network reimbursement from their insurance provider. Reimbursement eligibility depends on your individual insurance policy.',
   },
 ];

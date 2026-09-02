@@ -274,7 +274,7 @@ function mapInsuranceSection(cms: PublicCmsPayload | null) {
     ctaLabel:
       typeof content.ctaLabel === 'string' && content.ctaLabel.trim()
         ? content.ctaLabel
-        : 'View fees & insurance details',
+        : 'View Fees & Insurance',
     ctaHref:
       typeof content.ctaHref === 'string' && content.ctaHref.trim()
         ? content.ctaHref
@@ -310,6 +310,7 @@ export function mapServiceSummaries(cms: PublicCmsPayload | null, live: boolean)
       return {
         slug,
         title: String(r.title),
+        cardLabel: base?.cardLabel,
         category,
         description: String(r.summary || base?.description || r.title),
         href: serviceHref(slug),
