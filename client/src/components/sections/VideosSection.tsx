@@ -46,7 +46,7 @@ export function VideosSection({
                       className="aspect-video"
                     />
                   ) : resolved.kind === 'file' ? (
-                    <video className="aspect-video w-full" controls src={resolved.url} />
+                    <video className="aspect-video w-full" controls src={resolved.url} aria-label={video.title} />
                   ) : resolved.url ? (
                     <a href={resolved.url} className="block p-8 text-center text-text-link" target="_blank" rel="noreferrer">
                       Watch {video.title}

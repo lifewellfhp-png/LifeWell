@@ -48,7 +48,7 @@ export function TestimonialsPageContent({
             </p>
             <h2
               id="patients-saying-heading"
-              className="mt-5 font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:text-[48px] min-[1181px]:text-[56px]"
+              className="mt-5 font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]"
             >
               <span className="text-[var(--lw-accent)]">What Patients </span>
               <span className="italic text-[var(--lw-primary)]">Are Saying</span>

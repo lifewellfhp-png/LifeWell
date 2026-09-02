@@ -225,7 +225,7 @@ function BioHero({
           <p className="w-fit rounded-[7px] bg-[var(--lw-accent)] px-4 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-white sm:text-[12px] min-[1181px]:text-[13px]">
             About Me
           </p>
-          <h1 className="max-w-[16ch] font-heading text-[32px] font-normal leading-[1.1] tracking-[-2px] text-[var(--lw-accent)] sm:text-[44px] min-[1181px]:text-[56px] min-[1601px]:text-[62px]">
+          <h1 className="max-w-[16ch] font-heading text-[32px] font-normal leading-[1.1] tracking-[-3px] text-[var(--lw-accent)] sm:text-[44px] min-[1181px]:text-[56px] min-[1601px]:text-[62px]">
             {overlay.name}, {overlay.credentials}
           </h1>
 

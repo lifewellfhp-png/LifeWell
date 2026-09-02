@@ -26,9 +26,12 @@ export async function generateMetadata({
   const state = cms.telehealthStates.find((s) => s.slug === slug);
   if (!state) return {};
 
+  const text = state.metaDescription || '';
+  const description = text.length > 158 ? `${text.slice(0, 155).trimEnd()}…` : text;
+
   return cmsMetadata(cms, {
     title: state.metaTitle,
-    description: state.metaDescription,
+    description,
     path: `/telehealth/${slug}`,
     image: state.ogImageUrl || state.heroImage ? { url: (state.ogImageUrl || state.heroImage?.src) as string } : undefined,
   });

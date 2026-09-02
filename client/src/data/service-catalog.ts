@@ -71,6 +71,9 @@ const MENU_LABEL: Record<string, string> = {
 const CARD_LABEL_OVERRIDES: Record<string, string> = {
   'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd': 'Conditions We Treat',
   'telehealth-sick-visits-primary-care': 'Sick Visits',
+  'psychiatric-follow-up-visits-telehealth': 'Follow-Up Visits',
+  'annual-physical-exam-telehealth': 'Annual Physicals',
+  'wellness-and-lifestyle-counseling-telehealth': 'Wellness Counseling',
 };
 
 const PRECEPTORSHIP_SUMMARY = {

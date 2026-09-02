@@ -58,7 +58,7 @@ export default async function VideosPage() {
               </p>
               <div className="mt-8">
                 <Button href="/our-services" size="lg">
-                  Explore services
+                  Explore Services
                 </Button>
               </div>
             </div>
