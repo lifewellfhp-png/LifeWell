@@ -26,7 +26,7 @@ export async function Footer() {
             <FooterNewsletter />
           </div>
 
-          <div className="grid min-w-0 grid-cols-1 gap-10 py-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-12 xl:grid-cols-4 xl:gap-x-10 xl:py-14">
+          <div className="grid min-w-0 grid-cols-1 gap-10 py-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3 xl:grid-cols-5 xl:gap-x-8 xl:py-14">
             <div>
               <Link
                 href="/"

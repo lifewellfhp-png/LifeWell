@@ -51,11 +51,14 @@ export const footerColumns: { heading: string; links: NavLink[] }[] = [
     links: summariesByCategory('primary-care').map((s) => ({ label: s.title, href: s.href })),
   },
   {
+    heading: serviceCategories['professional-education'].label,
+    links: summariesByCategory('professional-education').map((s) => ({ label: s.title, href: s.href })),
+  },
+  {
     heading: 'Important Links',
     links: [
       { label: 'Home', href: '/' },
       { label: 'Bio', href: '/bio' },
-      { label: 'Preceptorship Program', href: '/preceptorship-program' },
       { label: 'Fees & Insurance', href: '/fees-insurance' },
       { label: 'Telehealth in Florida', href: '/telehealth/florida' },
       { label: 'Telehealth in Massachusetts', href: '/telehealth/massachusetts' },
