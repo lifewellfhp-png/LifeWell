@@ -36,9 +36,9 @@ export async function Footer() {
             <FooterNewsletter />
           </div>
 
-          {/* Practice / Brand, Mental Health (+Professional Education), Primary Care, Explore */}
+          {/* Practice / Brand, Mental Health (+Professional Education), Primary Care, Explore, Telehealth Care + Policies */}
           <div className="grid min-w-0 grid-cols-1 gap-x-8 gap-y-12 py-10 sm:grid-cols-2 xl:grid-cols-12 xl:py-14">
-            <div className="xl:col-span-4">
+            <div className="xl:col-span-3">
               <Link
                 href="/"
                 className="inline-flex rounded-[12px] bg-white px-3 py-2.5 sm:px-4 sm:py-3"
@@ -119,7 +119,7 @@ export async function Footer() {
               </ul>
             </div>
 
-            <div className="flex min-w-0 flex-col gap-10 xl:col-span-3">
+            <div className="flex min-w-0 flex-col gap-10 xl:col-span-2">
               <FooterNav heading="Mental Health" links={footerMentalHealthLinks} />
               <FooterNav heading="Professional Education" links={footerProfessionalEducationLinks} />
             </div>
@@ -127,11 +127,8 @@ export async function Footer() {
             <FooterNav heading="Primary Care" links={footerPrimaryCareLinks} className="xl:col-span-3" />
 
             <FooterNav heading="Explore" links={footerExploreLinks} className="xl:col-span-2" />
-          </div>
 
-          {/* Telehealth Care + Policies & Accessibility */}
-          <div className="border-t border-white/20 py-8 sm:py-10">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-16">
+            <div className="flex min-w-0 flex-col gap-10 xl:col-span-2">
               <FooterUtilityColumn heading="Telehealth Care" links={footerTelehealthLinks} />
               <FooterUtilityColumn heading="Policies & Accessibility" links={legalLinks} />
             </div>
