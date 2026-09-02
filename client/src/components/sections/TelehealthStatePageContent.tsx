@@ -145,7 +145,7 @@ export function TelehealthStatePageContent({
             <span className="italic text-[var(--lw-primary)]">FAQs</span>
           </h2>
           <div className="mt-12">
-            <FAQAccordion faqs={state.faqs} headingLevel={2} variant="toggles" />
+            <FAQAccordion faqs={state.faqs} variant="toggles" />
           </div>
         </div>
       </section>

@@ -62,8 +62,6 @@ export function NavigationProgress() {
   return (
     <div
       className="pointer-events-none fixed inset-x-0 top-0 z-[200] h-[3px] overflow-hidden bg-transparent"
-      role="progressbar"
-      aria-label="Loading page"
       aria-hidden="true"
     >
       <div className="nav-progress-bar h-full w-full origin-left bg-[var(--lw-primary)]" />

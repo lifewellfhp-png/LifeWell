@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Container, Section, SectionHeading } from '@/components/ui/Section';
-import { SwapButton } from '@/components/ui/SwapButton';
+import { OutlineButton, SwapButton } from '@/components/ui/SwapButton';
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { site } from '@/data/site';
 import {
@@ -28,12 +28,9 @@ export function NewPatientsPageContent() {
       <InnerPageHero title={newPatientsHero.titleLead} accent={newPatientsHero.titleAccent} lead={newPatientsHero.lead}>
         <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center">
           <SwapButton href={bookHref}>Book an Appointment</SwapButton>
-          <Link
-            href={CONTACT_HREF}
-            className="inline-flex min-h-[51px] items-center justify-center rounded-[30px] border border-[var(--lw-primary)] px-[30px] py-[14px] text-[16px] font-semibold text-[var(--lw-primary)] no-underline transition-colors duration-300 hover:bg-[var(--lw-primary)] hover:text-white min-[1181px]:text-[18px]"
-          >
+          <OutlineButton href={CONTACT_HREF} variant="onLight" showArrow={false}>
             Contact Us
-          </Link>
+          </OutlineButton>
         </div>
       </InnerPageHero>
 
@@ -189,12 +186,9 @@ export function NewPatientsPageContent() {
             </p>
             <div className="mt-9 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:flex-wrap sm:items-center">
               <SwapButton href={bookHref}>Book an Appointment</SwapButton>
-              <a
-                href={CONTACT_HREF}
-                className="inline-flex min-h-[51px] items-center justify-center rounded-[30px] border border-white px-[30px] py-[14px] text-[16px] font-semibold text-white no-underline transition-colors duration-300 hover:bg-white hover:text-[var(--lw-primary)] min-[1181px]:text-[18px]"
-              >
+              <OutlineButton href={CONTACT_HREF} variant="onDark" showArrow={false}>
                 Contact Us
-              </a>
+              </OutlineButton>
             </div>
           </div>
         </Container>

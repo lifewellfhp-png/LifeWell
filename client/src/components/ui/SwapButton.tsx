@@ -66,26 +66,51 @@ export function SwapButton({
   );
 }
 
+/**
+ * Secondary "outline" CTA. `variant` reproduces the site's existing outline
+ * treatments byte-for-byte rather than inventing a new look:
+ *   - `onImage` (default) — white border/text; hover fills border+background
+ *     with the primary color. Matches the homepage Hero's original usage.
+ *   - `onDark` — white border/text; hover fills the background white and
+ *     turns the text primary-colored. Matches the CTASection/New Patients/
+ *     Preceptorship closing-band "Contact Us"/"How It Works" buttons.
+ *   - `onLight` — primary-colored border/text; hover fills the background
+ *     primary and turns the text white. Matches the light-background hero
+ *     secondary actions (Preceptorship, New Patients).
+ * `showArrow` defaults to true (the Hero's original always-shown arrow);
+ * pass false for the plain-text buttons above, none of which show one today.
+ */
 export function OutlineButton({
   href,
   children,
   className,
+  variant = 'onImage',
+  showArrow = true,
 }: {
   href: string;
   children: React.ReactNode;
   className?: string;
+  variant?: 'onImage' | 'onDark' | 'onLight';
+  showArrow?: boolean;
 }) {
+  const variantClasses: Record<typeof variant, string> = {
+    onImage: 'border-white text-white hover:border-[var(--lw-primary)] hover:bg-[var(--lw-primary)]',
+    onDark: 'border-white text-white hover:bg-white hover:text-[var(--lw-primary)]',
+    onLight: 'border-[var(--lw-primary)] text-[var(--lw-primary)] hover:bg-[var(--lw-primary)] hover:text-white',
+  };
+
   return (
     <Link
       href={href}
       prefetch
       className={cn(
-        'inline-flex min-h-[51px] items-center justify-center gap-2 whitespace-nowrap rounded-[30px] border border-white px-[30px] py-[14px] text-[16px] font-semibold leading-[1.3] text-white no-underline transition-colors duration-300 hover:border-[var(--lw-primary)] hover:bg-[var(--lw-primary)] min-[1181px]:text-[18px]',
+        'inline-flex min-h-[51px] items-center justify-center gap-2 whitespace-nowrap rounded-[30px] border px-[30px] py-[14px] text-[16px] font-semibold leading-[1.3] no-underline transition-colors duration-300 min-[1181px]:text-[18px]',
+        variantClasses[variant],
         className
       )}
     >
       {children}
-      <LongArrow />
+      {showArrow && <LongArrow />}
     </Link>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 const CONTROL =
@@ -239,11 +239,12 @@ export function Honeypot({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const id = useId();
   return (
     <div aria-hidden="true" className="sr-only">
-      <label htmlFor="company">Company (leave this field empty)</label>
+      <label htmlFor={id}>Company (leave this field empty)</label>
       <input
-        id="company"
+        id={id}
         name="company"
         type="text"
         tabIndex={-1}

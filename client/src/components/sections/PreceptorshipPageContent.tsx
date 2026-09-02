@@ -1,6 +1,5 @@
-import Link from 'next/link';
 import { Container, Section, SectionHeading } from '@/components/ui/Section';
-import { SwapButton } from '@/components/ui/SwapButton';
+import { OutlineButton, SwapButton } from '@/components/ui/SwapButton';
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 
 const PRECEPTORSHIP_IMAGE = {
@@ -64,12 +63,9 @@ export function PreceptorshipPageContent() {
         </p>
         <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center">
           <SwapButton href="/contact-telehealth-mental-health-provider">Request Preceptorship Information</SwapButton>
-          <Link
-            href="#how-it-works"
-            className="inline-flex min-h-[51px] items-center justify-center rounded-[30px] border border-[var(--lw-primary)] px-[30px] py-[14px] text-[16px] font-semibold text-[var(--lw-primary)] no-underline transition-colors duration-300 hover:bg-[var(--lw-primary)] hover:text-white min-[1181px]:text-[18px]"
-          >
+          <OutlineButton href="#how-it-works" variant="onLight" showArrow={false}>
             How It Works
-          </Link>
+          </OutlineButton>
         </div>
       </InnerPageHero>
 
@@ -186,12 +182,9 @@ export function PreceptorshipPageContent() {
             </p>
             <div className="mt-9 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:flex-wrap sm:items-center">
               <SwapButton href="/contact-telehealth-mental-health-provider">Request Preceptorship Information</SwapButton>
-              <Link
-                href="#how-it-works"
-                className="inline-flex min-h-[51px] items-center justify-center rounded-[30px] border border-white px-[30px] py-[14px] text-[16px] font-semibold text-white no-underline transition-colors duration-300 hover:bg-white hover:text-[var(--lw-primary)] min-[1181px]:text-[18px]"
-              >
+              <OutlineButton href="#how-it-works" variant="onDark" showArrow={false}>
                 How It Works
-              </Link>
+              </OutlineButton>
             </div>
           </div>
         </Container>

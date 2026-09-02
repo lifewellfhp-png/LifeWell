@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { Container, Section } from '@/components/ui/Section';
-import { SwapButton } from '@/components/ui/SwapButton';
+import { OutlineButton, SwapButton } from '@/components/ui/SwapButton';
 import { ContactForm } from '@/components/forms/ContactForm';
 import { primaryCta, contactCta } from '@/data/marketing';
 import { site } from '@/data/site';
@@ -39,12 +39,9 @@ export function CTASection({
 
           <div className="mt-9 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:flex-wrap sm:items-center">
             <SwapButton href={primaryHref}>{primaryLabel}</SwapButton>
-            <a
-              href={secondaryHref}
-              className="inline-flex min-h-[51px] items-center justify-center rounded-[30px] border border-white px-[30px] py-[14px] text-[16px] font-semibold text-white no-underline transition-colors duration-300 hover:bg-white hover:text-[var(--lw-primary)] min-[1181px]:text-[18px]"
-            >
+            <OutlineButton href={secondaryHref} variant="onDark" showArrow={false}>
               {secondaryLabel}
-            </a>
+            </OutlineButton>
           </div>
         </div>
       </Container>

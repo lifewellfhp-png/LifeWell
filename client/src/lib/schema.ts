@@ -88,7 +88,7 @@ export function organizationNode() {
     medicalSpecialty: ['Psychiatric', 'PrimaryCare'],
     address: {
       '@type': 'PostalAddress',
-      streetAddress: site.address.street,
+      streetAddress: `${site.address.street}, ${site.address.suite}`,
       addressLocality: site.address.city,
       addressRegion: site.address.state,
       postalCode: site.address.zip,

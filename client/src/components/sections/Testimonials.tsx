@@ -74,20 +74,24 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
             )}
 
             {testimonials.length > 1 && (
-              <div className="mt-10 flex items-center gap-2.5" role="tablist" aria-label="Testimonials">
+              <div className="mt-10 flex items-center gap-1" role="group" aria-label="Testimonials">
                 {testimonials.map((t, i) => (
                   <button
                     key={t.author ?? i}
                     type="button"
-                    role="tab"
-                    aria-selected={i === index}
+                    aria-current={i === index ? 'true' : undefined}
                     aria-label={`Show testimonial ${i + 1} of ${testimonials.length}`}
                     onClick={() => setIndex(i)}
-                    className={cn(
-                      'size-2.5 rounded-full transition-colors duration-300',
-                      i === index ? 'bg-[#374151]' : 'bg-[#D5DCE3] hover:bg-[#9AA6B2]'
-                    )}
-                  />
+                    className="group flex min-h-6 min-w-6 items-center justify-center"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'size-2.5 rounded-full transition-colors duration-300',
+                        i === index ? 'bg-[#374151]' : 'bg-[#D5DCE3] group-hover:bg-[#9AA6B2]'
+                      )}
+                    />
+                  </button>
                 ))}
               </div>
             )}
