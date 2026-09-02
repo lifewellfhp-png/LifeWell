@@ -57,11 +57,11 @@ export async function Footer() {
                   />
                 )}
               </Link>
-              <p className="mt-6 max-w-[46ch] font-body text-[15px] font-normal leading-[1.6] text-white sm:text-[16px]">
+              <p className="mt-6 max-w-[42ch] font-body text-[15px] font-normal leading-[1.7] text-white sm:text-[16px]">
                 {site.footerBlurb}
               </p>
 
-              <address className="mt-5 max-w-[46ch] font-body text-[15px] font-normal not-italic leading-relaxed text-white sm:text-[16px]">
+              <address className="mt-5 max-w-[42ch] font-body text-[15px] font-normal not-italic leading-relaxed text-white sm:text-[16px]">
                 {primary?.street || primary?.address ? (
                   <p className="mb-4">
                     {primary.street || primary.address}
@@ -75,22 +75,22 @@ export async function Footer() {
                 ) : null}
 
                 <ul className="space-y-2.5">
-                  <li className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                  <li className="flex items-baseline gap-x-2">
+                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
                       Phone
                     </span>
                     <a href={phoneHref} className="text-white no-underline hover:underline">
                       {phone}
                     </a>
                   </li>
-                  <li className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                  <li className="flex items-baseline gap-x-2">
+                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
                       Fax
                     </span>
                     <span>{site.contact.fax}</span>
                   </li>
-                  <li className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                  <li className="flex items-baseline gap-x-2">
+                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
                       Email
                     </span>
                     <a href={`mailto:${email}`} className="break-all text-white no-underline hover:underline">
@@ -129,8 +129,8 @@ export async function Footer() {
             <FooterNav heading="Explore" links={footerExploreLinks} className="xl:col-span-2" />
 
             <div className="flex min-w-0 flex-col gap-10 xl:col-span-2">
-              <FooterUtilityColumn heading="Telehealth Care" links={footerTelehealthLinks} />
-              <FooterUtilityColumn heading="Policies & Accessibility" links={legalLinks} />
+              <FooterNav heading="Telehealth Care" links={footerTelehealthLinks} />
+              <FooterNav heading="Policies & Accessibility" links={legalLinks} />
             </div>
           </div>
 
@@ -160,29 +160,7 @@ function FooterNav({ heading, links, className }: { heading: string; links: NavL
             <Link
               href={link.href}
               prefetch
-              className="break-words font-body text-[15px] font-normal leading-snug text-white no-underline transition-opacity duration-300 hover:opacity-80 sm:text-[16px]"
-            >
-              {link.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
-
-function FooterUtilityColumn({ heading, links }: { heading: string; links: NavLink[] }) {
-  return (
-    <nav aria-label={heading}>
-      <h3 className="text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
-        {heading}
-      </h3>
-      <ul className="mt-4 flex flex-col gap-2.5">
-        {links.map((link) => (
-          <li key={link.href}>
-            <Link
-              href={link.href}
-              className="font-body text-[14px] text-white no-underline transition-colors duration-300 hover:text-white/80 hover:underline sm:text-[15px]"
+              className="break-words font-body text-[15px] font-normal leading-snug text-white no-underline transition-opacity duration-300 hover:opacity-80 focus-visible:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-[16px]"
             >
               {link.label}
             </Link>

@@ -62,6 +62,8 @@ export const headerCta: NavLink = {
 const FOOTER_LABEL_OVERRIDES: Record<string, string> = {
   'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd': 'Conditions We Treat',
   'telehealth-sick-visits-primary-care': 'Sick Visits',
+  'psychiatric-follow-up-visits-telehealth': 'Follow-Up Mental Health Care',
+  'wellness-and-lifestyle-counseling-telehealth': 'Wellness & Lifestyle Counseling',
 };
 
 const footerLink = (s: ServiceSummary): NavLink => ({
