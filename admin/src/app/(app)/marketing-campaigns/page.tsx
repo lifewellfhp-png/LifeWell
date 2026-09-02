@@ -28,6 +28,13 @@ type Campaign = {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+  delivery_locked?: boolean;
+  pending?: number;
+  processing?: number;
+  sent?: number;
+  failed?: number;
+  skipped?: number;
+  ambiguous_timeout?: number;
 };
 
 type Pagination = { page: number; pageSize: number; total: number; totalPages: number };
@@ -47,12 +54,16 @@ const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 25;
 const SEARCH_DEBOUNCE_MS = 400;
 
-function statusBadgeClass(status: CampaignStatus): string {
-  return status === 'draft' ? 'badge warn' : 'badge';
+function statusBadgeClass(status: CampaignStatus | 'delivery-initiated'): string {
+  return status === 'draft' || status === 'delivery-initiated' ? 'badge warn' : 'badge';
 }
 
 function audienceLabel(audience: AudienceType | null): string {
   return audience ? AUDIENCE_LABELS[audience] : 'All Subscribed Contacts';
+}
+
+function campaignStatusLabel(row: Campaign): string {
+  return row.delivery_locked ? 'Delivery initiated' : STATUS_LABELS[row.status];
 }
 
 const emptyCampaignForm = {
@@ -417,90 +428,106 @@ export default function MarketingCampaignsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((row) => (
-                    <tr key={row.id}>
-                      <td>{row.name}</td>
-                      <td>{row.subject}</td>
-                      <td>{audienceLabel(row.audience_type)}</td>
-                      <td>
-                        <span className={statusBadgeClass(row.status)}>{STATUS_LABELS[row.status]}</span>
-                      </td>
-                      <td>{new Date(row.updated_at).toLocaleDateString()}</td>
-                      <td>
-                        <div className="row-actions">
-                          <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
-                            View
-                          </button>
-                          {row.status === 'draft' ? (
-                            <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
-                              Edit
+                  {items.map((row) => {
+                    const locked = !!row.delivery_locked;
+                    const canEdit = row.status === 'draft' && !locked;
+                    const canArchive = row.status === 'draft' && !locked;
+                    const canSend = row.status === 'draft' && !locked;
+                    return (
+                      <tr key={row.id}>
+                        <td>{row.name}</td>
+                        <td>{row.subject}</td>
+                        <td>{audienceLabel(row.audience_type)}</td>
+                        <td>
+                          <span className={statusBadgeClass(locked ? 'delivery-initiated' : row.status)}>
+                            {campaignStatusLabel(row)}
+                          </span>
+                        </td>
+                        <td>{new Date(row.updated_at).toLocaleDateString()}</td>
+                        <td>
+                          <div className="row-actions">
+                            <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
+                              View
                             </button>
-                          ) : null}
-                          <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
-                            Preview
-                          </button>
-                          {row.status === 'draft' ? (
-                            <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
-                              Archive
+                            {canEdit ? (
+                              <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
+                                Edit
+                              </button>
+                            ) : null}
+                            <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
+                              Preview
                             </button>
-                          ) : null}
-                          {row.status === 'draft' ? (
-                            <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
-                              Send
-                            </button>
-                          ) : null}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {canArchive ? (
+                              <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
+                                Archive
+                              </button>
+                            ) : null}
+                            {canSend ? (
+                              <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
+                                Send
+                              </button>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             <div className="mobile-cards">
-              {items.map((row) => (
-                <article key={row.id} className="mobile-card">
-                  <div className="mobile-card-row">
-                    <span>Name</span>
-                    <strong>{row.name}</strong>
-                  </div>
-                  <div className="mobile-card-row">
-                    <span>Subject</span>
-                    <strong>{row.subject}</strong>
-                  </div>
-                  <div className="mobile-card-row">
-                    <span>Audience</span>
-                    <span>{audienceLabel(row.audience_type)}</span>
-                  </div>
-                  <div className="mobile-card-row">
-                    <span>Status</span>
-                    <span className={statusBadgeClass(row.status)}>{STATUS_LABELS[row.status]}</span>
-                  </div>
-                  <div className="row-actions">
-                    <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
-                      View
-                    </button>
-                    {row.status === 'draft' ? (
-                      <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
-                        Edit
+              {items.map((row) => {
+                const locked = !!row.delivery_locked;
+                const canEdit = row.status === 'draft' && !locked;
+                const canArchive = row.status === 'draft' && !locked;
+                const canSend = row.status === 'draft' && !locked;
+                return (
+                  <article key={row.id} className="mobile-card">
+                    <div className="mobile-card-row">
+                      <span>Name</span>
+                      <strong>{row.name}</strong>
+                    </div>
+                    <div className="mobile-card-row">
+                      <span>Subject</span>
+                      <strong>{row.subject}</strong>
+                    </div>
+                    <div className="mobile-card-row">
+                      <span>Audience</span>
+                      <span>{audienceLabel(row.audience_type)}</span>
+                    </div>
+                    <div className="mobile-card-row">
+                      <span>Status</span>
+                      <span className={statusBadgeClass(locked ? 'delivery-initiated' : row.status)}>
+                        {campaignStatusLabel(row)}
+                      </span>
+                    </div>
+                    <div className="row-actions">
+                      <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
+                        View
                       </button>
-                    ) : null}
-                    <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
-                      Preview
-                    </button>
-                    {row.status === 'draft' ? (
-                      <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
-                        Archive
+                      {canEdit ? (
+                        <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
+                          Edit
+                        </button>
+                      ) : null}
+                      <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
+                        Preview
                       </button>
-                    ) : null}
-                    {row.status === 'draft' ? (
-                      <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
-                        Send
-                      </button>
-                    ) : null}
-                  </div>
-                </article>
-              ))}
+                      {canArchive ? (
+                        <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
+                          Archive
+                        </button>
+                      ) : null}
+                      {canSend ? (
+                        <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
+                          Send
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </>
         )}
@@ -739,7 +766,7 @@ export default function MarketingCampaignsPage() {
               </p>
               <p>
                 <span>Status</span>
-                <strong>{STATUS_LABELS[viewing.status]}</strong>
+                <strong>{campaignStatusLabel(viewing)}</strong>
               </p>
               <p>
                 <span>Created</span>
@@ -756,6 +783,41 @@ export default function MarketingCampaignsPage() {
                 </p>
               ) : null}
             </div>
+            {viewing.delivery_locked ? (
+              <>
+                <p className="muted" style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>
+                  Delivery diagnostics (aggregate counts only — no recipient details are shown here).
+                </p>
+                <div className="detail-grid">
+                  <p>
+                    <span>Pending</span>
+                    <strong>{viewing.pending ?? 0}</strong>
+                  </p>
+                  <p>
+                    <span>Processing</span>
+                    <strong>{viewing.processing ? `${viewing.processing} (Review needed)` : 0}</strong>
+                  </p>
+                  <p>
+                    <span>Accepted by provider</span>
+                    <strong>{viewing.sent ?? 0}</strong>
+                  </p>
+                  <p>
+                    <span>Failed</span>
+                    <strong>{viewing.failed ?? 0}</strong>
+                  </p>
+                  <p>
+                    <span>Skipped</span>
+                    <strong>{viewing.skipped ?? 0}</strong>
+                  </p>
+                  <p>
+                    <span>Ambiguous timeout</span>
+                    <strong>
+                      {viewing.ambiguous_timeout ? `${viewing.ambiguous_timeout} (Review needed)` : 0}
+                    </strong>
+                  </p>
+                </div>
+              </>
+            ) : null}
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={() => setViewing(null)}>
                 Close
@@ -856,6 +918,14 @@ export default function MarketingCampaignsPage() {
                   </p>
                 </div>
 
+                {!sendEligibleLoading && sendEligible === 0 ? (
+                  <div className="error-banner" style={{ marginBottom: '1rem' }}>
+                    No eligible subscribed recipients right now. This audience currently has 0 contacts with
+                    marketing status &ldquo;Subscribed&rdquo;{sending.audience_type ? ' matching this audience' : ''}.
+                    Sending will complete with 0 emails sent.
+                  </div>
+                ) : null}
+
                 <p className="muted" style={{ marginTop: 0 }}>
                   Content preview:
                 </p>
@@ -892,6 +962,13 @@ export default function MarketingCampaignsPage() {
               </>
             ) : (
               <>
+                {sendResult.requested === 0 ? (
+                  <div className="error-banner" style={{ marginBottom: '1rem' }}>
+                    No eligible recipients were found at send time — 0 emails were sent. No recipient records
+                    were created and this campaign remains a draft (not locked), so it can be edited or sent
+                    again once there are eligible subscribed contacts.
+                  </div>
+                ) : null}
                 <div className="detail-grid" style={{ marginBottom: '1rem' }}>
                   <p>
                     <span>Requested</span>

@@ -7,8 +7,9 @@ import { serviceSummaries } from '@/data/service-catalog';
 const LIVE_ORDER = [
   'psychiatric-evaluations',
   'medication-management',
-  'psychiatric-follow-up-visits-telehealth',
   'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd',
+  'preceptorship-program',
+  'psychiatric-follow-up-visits-telehealth',
   'lab-testing-coordination-telehealth',
   'wellness-and-lifestyle-counseling-telehealth',
   'weight-management-telehealth',

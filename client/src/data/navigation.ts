@@ -21,6 +21,10 @@ export const headerNav: NavItem[] = [
         label: serviceCategories['primary-care'].label,
         links: summariesByCategory('primary-care').map((s) => ({ label: s.title, href: s.href })),
       },
+      {
+        label: serviceCategories['professional-education'].label,
+        links: summariesByCategory('professional-education').map((s) => ({ label: s.title, href: s.href })),
+      },
     ],
   },
   { label: 'Psychiatric Mental Health Nurse Practitioner', href: '/bio' },
@@ -51,6 +55,7 @@ export const footerColumns: { heading: string; links: NavLink[] }[] = [
     links: [
       { label: 'Home', href: '/' },
       { label: 'Bio', href: '/bio' },
+      { label: 'Preceptorship Program', href: '/preceptorship-program' },
       { label: 'Fees & Insurance', href: '/fees-insurance' },
       { label: 'Telehealth in Florida', href: '/telehealth/florida' },
       { label: 'Telehealth in Massachusetts', href: '/telehealth/massachusetts' },

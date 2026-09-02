@@ -416,6 +416,55 @@ test('43. an over-limit campaign sends 0 emails — the max check throws, never 
   assert.ok(MAX_SEND_RECIPIENTS > 0 && MAX_SEND_RECIPIENTS <= 100, 'expected a conservative (not thousands) bound');
 });
 
+// --- 43b-43d. Zero-eligible-recipients path (added during the campaign root-cause review) -----
+// Production evidence for "test1nnn" showed campaign_status=draft, delivery_locked=false, and 0
+// recipient rows — consistent with a send that ran to completion with 0 eligible recipients
+// (a silent 200 success, not an error), which had no test coverage before this.
+
+test('43b. zero eligible recipients returns success with an all-zero result, never throws', () => {
+  const zeroBlock = fnSlice(
+    initiateFnSource,
+    'if (eligible.length === 0)',
+    '// The atomic campaign-level'
+  );
+  assert.doesNotMatch(zeroBlock, /throw /);
+  assert.match(zeroBlock, /eligible_count: 0, snapshotted_count: 0/);
+  assert.match(zeroBlock, /return result;/);
+});
+
+test('43c. the zero-eligible early return happens before the snapshot INSERT, so 0 rows are created', () => {
+  const zeroCheckIdx = initiateFnSource.indexOf('if (eligible.length === 0)');
+  const insertIdx = initiateFnSource.indexOf("from('marketing_campaign_recipients')\n    .insert(");
+  assert.ok(zeroCheckIdx > -1 && zeroCheckIdx < insertIdx);
+});
+
+test('43d. the eligibility fetch (and therefore the zero-eligible check) happens before the recipient-maximum check', () => {
+  const fetchIdx = initiateFnSource.indexOf('fetchEligibleContacts(');
+  const maxCheckIdx = initiateFnSource.indexOf('eligible.length > MAX_SEND_RECIPIENTS');
+  const zeroCheckIdx = initiateFnSource.indexOf('if (eligible.length === 0)');
+  assert.ok(fetchIdx > -1 && fetchIdx < maxCheckIdx && maxCheckIdx < zeroCheckIdx);
+});
+
+test('43e. the Admin Send confirmation posts the exact required body to the exact endpoint', () => {
+  const adminPageSource = readFileSync(
+    join(root, '..', 'admin', 'src', 'app', '(app)', 'marketing-campaigns', 'page.tsx'),
+    'utf8'
+  );
+  const fnBlock = fnSlice(adminPageSource, 'async function onConfirmSend', 'const hasActiveFilter');
+  assert.match(fnBlock, /\/api\/admin\/marketing-campaigns\/\$\{sending\.id\}\/send/);
+  assert.match(fnBlock, /method: 'POST'/);
+  assert.match(fnBlock, /body: JSON\.stringify\(\{\s*confirm: true\s*\}\)/);
+});
+
+test('43f. the Admin Send dialog surfaces a clear zero-eligible warning, both before and after sending', () => {
+  const adminPageSource = readFileSync(
+    join(root, '..', 'admin', 'src', 'app', '(app)', 'marketing-campaigns', 'page.tsx'),
+    'utf8'
+  );
+  assert.match(adminPageSource, /No eligible subscribed recipients right now/);
+  assert.match(adminPageSource, /No eligible recipients were found at send time/);
+});
+
 // --- 44. Truthful partial results ---------------------------------------------------------
 
 test('44. results are always a full truthful breakdown, never a boolean success flag', () => {
@@ -503,4 +552,61 @@ test('no scheduling, cron, or queue code exists anywhere in the delivery service
   for (const term of ['cron', 'schedule', 'queue', 'setInterval', 'setTimeout']) {
     assert.doesNotMatch(serviceSource, new RegExp(term, 'i'));
   }
+});
+
+// --- 55-58. Delivery lock (existence of ANY recipient row, any status) ------------------------
+// Added during the Claude takeover review: the lock checks below were introduced on top of
+// this suite without accompanying tests. These close that gap using the same conventions
+// (pure-function tests for assertCampaignSendable/assertCampaignEditable, source-structure
+// assertions for the two DB-backed helpers, which need a live Supabase connection this
+// environment does not have).
+
+test('55. a delivery-locked campaign cannot be sent, even if status is still draft', () => {
+  assert.doesNotThrow(() => assertCampaignSendable({ status: 'draft', delivery_locked: false }));
+  assert.throws(
+    () => assertCampaignSendable({ status: 'draft', delivery_locked: true }),
+    (err) => err.status === 409
+  );
+});
+
+test('56. a delivery-locked campaign cannot be edited or archived, even if status is still draft', () => {
+  assert.doesNotThrow(() => assertCampaignEditable('draft', false));
+  assert.throws(() => assertCampaignEditable('draft', true), (err) => err.status === 409);
+  // Existing archived-status rejection (test 54) still holds regardless of the lock flag.
+  assert.throws(() => assertCampaignEditable('archived', false), (err) => err.status === 409);
+});
+
+test('57. isCampaignDeliveryLocked derives lock from ANY recipient row, with no status filter', () => {
+  const fnSource = fnSlice(
+    campaignsControllerSource,
+    'export async function isCampaignDeliveryLocked',
+    'export async function updateMarketingCampaign'
+  );
+  assert.match(fnSource, /from\('marketing_campaign_recipients'\)/);
+  assert.match(fnSource, /\.eq\('campaign_id',/);
+  assert.doesNotMatch(fnSource, /\.eq\('status',/);
+  assert.doesNotMatch(fnSource, /\.in\('status',/);
+});
+
+test('58. updateMarketingCampaign and archiveMarketingCampaign both check the delivery lock before writing', () => {
+  const updateFnSource = fnSlice(
+    campaignsControllerSource,
+    'export async function updateMarketingCampaign',
+    'export async function archiveMarketingCampaign'
+  );
+  assert.match(updateFnSource, /isCampaignDeliveryLocked\(/);
+  const lockIdx = updateFnSource.indexOf('isCampaignDeliveryLocked(');
+  const assertIdx = updateFnSource.indexOf('assertCampaignEditable(');
+  const updateIdx = updateFnSource.search(/\.update\(/);
+  assert.ok(lockIdx > -1 && assertIdx > lockIdx, 'lock must be checked before assertCampaignEditable');
+  assert.ok(updateIdx === -1 || updateIdx > assertIdx, 'no write before the editable/lock assertion');
+
+  const archiveFnSource = fnSlice(campaignsControllerSource, 'export async function archiveMarketingCampaign');
+  assert.match(archiveFnSource, /isCampaignDeliveryLocked\(/);
+  const archiveLockIdx = archiveFnSource.indexOf('isCampaignDeliveryLocked(');
+  const archiveUpdateIdx = archiveFnSource.search(/\.update\(/);
+  assert.ok(
+    archiveUpdateIdx === -1 || archiveUpdateIdx > archiveLockIdx,
+    'archive write must not happen before the lock check'
+  );
 });

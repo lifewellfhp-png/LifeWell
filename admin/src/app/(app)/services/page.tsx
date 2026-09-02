@@ -61,6 +61,7 @@ export default function Page() {
             { value: '', label: 'Select a category…' },
             { value: 'psychiatric', label: 'Psychiatric & Mental Health' },
             { value: 'primary-care', label: 'Family Health (Primary Care)' },
+            { value: 'professional-education', label: 'Professional Education / Clinical Education' },
           ],
         },
         { key: 'image_url', label: 'Image URL (from Media or /images/services/…)', full: true },

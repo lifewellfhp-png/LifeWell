@@ -16,6 +16,10 @@ export const serviceCategories: Record<ServiceCategory, { label: string; shortLa
     label: 'Family Health (Primary Care Services)',
     shortLabel: 'Family Health',
   },
+  'professional-education': {
+    label: 'Professional Education',
+    shortLabel: 'Professional Education',
+  },
 };
 
 const SUMMARY: Record<string, string> = {
@@ -48,6 +52,7 @@ const MENU_LABEL: Record<string, string> = {
   'medication-management': 'Medication Management',
   'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd':
     'Treatment for Depression, Anxiety, ADHD, Bipolar Disorder & PTSD',
+  'preceptorship-program': 'Preceptorship Program',
   'psychiatric-follow-up-visits-telehealth': 'Follow-Up Visits for Ongoing Mental Health Care',
   'annual-physical-exam-telehealth': 'Annual Physicals & Preventive Screenings',
   'chronic-disease-management-telehealth': 'Chronic Disease Management',
@@ -57,6 +62,18 @@ const MENU_LABEL: Record<string, string> = {
   'wellness-and-lifestyle-counseling-telehealth': 'Wellness and Lifestyle Counseling',
   'lab-testing-coordination-telehealth': 'Lab Testing Coordination',
 };
+
+const PRECEPTORSHIP_SUMMARY = {
+  title: 'Preceptorship Program',
+  description:
+    'Structured preceptorship opportunities for PMHNP and Family Nurse Practitioner students seeking guided clinical learning, professional mentorship, and confidence-building in advanced practice settings.',
+  image: {
+    file: 'student-mentor-education.svg',
+    alt: 'Advanced practice nursing student receiving clinical mentorship',
+    width: 1200,
+    height: 900,
+  },
+} as const;
 
 const SERVICE_IMAGE: Record<string, { file: string; alt: string }> = {
   'psychiatric-evaluations': {
@@ -106,10 +123,13 @@ const SERVICE_IMAGE: Record<string, { file: string; alt: string }> = {
 };
 
 /** Order matches the WordPress service posts. */
-const CATALOG: { slug: string; category: ServiceCategory }[] = [
+type CatalogItem = { slug: string; category: ServiceCategory; href?: string };
+
+const CATALOG: CatalogItem[] = [
   { slug: 'psychiatric-evaluations', category: 'psychiatric' },
   { slug: 'medication-management', category: 'psychiatric' },
   { slug: 'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd', category: 'psychiatric' },
+  { slug: 'preceptorship-program', category: 'professional-education', href: '/preceptorship-program' },
   { slug: 'psychiatric-follow-up-visits-telehealth', category: 'psychiatric' },
   { slug: 'annual-physical-exam-telehealth', category: 'primary-care' },
   { slug: 'chronic-disease-management-telehealth', category: 'primary-care' },
@@ -124,17 +144,24 @@ export const serviceHref = (slug: string) => `/services/${slug}`;
 
 export const serviceSummaries: ServiceSummary[] = CATALOG.map((item) => {
   const image = SERVICE_IMAGE[item.slug];
+  const customImage = item.slug === 'preceptorship-program' ? PRECEPTORSHIP_SUMMARY.image : undefined;
+  const href = item.href ?? serviceHref(item.slug);
   return {
     slug: item.slug,
-    title: MENU_LABEL[item.slug] ?? item.slug,
+    title: item.slug === 'preceptorship-program' ? PRECEPTORSHIP_SUMMARY.title : MENU_LABEL[item.slug] ?? item.slug,
     category: item.category,
-    description: SUMMARY[item.slug] ?? '',
-    href: serviceHref(item.slug),
+    description:
+      item.slug === 'preceptorship-program'
+        ? PRECEPTORSHIP_SUMMARY.description
+        : SUMMARY[item.slug] ?? '',
+    href,
     image: {
-      src: `/images/services/${image?.file ?? 'Psychiatric-Evaluation-Telehealth.avif'}`,
-      alt: image?.alt ?? MENU_LABEL[item.slug] ?? item.slug,
-      width: 1180,
-      height: 990,
+      src: customImage
+        ? `/images/preceptorship/${customImage.file}`
+        : `/images/services/${image?.file ?? 'Psychiatric-Evaluation-Telehealth.avif'}`,
+      alt: customImage?.alt ?? image?.alt ?? MENU_LABEL[item.slug] ?? item.slug,
+      width: customImage?.width ?? 1180,
+      height: customImage?.height ?? 990,
     },
   };
 });
@@ -166,7 +193,9 @@ export const relatedServices = (slug: string, limit = 3): ServiceSummary[] => {
   return [...sameCategory, ...others].slice(0, limit);
 };
 
-export const serviceSlugs = CATALOG.map((item) => item.slug);
+export const serviceSlugs = CATALOG.filter((item) => !item.href || item.href.startsWith('/services/')).map(
+  (item) => item.slug
+);
 
 /** Main public routes — prefetched after first paint so nav clicks are instant. */
 export const PREFETCH_ROUTES = [
@@ -180,5 +209,6 @@ export const PREFETCH_ROUTES = [
   '/book-telehealth-mental-health-appointment',
   '/faqs',
   '/telehealth-mental-health-testimonials',
+  '/preceptorship-program',
   ...serviceSlugs.map(serviceHref),
 ] as const;

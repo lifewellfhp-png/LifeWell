@@ -32,9 +32,13 @@ export const serviceCreate = z.object({
    * Required on create — a new service must never be silently classified.
    * See mapServiceSummaries() (client) and the `services` beforeUpdate hook
    * (admin.routes.ts): an uncategorized row must never quietly become
-   * MA/AZ-eligible ('psychiatric').
+   * MA/AZ-eligible ('psychiatric'). 'professional-education' (e.g. the
+   * Preceptorship Program) is intentionally excluded from the MA/AZ
+   * telehealth filter too — TelehealthStatePageContent only allowlists
+   * 'psychiatric', so any other category (including this one) is excluded
+   * by default with no extra filter changes needed.
    */
-  category: z.enum(['psychiatric', 'primary-care']),
+  category: z.enum(['psychiatric', 'primary-care', 'professional-education']),
   published: z.boolean().default(true),
   sort_order: z.number().int().default(0),
   seo_title: z.string().max(200).optional().nullable(),
@@ -49,7 +53,7 @@ export const serviceUpdate = serviceCreate.partial().extend({
   // never fail or accidentally clear a real value).
   category: z.preprocess(
     (v) => (v === '' ? null : v),
-    z.enum(['psychiatric', 'primary-care']).nullable().optional()
+    z.enum(['psychiatric', 'primary-care', 'professional-education']).nullable().optional()
   ),
 });
 

@@ -298,7 +298,7 @@ export function mapServiceSummaries(cms: PublicCmsPayload | null, live: boolean)
       // `category === 'psychiatric'` filter) without anyone having chosen that.
       // 'primary-care' is the safe default: it never unlocks MA/AZ display.
       const category =
-        r.category === 'primary-care' || r.category === 'psychiatric'
+        r.category === 'primary-care' || r.category === 'psychiatric' || r.category === 'professional-education'
           ? r.category
           : base?.category ?? 'primary-care';
       const imageSrc = siteAssetSrc(

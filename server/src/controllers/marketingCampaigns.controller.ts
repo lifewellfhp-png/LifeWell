@@ -73,11 +73,30 @@ export async function listMarketingCampaigns(req: Request, res: Response): Promi
   const { data, error, count } = await query.range(from, to);
   if (error) throw badRequest(error.message);
 
+  const items = (data ?? []) as Array<Record<string, unknown>>;
+  const deliverySummaries = new Map<string, CampaignDeliverySummary>();
+  for (const item of items) {
+    const campaignId = String(item.id);
+    deliverySummaries.set(campaignId, await getCampaignDeliverySummary(campaignId));
+  }
+
   const total = count ?? 0;
   res.json({
     success: true,
     data: {
-      items: data ?? [],
+      items: items.map((item) => {
+        const campaignId = String(item.id);
+        const summary = deliverySummaries.get(campaignId) ?? {
+          delivery_locked: false,
+          pending: 0,
+          processing: 0,
+          sent: 0,
+          failed: 0,
+          skipped: 0,
+          ambiguous_timeout: 0,
+        };
+        return { ...item, ...summary };
+      }),
       pagination: {
         page,
         pageSize,
@@ -99,7 +118,9 @@ export async function getMarketingCampaign(req: Request, res: Response): Promise
     .maybeSingle();
   if (error) throw badRequest(error.message);
   if (!data) throw notFound('Marketing campaign not found.');
-  res.json({ success: true, data });
+
+  const deliverySummary = await getCampaignDeliverySummary(parsedId.data);
+  res.json({ success: true, data: { ...data, ...deliverySummary } });
 }
 
 export async function createMarketingCampaign(req: Request, res: Response): Promise<void> {
@@ -145,10 +166,62 @@ export async function createMarketingCampaign(req: Request, res: Response): Prom
  * archived) is a 409 conflict, matching the resubscribe-eligibility
  * pattern in marketingContacts.controller.ts.
  */
-export function assertCampaignEditable(currentStatus: string): void {
+export function assertCampaignEditable(currentStatus: string, deliveryLocked = false): void {
+  if (deliveryLocked) {
+    throw new AppError('This campaign has already had delivery initiated and cannot be edited.', 409, { expose: true });
+  }
   if (currentStatus !== 'draft') {
     throw new AppError('This campaign is archived and cannot be edited.', 409, { expose: true });
   }
+}
+
+export type CampaignDeliverySummary = {
+  delivery_locked: boolean;
+  pending: number;
+  processing: number;
+  sent: number;
+  failed: number;
+  skipped: number;
+  ambiguous_timeout: number;
+};
+
+export async function getCampaignDeliverySummary(campaignId: string): Promise<CampaignDeliverySummary> {
+  const { data, error } = await getSupabase()
+    .from('marketing_campaign_recipients')
+    .select('status, failure_code')
+    .eq('campaign_id', campaignId);
+  if (error) throw badRequest(error.message);
+
+  const summary: CampaignDeliverySummary = {
+    delivery_locked: (data ?? []).length > 0,
+    pending: 0,
+    processing: 0,
+    sent: 0,
+    failed: 0,
+    skipped: 0,
+    ambiguous_timeout: 0,
+  };
+
+  for (const row of data ?? []) {
+    const status = String(row.status ?? '');
+    if (status === 'pending') summary.pending += 1;
+    else if (status === 'processing') summary.processing += 1;
+    else if (status === 'sent') summary.sent += 1;
+    else if (status === 'failed') summary.failed += 1;
+    else if (status === 'skipped') summary.skipped += 1;
+    if (status === 'failed' && row.failure_code === 'timeout_ambiguous') summary.ambiguous_timeout += 1;
+  }
+
+  return summary;
+}
+
+export async function isCampaignDeliveryLocked(campaignId: string): Promise<boolean> {
+  const { count, error } = await getSupabase()
+    .from('marketing_campaign_recipients')
+    .select('id', { count: 'exact', head: true })
+    .eq('campaign_id', campaignId);
+  if (error) throw badRequest(error.message);
+  return (count ?? 0) > 0;
 }
 
 export async function updateMarketingCampaign(req: Request, res: Response): Promise<void> {
@@ -168,7 +241,8 @@ export async function updateMarketingCampaign(req: Request, res: Response): Prom
   if (beforeError) throw badRequest(beforeError.message);
   if (!before) throw notFound('Marketing campaign not found.');
 
-  assertCampaignEditable(before.status as string);
+  const deliveryLocked = await isCampaignDeliveryLocked(parsedId.data);
+  assertCampaignEditable(before.status as string, deliveryLocked);
 
   const payload: Record<string, unknown> = {
     ...parsed.data,
@@ -227,6 +301,11 @@ export async function archiveMarketingCampaign(req: Request, res: Response): Pro
   if (before.status === 'archived') {
     res.json({ success: true, data: before });
     return;
+  }
+
+  const deliveryLocked = await isCampaignDeliveryLocked(parsedId.data);
+  if (deliveryLocked) {
+    throw new AppError('This campaign has already had delivery initiated and cannot be archived.', 409, { expose: true });
   }
 
   const now = new Date().toISOString();
