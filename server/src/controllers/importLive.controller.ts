@@ -34,30 +34,34 @@ const SERVICE_META: Record<string, { image: string; category: 'psychiatric' | 'p
   'lab-testing-coordination-telehealth': { image: '/images/services/Lab-Testing-Coordination-Telehealth.avif', category: 'primary-care' },
 };
 
-const FAQS = [
-  ['What is telehealth mental health care?', 'Telehealth mental health care allows you to receive therapy, psychiatric evaluation, and medication management through secure video appointments instead of in-person visits.'],
+/**
+ * General-category FAQ defaults only. The original list also carried a
+ * "What is telehealth mental health care?" entry naming "therapy" as
+ * something received here, and an entire Fees-category sub-list (4 entries)
+ * written in first-person voice, one of which ("How much does a telehealth
+ * therapy session cost?") explicitly named "individual therapy, couples
+ * therapy" as offered service types — content lifted verbatim from the old
+ * WordPress site (see _source/pages.json). Those 5 entries are gone for
+ * good: the 5 remaining General entries are legitimate starter content and
+ * keep their seed authority, but the Fees category has zero write authority
+ * here going forward, since client/src/data/pricing.ts's `feesFaqs` already
+ * provides a corrected, WE/OUR-voice fallback for that page when no CMS row
+ * exists — matching the insurance precedent below.
+ */
+export const FAQS = [
   ['How do I schedule an appointment?', 'You can schedule an appointment using the online booking system. After scheduling, you will receive confirmation and instructions for your telehealth session.'],
   ['Do you accept insurance?', 'We accept select insurance plans. Please contact us or visit the Fees & Insurance page to verify coverage and payment options.'],
   ['Are telehealth sessions confidential?', 'Yes. All telehealth sessions are conducted through our telehealth platform, which is designed with your privacy and confidentiality in mind.'],
   ['What do I need for a telehealth appointment?', 'You will need a stable internet connection, a computer, tablet, or smartphone, and a private location for your session.'],
   ['Can I reschedule or cancel my appointment?', 'Yes. Appointments can be rescheduled or canceled according to the cancellation policy. Please contact us in advance to make changes.'],
-  ['What insurance plans do you accept?', 'I accept select insurance plans for mental health services. Coverage may vary depending on your insurance provider and individual policy. Please contact me directly to confirm whether your plan is accepted and to verify your mental health benefits.'],
-  ['Do you offer self-pay options?', 'Yes, I offer self-pay options for individuals who prefer not to use insurance or whose plans are out-of-network. Transparent fees will be discussed before your appointment so you can make an informed and confident decision about your care.'],
-  ['How much does a telehealth therapy session cost?', 'My session fees vary depending on the type of service provided, such as individual therapy, couples therapy, or medication management. I provide detailed fee and insurance information during the scheduling process to ensure full transparency and help you make an informed decision.'],
-  ['Do you provide superbills for out-of-network reimbursement?', 'Yes, upon request, I can provide a superbill for patients seeking out-of-network reimbursement from their insurance provider. Reimbursement eligibility depends on your individual insurance policy.'],
 ] as const;
 
-const FAQ_CATEGORIES = [
+export const FAQ_CATEGORIES = [
   'General',
   'General',
   'General',
   'General',
   'General',
-  'General',
-  'Fees',
-  'Fees',
-  'Fees',
-  'Fees',
 ] as const;
 
 /**
@@ -200,47 +204,16 @@ export async function runLiveImport(): Promise<Record<string, number>> {
         cta: 'View All Services',
       },
     },
-    {
-      page_key: 'home',
-      section_key: 'benefits',
-      title: 'Why patients choose us',
-      published: true,
-      content: {
-        heading: 'Why Patients Choose My Telehealth Clinic',
-        items: [
-          {
-            title: 'Personalized One-on-One Care',
-            description:
-              'Every patient receives individual attention and a treatment plan tailored to their unique needs, goals, and mental health journey.',
-            image: '/images/benefits/Personalized-One-on-One-Care.avif',
-          },
-          {
-            title: 'Private & Secure Telehealth Sessions',
-            description:
-              'All appointments are conducted through our telehealth platform, designed with your privacy and confidentiality in mind at every step.',
-            image: '/images/benefits/Private-Secure-Telehealth-Sessions.avif',
-          },
-          {
-            title: 'Flexible & Convenient Scheduling',
-            description:
-              'Book appointments that fit your lifestyle with easy online scheduling and virtual access from the comfort of your home.',
-            image: '/images/benefits/Flexible-Convenient-Scheduling.avif',
-          },
-          {
-            title: 'Compassionate, Judgment-Free Support',
-            description:
-              'I provide a safe and supportive environment where you can openly discuss your concerns without fear of stigma or judgment.',
-            image: '/images/benefits/Compassionate-Judgment-Free-Support.avif',
-          },
-          {
-            title: 'Evidence-Based Treatment Approach',
-            description:
-              'My care is guided by my clinical experience and evidence-based treatment methods, allowing me to provide effective, compassionate, and personalized mental health support.',
-            image: '/images/benefits/Evidence-Based-Treatment-Approach.avif',
-          },
-        ],
-      },
-    },
+    // "benefits" (the homepage "Why Patients Choose LifeWell" grid) is
+    // intentionally NOT seeded here. It previously seeded first-person copy
+    // ("I provide...", "My care...") lifted verbatim from the old WordPress
+    // site (see _source/pages.json). Benefits content is fully Admin-managed
+    // CMS data (Admin → Sections) and this import must have zero write
+    // authority over it — matching the insurance precedent (see the comment
+    // above the FAQS seed). client/src/lib/cms-resolve.ts's mapBenefits()
+    // already falls back to client/src/data/marketing.ts's corrected,
+    // WE/OUR-voice `benefits`/`benefitsSection` whenever no CMS row exists,
+    // so a fresh site is never left without reasonable default content.
     {
       page_key: 'home',
       section_key: 'how_it_works',

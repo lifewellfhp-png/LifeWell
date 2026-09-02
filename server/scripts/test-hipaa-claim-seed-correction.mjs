@@ -23,9 +23,14 @@ test('A. the live-import FAQ/benefit seed content no longer claims HIPAA complia
   assert.doesNotMatch(source, /HIPAA[- ]compliant/i);
 });
 
-test('B. the confidentiality FAQ answer and secure-sessions benefit description are still present, just reworded', () => {
+test('B. the confidentiality FAQ answer is still present, just reworded', () => {
   assert.match(source, /Are telehealth sessions confidential\?/);
-  assert.match(source, /Private & Secure Telehealth Sessions/);
+  // The "Private & Secure Telehealth Sessions" benefit tile this test used to
+  // check for is no longer seeded at all — the content-governance remediation
+  // gave the whole "benefits" home section zero write authority (see
+  // test-import-live-content-safety.mjs), since it previously also reseeded
+  // unrelated stale, first-person WordPress copy. A safe tile being removed
+  // along with the unsafe ones is expected, not a regression.
 });
 
 test('C. this phase did not touch SMTP, contact persistence, or auth logic in the server app', () => {
