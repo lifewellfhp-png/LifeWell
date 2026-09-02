@@ -8,7 +8,7 @@ import Image from 'next/image';
 import type { NavItem, NavLink } from '@/types/content';
 import { site } from '@/data/site';
 import { cn } from '@/lib/utils';
-import { SwapButton } from '@/components/ui/SwapButton';
+import { HeaderCta } from './HeaderCta';
 
 const SiteSearch = dynamic(() => import('./SiteSearch').then((mod) => mod.SiteSearch), {
   ssr: false,
@@ -136,7 +136,7 @@ export function MobileMenu({ id, open, onClose, items, cta, pathname, phone }: M
         <nav aria-label="Mobile" className="flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-5 sm:py-6">
           <ul className="space-y-1">
             {items.map((item) =>
-              item.groups ? (
+              item.groups || item.flat ? (
                 <li key={item.href}>
                   <Accordion item={item} pathname={pathname} />
                 </li>
@@ -162,9 +162,9 @@ export function MobileMenu({ id, open, onClose, items, cta, pathname, phone }: M
         </nav>
 
         <div className="space-y-4 border-t border-border-subtle px-4 py-4 sm:px-5 sm:py-5">
-          <SwapButton href={cta.href} fullWidth>
+          <HeaderCta href={cta.href} fullWidth>
             {cta.label}
-          </SwapButton>
+          </HeaderCta>
           <a
             href={phoneHref}
             className="flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-text-link"
@@ -180,7 +180,9 @@ export function MobileMenu({ id, open, onClose, items, cta, pathname, phone }: M
 }
 
 function Accordion({ item, pathname }: { item: NavItem; pathname: string }) {
-  const [open, setOpen] = useState(() => pathname.startsWith('/services'));
+  const [open, setOpen] = useState(
+    () => pathname.startsWith('/services') || (item.flat ?? []).some((l) => pathname === l.href)
+  );
   const panelId = `m-${item.label.replace(/\s+/g, '-').toLowerCase()}`;
 
   return (
@@ -227,6 +229,28 @@ function Accordion({ item, pathname }: { item: NavItem; pathname: string }) {
             </ul>
           </div>
         ))}
+
+        {item.flat ? (
+          <ul className="mt-2 flex flex-col gap-1">
+            {item.flat.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  prefetch
+                  aria-current={pathname === link.href ? 'page' : undefined}
+                  className={cn(
+                    'flex min-h-11 items-center rounded-sm px-4 py-2 text-[15px] leading-snug no-underline transition-colors duration-quick',
+                    pathname === link.href
+                      ? 'font-semibold text-[var(--lw-primary)]'
+                      : 'text-[var(--lw-accent)] hover:bg-[#F7FAFC] hover:text-[var(--lw-primary)]'
+                  )}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </>
   );

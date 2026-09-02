@@ -5,8 +5,11 @@ import { telehealthStates } from './telehealth-states';
 /**
  * Header navigation, mirroring the source site's structure.
  *
- * The source labelled the bio link "Psychiatric Mental Health Nurse
- * Practitioner". That full title is used in the header, matching the live site.
+ * "Provider" and "Contact" are deliberately short NAVIGATION-LABEL-ONLY
+ * simplifications — the bio page's own H1, metadata, SEO title, and
+ * credentials content are untouched; this only shortens what the header
+ * bar displays. The source site's full title ("Psychiatric Mental Health
+ * Nurse Practitioner") and "Contact Us" remain the real page content.
  */
 export const headerNav: NavItem[] = [
   { label: 'Home', href: '/' },
@@ -28,12 +31,19 @@ export const headerNav: NavItem[] = [
       },
     ],
   },
-  { label: 'Psychiatric Mental Health Nurse Practitioner', href: '/bio' },
+  { label: 'Provider', href: '/bio' },
   { label: 'Fees & Insurance', href: '/fees-insurance' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Testimonials', href: '/telehealth-mental-health-testimonials' },
-  { label: 'Videos', href: '/videos' },
-  { label: 'Contact Us', href: '/contact-telehealth-mental-health-provider' },
+  {
+    label: 'Resources',
+    href: '/blog',
+    flat: [
+      { label: 'Blog', href: '/blog' },
+      { label: 'Testimonials', href: '/telehealth-mental-health-testimonials' },
+      { label: 'Videos', href: '/videos' },
+      { label: 'FAQs', href: '/faqs' },
+    ],
+  },
+  { label: 'Contact', href: '/contact-telehealth-mental-health-provider' },
 ];
 
 export const headerCta: NavLink = {

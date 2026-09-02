@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { NavItem, NavLink } from '@/types/content';
 import { cn } from '@/lib/utils';
-import { SwapButton } from '@/components/ui/SwapButton';
+import { HeaderCta } from './HeaderCta';
 import { MobileMenu } from './MobileMenu';
 
 /** Extra room for the Get Started control plus flex gaps. */
@@ -90,7 +90,7 @@ export function NavBar({
         {items.map((item) => (
           <li key={item.href} className="px-3.5 py-[5px] xl:px-[18px] min-[1601px]:px-[22px]">
             {item.label}
-            {item.groups ? (
+            {item.groups || item.flat ? (
               <span aria-hidden className="inline-block" style={{ width: `${CHEVRON_EXTRA}px` }} />
             ) : null}
           </li>
@@ -108,6 +108,8 @@ export function NavBar({
           {items.map((item) =>
             item.groups ? (
               <MegaMenuItem key={item.href} item={item} pathname={pathname} overlay={overlay} />
+            ) : item.flat ? (
+              <FlatDropdownItem key={item.href} label={item.label} links={item.flat} pathname={pathname} overlay={overlay} />
             ) : (
               <li key={item.href} className="shrink-0">
                 <TopLevelLink href={item.href} pathname={pathname} overlay={overlay}>
@@ -130,7 +132,9 @@ export function NavBar({
             compact === null ? 'hidden min-[1440px]:flex' : showDesktop ? 'flex' : 'hidden'
           )}
         >
-          <SwapCta href={cta.href} label={cta.label} />
+          <HeaderCta href={cta.href} overlay={overlay}>
+            {cta.label}
+          </HeaderCta>
         </div>
 
         <div
@@ -142,9 +146,9 @@ export function NavBar({
                 : 'hidden'
           )}
         >
-          <SwapButton href={cta.href} size="sm">
+          <HeaderCta href={cta.href} size="sm" overlay={overlay}>
             {cta.label}
-          </SwapButton>
+          </HeaderCta>
         </div>
 
         <button
@@ -298,21 +302,21 @@ function MegaMenuItem({ item, pathname, overlay }: { item: NavItem; pathname: st
     createPortal(
       <div
         id={panelId}
-        className="services-mega fixed left-1/2 z-[70] w-[min(640px,calc(100vw-2rem))] -translate-x-1/2"
+        className="services-mega fixed left-1/2 z-[70] w-[min(760px,calc(100vw-2rem))] -translate-x-1/2"
         style={{ top }}
         onMouseEnter={openNow}
         onMouseLeave={closeSoon}
       >
-        <div className="mega-card flex min-h-[390px] overflow-hidden rounded-[30px] shadow-[0_10px_20px_rgba(0,0,0,0.1)]">
+        <div className="mega-card flex min-h-[360px] overflow-hidden rounded-[24px] border border-black/5 shadow-[0_16px_40px_rgba(20,40,60,0.14)]">
           {item.groups?.map((group) => (
             <div
               key={group.label}
-              className="flex min-w-0 w-1/2 flex-col justify-center gap-5 p-10"
+              className="flex min-w-0 flex-1 flex-col justify-center gap-4 p-7 md:p-8"
             >
               <Link href={item.href} prefetch className="mega-heading block no-underline">
                 {group.label}
               </Link>
-              <ul className="flex flex-col gap-px">
+              <ul className="flex flex-col gap-0.5">
                 {group.links.map((link) => (
                   <li key={link.href}>
                     <Link
@@ -364,11 +368,154 @@ function MegaMenuItem({ item, pathname, overlay }: { item: NavItem; pathname: st
   );
 }
 
-/* -------------------------------------------------------------- icons --- */
+/**
+ * Compact single-column dropdown (e.g. header "Resources") — same open/
+ * close/keyboard/outside-click behavior as the Services mega menu, but a
+ * plain flat list instead of a multi-column panel with group headings,
+ * since a short flat list doesn't need that structure.
+ */
+function FlatDropdownItem({
+  label,
+  links,
+  pathname,
+  overlay,
+}: {
+  label: string;
+  links: NavLink[];
+  pathname: string;
+  overlay?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [top, setTop] = useState(110);
+  const [mounted, setMounted] = useState(false);
+  const panelId = useId();
+  const wrapperRef = useRef<HTMLLIElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-function SwapCta({ href, label }: { href: string; label: string }) {
-  return <SwapButton href={href}>{label}</SwapButton>;
+  const active = links.some((link) => isActive(pathname, link.href));
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const trigger = triggerRef.current?.getBoundingClientRect();
+      const header = document.querySelector('header')?.getBoundingClientRect();
+      const fromTrigger = trigger ? trigger.bottom + 12 : 0;
+      const fromHeader = (header?.bottom ?? 110) + 16;
+      setTop(Math.max(fromTrigger, fromHeader));
+    };
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, { passive: true });
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (wrapperRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest('.resources-dropdown')) return;
+      setOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('mousedown', onDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('mousedown', onDown);
+    };
+  }, [open]);
+
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
+
+  const openNow = () => {
+    clearTimeout(closeTimer.current);
+    setOpen(true);
+  };
+  const closeSoon = () => {
+    clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpen(false), 160);
+  };
+
+  const panel =
+    mounted &&
+    open &&
+    createPortal(
+      <div
+        id={panelId}
+        className="resources-dropdown fixed left-1/2 z-[70] w-[min(220px,calc(100vw-2rem))] -translate-x-1/2"
+        style={{ top }}
+        onMouseEnter={openNow}
+        onMouseLeave={closeSoon}
+      >
+        <ul className="flex flex-col gap-0.5 rounded-[18px] border border-black/5 bg-white p-2.5 shadow-[0_16px_40px_rgba(20,40,60,0.14)]">
+          {links.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                prefetch
+                aria-current={pathname === link.href ? 'page' : undefined}
+                className={cn(
+                  'block rounded-[10px] px-3.5 py-2.5 text-[15px] font-normal leading-[1.4] no-underline transition-colors duration-300',
+                  pathname === link.href
+                    ? 'bg-[var(--lw-primary)] text-white'
+                    : 'text-[var(--lw-accent)] hover:bg-[var(--lw-primary)] hover:text-white'
+                )}
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>,
+      document.body
+    );
+
+  return (
+    <li
+      ref={wrapperRef}
+      className="relative shrink-0"
+      onMouseEnter={openNow}
+      onMouseLeave={closeSoon}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          NAV_LINK,
+          'gap-[7px]',
+          active || open
+            ? 'bg-[var(--lw-primary)] text-white'
+            : overlay
+              ? 'text-[var(--color-text-inverse)] hover:bg-[var(--lw-accent)] hover:text-white'
+              : 'text-[var(--lw-accent)] hover:bg-[var(--lw-primary)] hover:text-white'
+        )}
+      >
+        {label}
+        <ChevronIcon className={cn('transition-transform duration-quick', open && 'rotate-180')} />
+      </button>
+      {panel}
+    </li>
+  );
 }
+
+/* -------------------------------------------------------------- icons --- */
 
 function ChevronIcon({ className }: { className?: string }) {
   return (

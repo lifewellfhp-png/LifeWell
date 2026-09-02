@@ -188,6 +188,8 @@ export interface NavGroup {
 
 export interface NavItem extends NavLink {
   groups?: NavGroup[];
+  /** Simple flat-list dropdown (e.g. header "Resources") — no sub-headings, unlike `groups`. */
+  flat?: NavLink[];
 }
 
 /* -------------------------------------------------------------- forms --- */
