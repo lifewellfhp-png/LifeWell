@@ -19,6 +19,12 @@ type WelcomeForm = { heading: string; body: string; ctaLabel: string; ctaHref: s
 type IntroForm = { eyebrow: string; heading: string; body: string; cta: string };
 type TextForm = { heading: string; body: string; eyebrow: string };
 type StatItem = { value: string; suffix: string; label: string; hidden: boolean; requiresVerification: boolean };
+/**
+ * `raw` keeps the item's full original object (image, and any field this
+ * form doesn't know about) so saving can merge title/description back into
+ * it instead of reconstructing the item and silently dropping data.
+ */
+type BenefitItemForm = { title: string; description: string; image: string; raw: Record<string, unknown> };
 
 const emptyHero: HeroForm = { badge: '', headline: '', subhead: '', image: '' };
 const emptyWelcome: WelcomeForm = { heading: '', body: '', ctaLabel: '', ctaHref: '', image: '' };
@@ -67,6 +73,7 @@ export function HomepageCopy() {
   const [welcome, setWelcome] = useState<WelcomeForm>(emptyWelcome);
   const [services, setServices] = useState<IntroForm>(emptyIntro);
   const [benefitsHeading, setBenefitsHeading] = useState('');
+  const [benefitItems, setBenefitItems] = useState<BenefitItemForm[]>([]);
   const [how, setHow] = useState<TextForm>(emptyHow);
   const [statsItems, setStatsItems] = useState<StatItem[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -138,6 +145,20 @@ export function HomepageCopy() {
     if (benefitsRow) {
       const c = asRecord(benefitsRow.content);
       setBenefitsHeading(String(c.heading || ''));
+      const rawItems = Array.isArray(c.items) ? c.items : [];
+      setBenefitItems(
+        rawItems.map((item) => {
+          const row = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+          return {
+            title: typeof row.title === 'string' ? row.title : '',
+            description: typeof row.description === 'string' ? row.description : '',
+            image: typeof row.image === 'string' ? row.image : '',
+            raw: row,
+          };
+        })
+      );
+    } else {
+      setBenefitItems([]);
     }
     if (howRow) {
       const c = asRecord(howRow.content);
@@ -179,6 +200,10 @@ export function HomepageCopy() {
 
   function updateStat(index: number, patch: Partial<StatItem>) {
     setStatsItems((items) => items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+  }
+
+  function updateBenefitItem(index: number, patch: Partial<Pick<BenefitItemForm, 'title' | 'description' | 'image'>>) {
+    setBenefitItems((items) => items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
   }
 
   function removeStat(index: number) {
@@ -252,6 +277,7 @@ export function HomepageCopy() {
       }),
       saveSection(ids.benefits ?? null, 'benefits', 'Why patients choose us', {
         heading: benefitsHeading,
+        items: benefitItems.map((b) => ({ ...b.raw, title: b.title, description: b.description, image: b.image })),
       }),
       saveSection(ids.how_it_works ?? null, 'how_it_works', 'How it works', {
         eyebrow: how.eyebrow,
@@ -487,7 +513,45 @@ export function HomepageCopy() {
         <label htmlFor="benefits-heading">Benefits heading</label>
         <input id="benefits-heading" value={benefitsHeading} onChange={(e) => setBenefitsHeading(e.target.value)} />
       </div>
-      <p className="muted">Individual benefit cards stay in Homepage sections JSON (`benefits` → `items`).</p>
+      {benefitItems.length === 0 ? (
+        <div className="empty" style={{ marginBottom: '0.75rem' }}>
+          No benefit cards saved yet — the site is showing the built-in defaults.
+        </div>
+      ) : (
+        benefitItems.map((item, i) => (
+          <div key={i} style={{ marginBottom: '1rem' }}>
+            <p className="muted" style={{ margin: '0 0 0.35rem', fontWeight: 600 }}>
+              Benefit {i + 1}
+            </p>
+            <div className="field">
+              <label htmlFor={`benefit-${i}-title`}>Title</label>
+              <input
+                id={`benefit-${i}-title`}
+                value={item.title}
+                onChange={(e) => updateBenefitItem(i, { title: e.target.value })}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor={`benefit-${i}-description`}>Description</label>
+              <textarea
+                id={`benefit-${i}-description`}
+                rows={3}
+                value={item.description}
+                onChange={(e) => updateBenefitItem(i, { description: e.target.value })}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor={`benefit-${i}-image`}>Image URL (from Media)</label>
+              <input
+                id={`benefit-${i}-image`}
+                value={item.image}
+                placeholder="/images/benefits/example.avif or uploaded media URL"
+                onChange={(e) => updateBenefitItem(i, { image: e.target.value })}
+              />
+            </div>
+          </div>
+        ))
+      )}
 
       <h3>How it works</h3>
       <div className="field">
