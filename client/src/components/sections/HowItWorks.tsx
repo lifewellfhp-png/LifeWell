@@ -43,7 +43,7 @@ export function HowItWorks({
           </p>
           <h2
             id="how-it-works-heading"
-            className="max-w-[16ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:max-w-[22ch] sm:text-[48px] min-[1181px]:max-w-none min-[1181px]:text-[56px]"
+            className="max-w-[16ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-w-[22ch] sm:text-[48px] min-[1181px]:max-w-none min-[1181px]:text-[56px]"
           >
             {accent ? (
               <>
@@ -54,7 +54,7 @@ export function HowItWorks({
               <span className="font-heading">{heading}</span>
             )}
           </h2>
-          <p className="mt-6 max-w-[46ch] font-body text-[16px] leading-[1.45] text-[#374151] sm:max-w-none sm:text-[18px] min-[1181px]:text-[22px] min-[1181px]:leading-[1.35]">
+          <p className="mt-6 max-w-[46ch] font-body text-[16px] leading-[1.45] text-text-primary sm:max-w-none sm:text-[18px] min-[1181px]:text-[22px] min-[1181px]:leading-[1.35]">
             {body}
           </p>
         </div>
@@ -101,7 +101,7 @@ export function HowItWorks({
                       {step.title}
                       <LongArrow />
                     </h3>
-                    <p className="mt-2 text-[14px] leading-[1.45] text-[#374151] sm:text-[16px]">
+                    <p className="mt-2 text-[14px] leading-[1.45] text-text-primary sm:text-[16px]">
                       {step.description}
                     </p>
                   </div>

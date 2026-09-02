@@ -35,13 +35,13 @@ export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: s
             <div className="max-w-[38rem]">
               <h2
                 id="stats-heading"
-                className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:text-[42px] min-[1181px]:text-[52px]"
+                className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[42px] min-[1181px]:text-[52px]"
               >
                 <span className="text-[var(--lw-primary)]">Start Your Mental </span>
                 <span className="italic text-[var(--lw-accent)]">Wellness</span>
                 <span className="text-[var(--lw-primary)]"> Journey Today</span>
               </h2>
-              <p className="mt-5 max-w-[42ch] font-heading text-[16px] font-normal italic leading-[1.45] text-[#374151] sm:text-[18px]">
+              <p className="mt-5 max-w-[42ch] font-heading text-[16px] font-normal italic leading-[1.45] text-text-primary sm:text-[18px]">
                 Getting started is simple. Choose an available appointment time that works for you.
               </p>
               <div className="mt-8">
@@ -56,14 +56,14 @@ export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: s
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="px-4 py-6 text-center sm:px-6 lg:border-l lg:border-[#E1E8EE] lg:first:border-l-0"
+                className="px-4 py-6 text-center sm:px-6 lg:border-l lg:border-border-subtle lg:first:border-l-0"
               >
                 <dt className="sr-only">{stat.label}</dt>
                 <dd>
                   <Counter value={stat.value} suffix={stat.suffix} />
                   <span
                     aria-hidden="true"
-                    className="mt-2 block font-body text-[13px] font-normal leading-snug text-[#374151] sm:text-[14px] min-[1181px]:text-[15px]"
+                    className="mt-2 block font-body text-[13px] font-normal leading-snug text-text-primary sm:text-[14px] min-[1181px]:text-[15px]"
                   >
                     {stat.label}
                   </span>

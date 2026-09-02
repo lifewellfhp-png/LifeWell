@@ -59,7 +59,7 @@ export function TelehealthStatePageContent({
         leadSize="subhead"
       >
         {state.badge && (
-          <p className="mt-6 text-[12px] font-light leading-[1.45] text-[#5b6675] sm:text-[14px]">
+          <p className="mt-6 text-[12px] font-light leading-[1.45] text-text-secondary sm:text-[14px]">
             {state.badge}
           </p>
         )}
@@ -70,18 +70,18 @@ export function TelehealthStatePageContent({
           {bodyParagraphs.map((paragraph) => (
             <p
               key={paragraph.slice(0, 40)}
-              className="mt-5 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]"
+              className="mt-5 text-[16px] leading-[1.45] text-text-primary min-[1181px]:text-[18px]"
             >
               {paragraph}
             </p>
           ))}
 
-          <div className="mt-8 rounded-[20px] bg-[#EEF3F7] px-6 py-7 sm:px-8">
-            <p className="text-[16px] leading-[1.5] text-[#374151] min-[1181px]:text-[18px]">
+          <div className="mt-8 rounded-[20px] bg-surface-muted px-6 py-7 sm:px-8">
+            <p className="text-[16px] leading-[1.5] text-text-primary min-[1181px]:text-[18px]">
               {state.careMode}
             </p>
             {!inPersonAvailable && (
-              <p className="mt-3 text-[14px] leading-[1.5] text-[#5b6675]">
+              <p className="mt-3 text-[14px] leading-[1.5] text-text-secondary">
                 Care for {state.name} residents is telehealth-only. Our physical office is in
                 Orlando, Florida, and is not available for {state.name} appointments.
               </p>
@@ -99,7 +99,7 @@ export function TelehealthStatePageContent({
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
             <SwapButton href={bookingUrl}>{state.primaryCta.label}</SwapButton>
             {state.insuranceMode === 'existing' ? (
-              <p className="self-center text-[15px] leading-[1.4] text-[#374151]">
+              <p className="self-center text-[15px] leading-[1.4] text-text-primary">
                 Questions about cost?{' '}
                 <Link
                   href={state.secondaryCta.href}
@@ -123,11 +123,11 @@ export function TelehealthStatePageContent({
 
       <section className="bg-[#F7FAFC] px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
-          <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
             <span className="text-[var(--lw-accent)]">Services Available in </span>
             <span className="italic text-[var(--lw-primary)]">{state.name}</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-[46rem] text-center text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+          <p className="mx-auto mt-5 max-w-[46rem] text-center text-[16px] leading-[1.45] text-text-primary min-[1181px]:text-[18px]">
             {inPersonAvailable
               ? `Every service below is available to ${state.name} residents by secure telehealth.`
               : `Psychiatric services available to ${state.name} patients by telehealth.`}
@@ -140,7 +140,7 @@ export function TelehealthStatePageContent({
 
       <section className="px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[920px]">
-          <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
             <span className="text-[var(--lw-accent)]">{state.name} </span>
             <span className="italic text-[var(--lw-primary)]">FAQs</span>
           </h2>
@@ -151,8 +151,8 @@ export function TelehealthStatePageContent({
       </section>
 
       <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
-        <div className="mx-auto max-w-[920px] rounded-[20px] border border-[#E1E8EE] px-6 py-8 sm:px-8">
-          <p className="text-[15px] leading-[1.5] text-[#374151]">
+        <div className="mx-auto max-w-[920px] rounded-[20px] border border-border-subtle px-6 py-8 sm:px-8">
+          <p className="text-[15px] leading-[1.5] text-text-primary">
             Also serving:{' '}
             {otherStates.map((s, i) => (
               <span key={s.slug}>

@@ -53,10 +53,10 @@ export function BookingPageHeader({ profiles }: { profiles: BookingProfiles }) {
     <Section tone="transparent" spacing="sm">
       <Container size="narrow">
         <div className="text-center">
-          <h1 className="font-heading text-[32px] font-normal leading-[1.15] tracking-[-2px] text-[var(--lw-primary)] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h1 className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] text-[var(--lw-primary)] sm:text-[48px] min-[1181px]:text-[56px]">
             {profiles.pageCopy.heading}
           </h1>
-          <p className="mx-auto mt-4 max-w-[46ch] text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+          <p className="mx-auto mt-4 max-w-[46ch] text-[16px] leading-[1.45] text-text-primary min-[1181px]:text-[18px]">
             {profiles.pageCopy.subtitle}
           </p>
         </div>
@@ -76,7 +76,7 @@ export function BookingChoiceGrid({
   const zocdocUrl = profiles.display.bookingPage && profiles.zocdoc.enabled ? profiles.zocdoc.bookingUrl : null;
 
   const cardClass =
-    'flex flex-col rounded-[24px] border border-[#e1e8ee] bg-white p-8 shadow-[0_10px_28px_rgba(62,127,177,0.08)] sm:p-10';
+    'flex flex-col rounded-[24px] border border-border-subtle bg-white p-8 shadow-[0_10px_28px_rgba(62,127,177,0.08)] sm:p-10';
 
   return (
     <Section tone="transparent" spacing="sm" aria-labelledby="booking-choice-heading">
@@ -92,7 +92,7 @@ export function BookingChoiceGrid({
             <h3 className="mt-5 font-heading text-[24px] font-normal leading-[1.2] text-[var(--lw-primary)] sm:text-[28px]">
               {profiles.pageCopy.directHeading}
             </h3>
-            <p className="mt-3 flex-1 text-[15px] leading-[1.45] text-[#374151] sm:text-[16px]">
+            <p className="mt-3 flex-1 text-[15px] leading-[1.45] text-text-primary sm:text-[16px]">
               {profiles.pageCopy.directDescription}
             </p>
             <div className="mt-6">
@@ -108,7 +108,7 @@ export function BookingChoiceGrid({
               <h3 className="mt-5 font-heading text-[24px] font-normal leading-[1.2] text-[var(--lw-primary)] sm:text-[28px]">
                 Book through Zocdoc
               </h3>
-              <p className="mt-3 flex-1 text-[15px] leading-[1.45] text-[#374151] sm:text-[16px]">
+              <p className="mt-3 flex-1 text-[15px] leading-[1.45] text-text-primary sm:text-[16px]">
                 {profiles.zocdoc.description || 'Use Zocdoc to view available appointment options.'}
               </p>
               <div className="mt-6">
@@ -142,7 +142,7 @@ export function TrustedPlatformsSection({ profiles }: { profiles: BookingProfile
 
   if (!zocdocUrl && !ptUrl) return null;
 
-  const cardClass = 'rounded-[20px] border border-[#e1e8ee] bg-white p-7 text-center sm:p-8';
+  const cardClass = 'rounded-[20px] border border-border-subtle bg-white p-7 text-center sm:p-8';
 
   return (
     <Section tone="muted" aria-labelledby="trusted-platforms-heading">
@@ -162,14 +162,14 @@ export function TrustedPlatformsSection({ profiles }: { profiles: BookingProfile
               </div>
               <h3 className="mt-4 font-heading text-[20px] font-normal text-[var(--lw-primary)]">Zocdoc Reviews</h3>
               {showRatingNumbers && rating !== null && reviewCount !== null ? (
-                <p className="mt-2 text-[17px] font-semibold text-[#374151]">
+                <p className="mt-2 text-[17px] font-semibold text-text-primary">
                   {rating.toFixed(1)} ★ out of 5
                   <span className="mt-1 block text-[13px] font-normal text-[#6b7280]">
                     {reviewCount} review{reviewCount === 1 ? '' : 's'}
                   </span>
                 </p>
               ) : (
-                <p className="mt-2 text-[15px] text-[#374151]">Read our reviews on Zocdoc</p>
+                <p className="mt-2 text-[15px] text-text-primary">Read our reviews on Zocdoc</p>
               )}
               <div className="mt-5">
                 <a
@@ -190,7 +190,7 @@ export function TrustedPlatformsSection({ profiles }: { profiles: BookingProfile
                 <PsychologyTodayLogo />
               </div>
               <h3 className="mt-4 font-heading text-[20px] font-normal text-[var(--lw-primary)]">Psychology Today</h3>
-              <p className="mt-2 text-[15px] text-[#374151]">
+              <p className="mt-2 text-[15px] text-text-primary">
                 {profiles.psychologyToday.description || 'View our professional profile on Psychology Today.'}
               </p>
               <div className="mt-5">
