@@ -1,5 +1,6 @@
 import { Container, Section, SectionHeading } from '@/components/ui/Section';
 import { LazyEmbed } from '@/components/sections/LazyEmbed';
+import { SwapButton } from '@/components/ui/SwapButton';
 import { resolveVideoEmbed } from '@/lib/videoEmbed';
 
 const YOUTUBE_ALLOW =
@@ -29,7 +30,7 @@ export function VideosSection({
             const resolved = resolveVideoEmbed(video.provider, video.url);
             return (
               <li key={video.url || video.title} className="min-w-0">
-                <div className="overflow-hidden rounded-[20px] bg-[#EEF3F7]">
+                <div className="overflow-hidden rounded-[20px] bg-surface-muted">
                   {resolved.kind === 'youtube' ? (
                     <LazyEmbed
                       title={video.title}
@@ -47,21 +48,24 @@ export function VideosSection({
                   ) : resolved.kind === 'file' ? (
                     <video className="aspect-video w-full" controls src={resolved.url} />
                   ) : resolved.url ? (
-                    <a href={resolved.url} className="block p-8 text-center text-[#2f6691]" target="_blank" rel="noreferrer">
+                    <a href={resolved.url} className="block p-8 text-center text-text-link" target="_blank" rel="noreferrer">
                       Watch {video.title}
                     </a>
                   ) : (
-                    <p className="p-8 text-center text-[#5b6675]">{video.title}</p>
+                    <p className="p-8 text-center text-text-secondary">{video.title}</p>
                   )}
                 </div>
-                <h3 className="mt-4 font-heading text-[22px] text-[#374151]">{video.title}</h3>
+                <h3 className="mt-4 font-heading text-[22px] text-text-primary">{video.title}</h3>
                 {video.description ? (
-                  <p className="mt-2 text-[16px] leading-relaxed text-[#5b6675]">{video.description}</p>
+                  <p className="mt-2 text-[16px] leading-relaxed text-text-secondary">{video.description}</p>
                 ) : null}
               </li>
             );
           })}
         </ul>
+        <div className="mt-10 flex justify-center md:mt-[60px]">
+          <SwapButton href="/videos">Watch More Videos</SwapButton>
+        </div>
       </Container>
     </Section>
   );

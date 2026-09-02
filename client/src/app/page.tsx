@@ -82,7 +82,13 @@ export default async function HomePage() {
         body={cms.howItWorks.body}
         steps={cms.steps}
       />
-      <StatsBand stats={cms.stats} bookingUrl={cms.booking.page} />
+      <StatsBand
+        stats={cms.stats}
+        bookingUrl={cms.booking.page}
+        showCta={false}
+        heading="A Foundation of Experience"
+        body="Board-certified telehealth care, backed by more than 15 years of clinical experience."
+      />
       <InsuranceGrid
         showCta={true}
         showDisclaimer={true}

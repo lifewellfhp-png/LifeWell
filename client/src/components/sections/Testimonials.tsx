@@ -44,12 +44,12 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
         <div className="mx-auto max-w-[46rem] text-center">
           <h2
             id={headingId}
-            className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:text-[48px] min-[1181px]:text-[56px]"
+            className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]"
           >
             <span className="text-[var(--lw-accent)]">What Patients </span>
             <span className="italic text-[var(--lw-primary)]">Are Saying</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-[52ch] text-[16px] leading-[1.45] text-[#5b6675] min-[1181px]:text-[18px]">
+          <p className="mx-auto mt-5 max-w-[52ch] text-[16px] leading-[1.45] text-text-secondary min-[1181px]:text-[18px]">
             {testimonialsSection.body}
           </p>
         </div>

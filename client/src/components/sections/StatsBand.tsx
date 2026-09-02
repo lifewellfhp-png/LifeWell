@@ -11,8 +11,27 @@ import { site } from '@/data/site';
 /**
  * Live “Start Your Mental Wellness Journey” band: rounded photo with
  * left-aligned split heading + booking button, followed by optional stats.
+ *
+ * `showCta`/`heading`/`body` are optional overrides so a consumer that
+ * already has a strong nearby booking CTA (the homepage, which places this
+ * band between HowItWorks and the closing ContactCTA) can present it as a
+ * pure credibility/stats band instead of repeating the booking CTA a third
+ * time. Callers that omit them (e.g. the Bio page) keep the original
+ * booking-focused copy and button unchanged.
  */
-export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: string }) {
+export function StatsBand({
+  stats,
+  bookingUrl,
+  showCta = true,
+  heading,
+  body,
+}: {
+  stats: Stat[];
+  bookingUrl?: string;
+  showCta?: boolean;
+  heading?: string;
+  body?: string;
+}) {
   const bookHref = bookingUrl ?? site.booking.page;
   return (
     <section aria-labelledby="stats-heading" className="bg-white py-14 md:py-24">
@@ -37,16 +56,24 @@ export function StatsBand({ stats, bookingUrl }: { stats: Stat[]; bookingUrl?: s
                 id="stats-heading"
                 className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[42px] min-[1181px]:text-[52px]"
               >
-                <span className="text-[var(--lw-primary)]">Start Your Mental </span>
-                <span className="italic text-[var(--lw-accent)]">Wellness</span>
-                <span className="text-[var(--lw-primary)]"> Journey Today</span>
+                {heading ? (
+                  <span className="text-[var(--lw-primary)]">{heading}</span>
+                ) : (
+                  <>
+                    <span className="text-[var(--lw-primary)]">Start Your Mental </span>
+                    <span className="italic text-[var(--lw-accent)]">Wellness</span>
+                    <span className="text-[var(--lw-primary)]"> Journey Today</span>
+                  </>
+                )}
               </h2>
               <p className="mt-5 max-w-[42ch] font-heading text-[16px] font-normal italic leading-[1.45] text-text-primary sm:text-[18px]">
-                Getting started is simple. Choose an available appointment time that works for you.
+                {body ?? 'Getting started is simple. Choose an available appointment time that works for you.'}
               </p>
-              <div className="mt-8">
-                <SwapButton href={bookHref}>Book an Appointment</SwapButton>
-              </div>
+              {showCta && (
+                <div className="mt-8">
+                  <SwapButton href={bookHref}>Book an Appointment</SwapButton>
+                </div>
+              )}
             </div>
           </div>
         </div>
