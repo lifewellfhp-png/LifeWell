@@ -82,8 +82,7 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
               Address:
             </h3>
             <address className="mt-2 not-italic text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
-              <p className="font-semibold">Mailing</p>
-              <p className="mt-1">
+              <p>
                 {street}
                 <br />
                 {cityLine}
