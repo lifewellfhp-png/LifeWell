@@ -1,11 +1,20 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { site } from '@/data/site';
-import { footerColumns } from '@/data/navigation';
+import {
+  footerMentalHealthLinks,
+  footerPrimaryCareLinks,
+  footerProfessionalEducationLinks,
+  footerExploreLinks,
+  footerTelehealthLinks,
+  legalLinks,
+} from '@/data/navigation';
 import { Container } from '@/components/ui/Section';
 import { FooterNewsletter } from '@/components/forms/NewsletterForm';
 import { newsletter } from '@/data/marketing';
 import { getResolvedContent } from '@/lib/cms-resolve';
+import { cn } from '@/lib/utils';
+import type { NavLink } from '@/types/content';
 
 export async function Footer() {
   const cms = await getResolvedContent();
@@ -15,6 +24,7 @@ export async function Footer() {
   const phoneHref = phone.replace(/[^\d+]/g, '').length ? `tel:+1${phone.replace(/\D/g, '').replace(/^1/, '')}` : site.contact.phoneHref;
   const logo = cms.settings.logoUrl || '/images/brand/logo-v2.avif';
   const remoteLogo = logo.startsWith('http');
+
   return (
     <footer className="bg-[#F4F7FA] pb-[env(safe-area-inset-bottom)]">
       <div className="footer-band rounded-t-[30px] bg-[var(--lw-primary)] text-white sm:rounded-t-[40px]">
@@ -26,8 +36,9 @@ export async function Footer() {
             <FooterNewsletter />
           </div>
 
-          <div className="grid min-w-0 grid-cols-1 gap-10 py-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3 xl:grid-cols-5 xl:gap-x-8 xl:py-14">
-            <div>
+          {/* Practice / Brand, Mental Health (+Professional Education), Primary Care, Explore */}
+          <div className="grid min-w-0 grid-cols-1 gap-x-8 gap-y-12 py-10 sm:grid-cols-2 xl:grid-cols-12 xl:py-14">
+            <div className="xl:col-span-4">
               <Link
                 href="/"
                 className="inline-flex rounded-[12px] bg-white px-3 py-2.5 sm:px-4 sm:py-3"
@@ -46,13 +57,13 @@ export async function Footer() {
                   />
                 )}
               </Link>
-              <p className="mt-6 max-w-[38ch] font-body text-[15px] font-normal leading-[1.6] text-white sm:text-[16px]">
+              <p className="mt-6 max-w-[46ch] font-body text-[15px] font-normal leading-[1.6] text-white sm:text-[16px]">
                 {site.footerBlurb}
               </p>
 
-              <address className="mt-5 space-y-1.5 font-body text-[15px] font-normal not-italic leading-relaxed text-white sm:text-[16px]">
+              <address className="mt-5 max-w-[46ch] font-body text-[15px] font-normal not-italic leading-relaxed text-white sm:text-[16px]">
                 {primary?.street || primary?.address ? (
-                  <p>
+                  <p className="mb-4">
                     {primary.street || primary.address}
                     {primary.city ? (
                       <>
@@ -62,19 +73,31 @@ export async function Footer() {
                     ) : null}
                   </p>
                 ) : null}
-                <p>
-                  Phone:-{' '}
-                  <a href={phoneHref} className="text-white no-underline hover:underline">
-                    {phone}
-                  </a>
-                </p>
-                <p>Fax:- {site.contact.fax}</p>
-                <p>
-                  Email:-{' '}
-                  <a href={`mailto:${email}`} className="text-white no-underline hover:underline">
-                    {email}
-                  </a>
-                </p>
+
+                <ul className="space-y-2.5">
+                  <li className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                      Phone
+                    </span>
+                    <a href={phoneHref} className="text-white no-underline hover:underline">
+                      {phone}
+                    </a>
+                  </li>
+                  <li className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                      Fax
+                    </span>
+                    <span>{site.contact.fax}</span>
+                  </li>
+                  <li className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                      Email
+                    </span>
+                    <a href={`mailto:${email}`} className="break-all text-white no-underline hover:underline">
+                      {email}
+                    </a>
+                  </li>
+                </ul>
               </address>
 
               <ul className="mt-6 flex gap-3">
@@ -84,7 +107,7 @@ export async function Footer() {
                       href={s.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex size-10 items-center justify-center rounded-full bg-[var(--lw-accent)] text-white transition-colors duration-300 hover:bg-white hover:text-[var(--lw-accent)]"
+                      className="inline-flex size-10 items-center justify-center rounded-full bg-[var(--lw-accent)] text-white transition-colors duration-300 hover:bg-white hover:text-[var(--lw-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     >
                       <span className="sr-only">
                         {site.name} on {s.name}
@@ -96,37 +119,89 @@ export async function Footer() {
               </ul>
             </div>
 
-            {footerColumns.map((col) => (
-              <nav key={col.heading} aria-label={col.heading} className="min-w-0">
-                <h3 className="font-heading text-[20px] font-normal leading-[1.3] text-white sm:text-[22px] min-[1181px]:text-[24px]">
-                  {col.heading}
-                </h3>
-                <ul className="mt-5 flex flex-col gap-3 sm:gap-3.5">
-                  {col.links.map((link) => (
-                    <li key={link.href} className="min-w-0">
-                      <Link
-                        href={link.href}
-                        prefetch
-                        className="break-words font-body text-[15px] font-normal leading-snug text-white no-underline transition-opacity duration-300 hover:opacity-80 sm:text-[16px]"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            ))}
+            <div className="flex min-w-0 flex-col gap-10 xl:col-span-3">
+              <FooterNav heading="Mental Health" links={footerMentalHealthLinks} />
+              <FooterNav heading="Professional Education" links={footerProfessionalEducationLinks} />
+            </div>
+
+            <FooterNav heading="Primary Care" links={footerPrimaryCareLinks} className="xl:col-span-3" />
+
+            <FooterNav heading="Explore" links={footerExploreLinks} className="xl:col-span-2" />
           </div>
 
-          <div className="border-t border-white/30 py-5 text-center sm:py-6">
-            <p className="font-body text-[13px] font-normal leading-relaxed text-white sm:text-[14px]">
-              © 2026 {site.name}. All Rights Reserved. | Website Design & Development by
-              Wesly Chachoute, M.S. in Cybersecurity | DBA Candidate
-            </p>
+          {/* Telehealth Care utility row */}
+          <div className="border-t border-white/20 py-6">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="font-heading text-[15px] font-normal text-white sm:text-[16px]">
+                Telehealth Care
+              </span>
+              <ul className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
+                {footerTelehealthLinks.map((link, index) => (
+                  <li key={link.href} className="flex items-center gap-2.5">
+                    {index > 0 ? (
+                      <span aria-hidden="true" className="text-white/40">
+                        •
+                      </span>
+                    ) : null}
+                    <Link
+                      href={link.href}
+                      className="font-body text-[14px] text-white/85 no-underline transition-colors duration-300 hover:text-white hover:underline sm:text-[15px]"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Legal / copyright bar */}
+          <div className="border-t border-white/20 py-5 sm:py-6">
+            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+              <p className="font-body text-[12px] leading-relaxed text-white/70 sm:text-[13px]">
+                © 2026 {site.name}. All Rights Reserved. | Website Design &amp; Development by Wesly
+                Chachoute, M.S. in Cybersecurity | DBA Candidate
+              </p>
+              <ul className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-end">
+                {legalLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="font-body text-[12px] text-white/70 no-underline transition-colors duration-300 hover:text-white hover:underline sm:text-[13px]"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </Container>
       </div>
     </footer>
+  );
+}
+
+function FooterNav({ heading, links, className }: { heading: string; links: NavLink[]; className?: string }) {
+  return (
+    <nav aria-label={heading} className={cn('min-w-0', className)}>
+      <h3 className="font-heading text-[20px] font-normal leading-[1.3] text-white sm:text-[22px] min-[1181px]:text-[24px]">
+        {heading}
+      </h3>
+      <ul className="mt-5 flex flex-col gap-3 sm:gap-3.5">
+        {links.map((link) => (
+          <li key={link.href} className="min-w-0">
+            <Link
+              href={link.href}
+              prefetch
+              className="break-words font-body text-[15px] font-normal leading-snug text-white no-underline transition-opacity duration-300 hover:opacity-80 sm:text-[16px]"
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
