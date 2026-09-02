@@ -22,8 +22,17 @@ export function Hero({
   bookingProfiles?: BookingProfiles;
 } = {}) {
   const data: ResolvedHero = heroProp ?? { ...hero };
-  const primary = data.headingPrimary || data.heading;
-  const accent = data.headingAccent || '';
+  const rawPrimary = data.headingPrimary || data.heading;
+  const rawAccent = data.headingAccent || '';
+
+  // When the CMS provides one combined heading (no separately authored
+  // accent field), automatically color the clause after an em dash as the
+  // accent phrase — the established two-tone hero-heading treatment this
+  // component already supports for explicitly split CMS fields, applied
+  // here to a single sentence with a natural "— " break instead.
+  const dashIndex = !rawAccent ? rawPrimary.indexOf('—') : -1;
+  const primary = dashIndex > -1 ? rawPrimary.slice(0, dashIndex).trim() : rawPrimary;
+  const accent = dashIndex > -1 ? rawPrimary.slice(dashIndex).trim() : rawAccent;
   const bookHref = bookingUrl ?? site.booking.page;
   const bookLabel = bookingLabel ?? site.booking.label;
   const zocdocUrl =
@@ -45,10 +54,10 @@ export function Hero({
       />
 
       <div className="relative w-full px-4 pb-14 pt-[calc(88px+env(safe-area-inset-top))] sm:px-[30px] sm:pb-20 sm:pt-[calc(120px+env(safe-area-inset-top))] lg:px-[70px] lg:py-[100px] min-[1601px]:px-10 min-[1601px]:pb-[100px] min-[1601px]:pt-[200px]">
-        <div className="w-full max-w-[670px] md:w-1/2 md:max-w-none min-[1181px]:max-w-[670px]">
+        <div className="w-full max-w-[420px] md:w-1/2 md:max-w-none min-[1181px]:max-w-[760px]">
           <h1
             id="hero-heading"
-            className="font-heading text-[35px] font-normal italic leading-[1.05] tracking-normal [text-wrap:wrap] md:text-[50px] min-[1181px]:text-[60px]"
+            className="font-heading text-[30px] font-normal italic leading-[1.2] tracking-normal [text-wrap:wrap] md:text-[42px] min-[1181px]:text-[46px]"
           >
             <span className="text-[var(--color-brand-primary-on-dark)]">{primary}{accent ? ' ' : ''}</span>
             {accent ? <span className="text-[var(--color-brand-accent-on-dark)]">{accent}</span> : null}
