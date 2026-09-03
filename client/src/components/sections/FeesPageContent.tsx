@@ -77,7 +77,9 @@ export function FeesPageContent({
                     </p>
                   ) : null}
                   {pricing.slidingScaleAvailable ? (
-                    <p className="mt-3 text-[14px] font-semibold text-[var(--lw-primary)]">Sliding Scale Available</p>
+                    <p className="mt-3 text-[14px] font-semibold text-[var(--lw-primary)]">
+                      Sliding Scale Available — Contact us to ask about eligibility and availability.
+                    </p>
                   ) : null}
                   <p className="mt-6 font-heading text-[22px] text-[var(--lw-primary)] sm:text-[24px]">
                     Initial Psychiatric Evaluation: {formatPrice(pricing.initialFee)}
