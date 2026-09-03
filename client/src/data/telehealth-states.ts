@@ -12,6 +12,17 @@ import type { Faq } from '@/types/content';
  * physical office exists is a safety fact, not marketing copy, so it stays
  * tied to the state code in code (see TelehealthStatePageContent.tsx)
  * rather than a CMS field any admin could accidentally flip for MA/AZ.
+ *
+ * `selfPayInitialFee` / `selfPayFollowUpFee` / `pricingCta` (P7-2) are the
+ * same kind of fact, not marketing copy: the owner-approved psychiatric
+ * self-pay evaluation/follow-up amounts. A CMS row already exists and is
+ * published for all three states (confirmed live), and its single
+ * `self_pay_fee` column is already null there, silently overriding any
+ * value put in this file's now-legacy `selfPayFee`/`selfPayFeeLabel`
+ * fields — so these three new fields are deliberately left OUT of
+ * mapTelehealthStates()'s CMS mapping, exactly like `inPersonAvailable`,
+ * so they always come from this file regardless of CMS state and can
+ * never be silently emptied or mistyped through a free-text Admin field.
  */
 export interface TelehealthState {
   slug: string;
@@ -27,6 +38,11 @@ export interface TelehealthState {
   selfPayFee: number | null;
   selfPayFeeLabel: string | null;
   pricingNote: string | null;
+  /** Approved exact self-pay figures (P7-2) — not CMS-editable, see note above. */
+  selfPayInitialFee: number | null;
+  selfPayFollowUpFee: number | null;
+  /** Optional additional decision-support link shown alongside secondaryCta (P7-2) — not CMS-editable. */
+  pricingCta: { label: string; href: string } | null;
   heroImage: { src: string; alt: string } | null;
   primaryCta: { label: string; href: string };
   secondaryCta: { label: string; href: string };
@@ -56,6 +72,9 @@ export const telehealthStates: TelehealthState[] = [
     selfPayFee: null,
     selfPayFeeLabel: null,
     pricingNote: null,
+    selfPayInitialFee: null,
+    selfPayFollowUpFee: null,
+    pricingCta: null,
     heroImage: null,
     primaryCta: { label: 'Book an Appointment', href: BOOKING_HREF },
     secondaryCta: { label: 'View Fees & Insurance', href: '/fees-insurance' },
@@ -97,6 +116,9 @@ export const telehealthStates: TelehealthState[] = [
     selfPayFee: null,
     selfPayFeeLabel: null,
     pricingNote: null,
+    selfPayInitialFee: 300,
+    selfPayFollowUpFee: 175,
+    pricingCta: { label: 'View Fees & Insurance', href: '/fees-insurance' },
     heroImage: null,
     primaryCta: { label: 'Book an Appointment', href: BOOKING_HREF },
     secondaryCta: { label: 'Meet Your Provider', href: '/bio' },
@@ -143,6 +165,9 @@ export const telehealthStates: TelehealthState[] = [
     selfPayFee: null,
     selfPayFeeLabel: null,
     pricingNote: null,
+    selfPayInitialFee: 325,
+    selfPayFollowUpFee: 175,
+    pricingCta: { label: 'View Fees & Insurance', href: '/fees-insurance' },
     heroImage: null,
     primaryCta: { label: 'Book an Appointment', href: BOOKING_HREF },
     secondaryCta: { label: 'Meet Your Provider', href: '/bio' },

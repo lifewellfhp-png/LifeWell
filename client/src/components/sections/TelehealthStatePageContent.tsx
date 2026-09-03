@@ -88,11 +88,26 @@ export function TelehealthStatePageContent({
             )}
 
             {state.insuranceMode === 'self_pay_only' && state.selfPayEnabled && (
-              <p className="mt-4 text-[16px] font-semibold leading-[1.5] text-[var(--lw-primary)] min-[1181px]:text-[18px]">
-                {state.selfPayFee
-                  ? formatFee(state.selfPayFee, state.selfPayFeeLabel)
-                  : state.pricingNote || DEFAULT_PRICING_NOTE}
-              </p>
+              <div className="mt-4">
+                {state.selfPayInitialFee && state.selfPayFollowUpFee ? (
+                  <>
+                    <p className="text-[16px] font-semibold leading-[1.5] text-[var(--lw-primary)] min-[1181px]:text-[18px]">
+                      Self-Pay Only
+                    </p>
+                    <p className="mt-2 text-[15px] leading-[1.6] text-text-primary min-[1181px]:text-[16px]">
+                      Initial psychiatric evaluation: {formatFee(state.selfPayInitialFee, null)}
+                      <br />
+                      Follow-up medication management: {formatFee(state.selfPayFollowUpFee, null)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-[16px] font-semibold leading-[1.5] text-[var(--lw-primary)] min-[1181px]:text-[18px]">
+                    {state.selfPayFee
+                      ? formatFee(state.selfPayFee, state.selfPayFeeLabel)
+                      : state.pricingNote || DEFAULT_PRICING_NOTE}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
@@ -110,12 +125,25 @@ export function TelehealthStatePageContent({
                 .
               </p>
             ) : (
-              <Link
-                href={state.secondaryCta.href}
-                className="self-center text-[15px] font-semibold leading-[1.4] text-[var(--lw-accent)] underline-offset-2 hover:underline"
-              >
-                {state.secondaryCta.label}
-              </Link>
+              <p className="self-center text-[15px] leading-[1.4] text-text-primary">
+                {state.pricingCta && (
+                  <>
+                    <Link
+                      href={state.pricingCta.href}
+                      className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
+                    >
+                      {state.pricingCta.label}
+                    </Link>
+                    <span className="mx-2 text-text-secondary">·</span>
+                  </>
+                )}
+                <Link
+                  href={state.secondaryCta.href}
+                  className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
+                >
+                  {state.secondaryCta.label}
+                </Link>
+              </p>
             )}
           </div>
         </div>
