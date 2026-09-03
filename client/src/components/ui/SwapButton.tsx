@@ -1,5 +1,19 @@
+'use client';
+
 import Link from 'next/link';
 import { cn, isExternal } from '@/lib/utils';
+import { trackConversion } from '@/lib/cms';
+
+/**
+ * Fires a conversion event without ever delaying or blocking navigation —
+ * not awaited, and any failure is already swallowed inside trackConversion().
+ * `trackAs` is opt-in per call site (see each caller) so this shared button,
+ * which is also used for non-booking actions (View All Services, Watch More
+ * Videos, Request Preceptorship Information, etc.), never mislabels those.
+ */
+function fireTrackingClick(trackAs: 'booking_click') {
+  void trackConversion(trackAs, typeof window !== 'undefined' ? window.location.pathname : undefined);
+}
 
 /**
  * Live-site "swap button": pill label + detached circular arrow.
@@ -11,18 +25,22 @@ export function SwapButton({
   className,
   fullWidth,
   size = 'md',
+  trackAs,
 }: {
   href: string;
   children: React.ReactNode;
   className?: string;
   fullWidth?: boolean;
   size?: 'md' | 'sm';
+  /** Opt-in conversion tracking; omit for non-booking uses of this button. */
+  trackAs?: 'booking_click';
 }) {
   const classes = cn(
     'group inline-flex max-w-full items-center',
     fullWidth && 'w-full',
     className
   );
+  const onClick = trackAs ? () => fireTrackingClick(trackAs) : undefined;
 
   const compact = size === 'sm';
   const pill = cn(
@@ -53,6 +71,7 @@ export function SwapButton({
         href={href}
         {...(externalTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         className={classes}
+        onClick={onClick}
       >
         {inner}
       </a>
@@ -60,7 +79,7 @@ export function SwapButton({
   }
 
   return (
-    <Link href={href} prefetch className={classes}>
+    <Link href={href} prefetch className={classes} onClick={onClick}>
       {inner}
     </Link>
   );

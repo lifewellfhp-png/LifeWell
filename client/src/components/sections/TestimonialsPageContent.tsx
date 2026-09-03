@@ -94,6 +94,7 @@ export function TestimonialsPageContent({
         after=""
         body={testimonialsCta.body}
         cta="Book an Appointment"
+        trackAs="booking_click"
       />
     </div>
   );

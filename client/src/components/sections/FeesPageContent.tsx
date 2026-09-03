@@ -86,7 +86,7 @@ export function FeesPageContent({
                     Follow-Up Medication Management: {formatPrice(pricing.followUpFee)}
                   </p>
                   <div className="mt-auto pt-6">
-                    <SwapButton href={bookHref}>Book an Appointment</SwapButton>
+                    <SwapButton href={bookHref} trackAs="booking_click">Book an Appointment</SwapButton>
                   </div>
                 </article>
               </li>
@@ -128,7 +128,7 @@ export function FeesPageContent({
                     ))}
                   </ul>
                   <div className="mt-5">
-                    <SwapButton href={bookHref}>Book an Appointment</SwapButton>
+                    <SwapButton href={bookHref} trackAs="booking_click">Book an Appointment</SwapButton>
                   </div>
                 </article>
               </li>
@@ -198,7 +198,7 @@ export function FeesPageContent({
               {feesClosing.body}
             </p>
             <div className="mt-8">
-              <SwapButton href={bookHref}>{feesClosing.cta}</SwapButton>
+              <SwapButton href={bookHref} trackAs="booking_click">{feesClosing.cta}</SwapButton>
             </div>
           </div>
           <div>

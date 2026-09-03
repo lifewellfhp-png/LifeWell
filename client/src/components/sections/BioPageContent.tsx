@@ -4,6 +4,7 @@ import { site } from '@/data/site';
 import { stats, testimonials } from '@/data/marketing';
 import { Container } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
+import { TrackedBookingLink } from '@/components/ui/TrackedBookingLink';
 import { StatsBand } from '@/components/sections/StatsBand';
 import { ProviderTrustLinks } from '@/components/sections/BookingProfiles';
 import type { BookingProfiles } from '@/lib/cms-resolve';
@@ -68,7 +69,7 @@ export function BioPageContent({
                 {providerPage.consultation.body}
               </p>
               <div className="mt-8 flex justify-center">
-                <SwapButton href={bookHref}>{providerPage.consultation.cta.label}</SwapButton>
+                <SwapButton href={bookHref} trackAs="booking_click">{providerPage.consultation.cta.label}</SwapButton>
               </div>
               {bookingProfiles && (
                 <div className="flex justify-center">
@@ -106,7 +107,7 @@ export function BioPageContent({
               <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {providerPage.shifts.map((shift) => (
                   <li key={shift.day}>
-                    <a
+                    <TrackedBookingLink
                       href={bookHref}
                       className="flex flex-col items-center rounded-[15px] bg-[var(--lw-accent)] px-6 py-8 text-center no-underline transition-transform duration-300 hover:-translate-y-2.5"
                     >
@@ -116,7 +117,7 @@ export function BioPageContent({
                       <span className="mt-2 text-[16px] font-normal leading-snug text-white sm:text-[18px]">
                         {shift.hours}
                       </span>
-                    </a>
+                    </TrackedBookingLink>
                   </li>
                 ))}
               </ul>

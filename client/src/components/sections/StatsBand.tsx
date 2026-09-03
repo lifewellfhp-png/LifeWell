@@ -71,7 +71,7 @@ export function StatsBand({
               </p>
               {showCta && (
                 <div className="mt-8">
-                  <SwapButton href={bookHref}>Book an Appointment</SwapButton>
+                  <SwapButton href={bookHref} trackAs="booking_click">Book an Appointment</SwapButton>
                 </div>
               )}
             </div>

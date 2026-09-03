@@ -68,7 +68,7 @@ export function Hero({
           </p>
 
           <div className="mt-8 flex flex-col items-stretch gap-4 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
-            <SwapButton href={bookHref}>{bookLabel}</SwapButton>
+            <SwapButton href={bookHref} trackAs="booking_click">{bookLabel}</SwapButton>
             <OutlineButton href="/fees-insurance">Insurance &amp; Pricing</OutlineButton>
             <Link
               href="/our-services"

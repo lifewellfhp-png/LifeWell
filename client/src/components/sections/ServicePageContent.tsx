@@ -93,7 +93,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
                   </p>
                 ))}
                 <div className="mt-7">
-                  <SwapButton href={bookHref}>
+                  <SwapButton href={bookHref} trackAs="booking_click">
                     {'Book an Appointment'}
                   </SwapButton>
                 </div>
@@ -128,7 +128,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
                 telehealth support tailored to your needs.
               </p>
               <div className="mt-6">
-                <SwapButton href={bookHref} size="sm">
+                <SwapButton href={bookHref} size="sm" trackAs="booking_click">
                   Book an Appointment
                 </SwapButton>
               </div>

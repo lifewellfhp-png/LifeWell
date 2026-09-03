@@ -82,6 +82,7 @@ export default async function BookPage() {
           imageSide="right"
           href="#charm-calendar"
           cta="Choose a Time"
+          trackAs="booking_click"
         />
       </div>
     </>

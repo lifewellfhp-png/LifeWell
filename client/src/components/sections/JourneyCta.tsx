@@ -12,6 +12,7 @@ export function JourneyCta({
   body = 'Getting started is simple. Choose an available appointment time that works for you.',
   cta = 'Book an Appointment',
   href = site.booking.page,
+  trackAs,
 }: {
   image: { src: string; alt: string; width: number; height: number };
   imageSide?: 'left' | 'right';
@@ -21,6 +22,8 @@ export function JourneyCta({
   body?: string;
   cta?: string;
   href?: string;
+  /** Opt-in conversion tracking; omit if this instance isn't a booking CTA. */
+  trackAs?: 'booking_click';
 }) {
   const copy = (
     <div>
@@ -33,7 +36,7 @@ export function JourneyCta({
         {body}
       </p>
       <div className="mt-8">
-        <SwapButton href={href}>{cta}</SwapButton>
+        <SwapButton href={href} trackAs={trackAs}>{cta}</SwapButton>
       </div>
     </div>
   );

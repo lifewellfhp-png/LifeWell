@@ -174,7 +174,7 @@ function ContactHero({
       </ul>
 
       <div>
-        <SwapButton href={bookingUrl}>Book an Appointment</SwapButton>
+        <SwapButton href={bookingUrl} trackAs="booking_click">Book an Appointment</SwapButton>
       </div>
 
       <a href={phoneHref} className="no-underline">

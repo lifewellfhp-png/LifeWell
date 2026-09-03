@@ -113,7 +113,7 @@ export function HowItWorks({
 
         {showCta && (
           <div className="mt-10 flex justify-center min-[1181px]:mt-16">
-            <SwapButton href={bookHref}>{howItWorks.cta.label}</SwapButton>
+            <SwapButton href={bookHref} trackAs="booking_click">{howItWorks.cta.label}</SwapButton>
           </div>
         )}
       </Container>

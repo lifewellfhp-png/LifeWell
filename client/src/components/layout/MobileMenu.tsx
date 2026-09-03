@@ -162,7 +162,7 @@ export function MobileMenu({ id, open, onClose, items, cta, pathname, phone }: M
         </nav>
 
         <div className="space-y-4 border-t border-border-subtle px-4 py-4 sm:px-5 sm:py-5">
-          <HeaderCta href={cta.href} fullWidth>
+          <HeaderCta href={cta.href} fullWidth trackAs="booking_click">
             {cta.label}
           </HeaderCta>
           <a

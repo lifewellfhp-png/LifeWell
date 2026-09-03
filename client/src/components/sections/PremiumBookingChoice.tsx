@@ -96,7 +96,7 @@ export function BookingChoiceGrid({
               {profiles.pageCopy.directDescription}
             </p>
             <div className="mt-6">
-              <SwapButton href={calendarAnchor} fullWidth>
+              <SwapButton href={calendarAnchor} fullWidth trackAs="booking_click">
                 Choose a Time
               </SwapButton>
             </div>

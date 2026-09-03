@@ -132,7 +132,7 @@ export function NavBar({
             compact === null ? 'hidden min-[1440px]:flex' : showDesktop ? 'flex' : 'hidden'
           )}
         >
-          <HeaderCta href={cta.href} overlay={overlay}>
+          <HeaderCta href={cta.href} overlay={overlay} trackAs="booking_click">
             {cta.label}
           </HeaderCta>
         </div>
@@ -146,7 +146,7 @@ export function NavBar({
                 : 'hidden'
           )}
         >
-          <HeaderCta href={cta.href} size="sm" overlay={overlay}>
+          <HeaderCta href={cta.href} size="sm" overlay={overlay} trackAs="booking_click">
             {cta.label}
           </HeaderCta>
         </div>

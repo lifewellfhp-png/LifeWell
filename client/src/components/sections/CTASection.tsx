@@ -38,7 +38,7 @@ export function CTASection({
           )}
 
           <div className="mt-9 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:flex-wrap sm:items-center">
-            <SwapButton href={primaryHref}>{primaryLabel}</SwapButton>
+            <SwapButton href={primaryHref} trackAs="booking_click">{primaryLabel}</SwapButton>
             <OutlineButton href={secondaryHref} variant="onDark" showArrow={false}>
               {secondaryLabel}
             </OutlineButton>
@@ -86,7 +86,7 @@ export function ContactCTA({
               </h2>
 
               <div className="mt-8">
-                <SwapButton href={bookHref}>{bookText}</SwapButton>
+                <SwapButton href={bookHref} trackAs="booking_click">{bookText}</SwapButton>
               </div>
               <div className="mt-8">
                 <ContactForm variant="compact" />

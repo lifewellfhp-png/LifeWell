@@ -97,7 +97,7 @@ export function TelehealthStatePageContent({
           </div>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <SwapButton href={bookingUrl}>{state.primaryCta.label}</SwapButton>
+            <SwapButton href={bookingUrl} trackAs="booking_click">{state.primaryCta.label}</SwapButton>
             {state.insuranceMode === 'existing' ? (
               <p className="self-center text-[15px] leading-[1.4] text-text-primary">
                 Questions about cost?{' '}

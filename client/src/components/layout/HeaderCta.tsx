@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { cn, isExternal } from '@/lib/utils';
 import { LongArrow } from '@/components/ui/SwapButton';
+import { trackConversion } from '@/lib/cms';
 
 /**
  * Header-only "Book an Appointment" control — a single integrated pill with
@@ -17,6 +20,7 @@ export function HeaderCta({
   fullWidth,
   overlay,
   className,
+  trackAs,
 }: {
   href: string;
   children: React.ReactNode;
@@ -24,8 +28,17 @@ export function HeaderCta({
   fullWidth?: boolean;
   overlay?: boolean;
   className?: string;
+  /** Opt-in conversion tracking; the header CTA's destination/label is
+   * admin-editable via CMS settings, so tracking is opt-in per call site
+   * rather than assumed, matching SwapButton's pattern. */
+  trackAs?: 'booking_click';
 }) {
   const compact = size === 'sm';
+  const onClick = trackAs
+    ? () => {
+        void trackConversion(trackAs, typeof window !== 'undefined' ? window.location.pathname : undefined);
+      }
+    : undefined;
   const classes = cn(
     'inline-flex items-center justify-center gap-2.5 whitespace-nowrap rounded-[30px] bg-[var(--lw-primary)] font-semibold leading-none text-white no-underline transition-colors duration-300 hover:bg-[var(--lw-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lw-primary)]',
     overlay && 'focus-visible:outline-white',
@@ -50,6 +63,7 @@ export function HeaderCta({
         href={href}
         {...(externalTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         className={classes}
+        onClick={onClick}
       >
         {inner}
       </a>
@@ -57,7 +71,7 @@ export function HeaderCta({
   }
 
   return (
-    <Link href={href} prefetch className={classes}>
+    <Link href={href} prefetch className={classes} onClick={onClick}>
       {inner}
     </Link>
   );

@@ -27,7 +27,7 @@ export function NewPatientsPageContent() {
     <div className="bg-white">
       <InnerPageHero title={newPatientsHero.titleLead} accent={newPatientsHero.titleAccent} lead={newPatientsHero.lead}>
         <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center">
-          <SwapButton href={bookHref}>Book an Appointment</SwapButton>
+          <SwapButton href={bookHref} trackAs="booking_click">Book an Appointment</SwapButton>
           <OutlineButton href={CONTACT_HREF} variant="onLight" showArrow={false}>
             Contact Us
           </OutlineButton>
@@ -185,7 +185,7 @@ export function NewPatientsPageContent() {
               Book your first appointment online, or reach out if you have questions before scheduling.
             </p>
             <div className="mt-9 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:flex-wrap sm:items-center">
-              <SwapButton href={bookHref}>Book an Appointment</SwapButton>
+              <SwapButton href={bookHref} trackAs="booking_click">Book an Appointment</SwapButton>
               <OutlineButton href={CONTACT_HREF} variant="onDark" showArrow={false}>
                 Contact Us
               </OutlineButton>
