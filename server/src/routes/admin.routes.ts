@@ -167,7 +167,11 @@ adminRouter.get(
       sb.from('faqs').select('id', { count: 'exact', head: true }),
       sb.from('insurance_plans').select('id', { count: 'exact', head: true }),
       sb.from('analytics_events').select('id, created_at').eq('event_type', 'page_view').gte('created_at', since7),
-      sb.from('conversions').select('id', { count: 'exact', head: true }).gte('created_at', since7),
+      sb
+        .from('conversions')
+        .select('id', { count: 'exact', head: true })
+        .eq('conversion_type', 'booking_click')
+        .gte('created_at', since7),
       sb.from('leads').select('id, type, name, email, status, created_at').order('created_at', { ascending: false }).limit(6),
     ]);
 
