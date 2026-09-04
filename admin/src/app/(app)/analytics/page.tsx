@@ -14,6 +14,7 @@ type Summary = {
   trafficSources: { source: string; visits: number }[];
   trends: { date: string; views: number }[];
   conversionCounts: Record<string, number>;
+  topBookingPages: { path: string; clicks: number }[];
 };
 
 const DEVICE_COLORS: Record<string, string> = {
@@ -76,6 +77,10 @@ export default function AnalyticsPage() {
         label: label.replace('_', ' '),
         value,
       })),
+    [data]
+  );
+  const bookingPages = useMemo(
+    () => (data?.topBookingPages || []).slice(0, 8).map((p) => ({ label: p.path, value: p.clicks })),
     [data]
   );
 
@@ -168,6 +173,12 @@ export default function AnalyticsPage() {
           <BarList points={conversions} color="#2f6691" />
         </section>
       </div>
+
+      <section className="card card-pad">
+        <h2>Top booking-intent pages</h2>
+        <p className="page-sub">Pages where visitors clicked a Book an Appointment button. A click reflects booking intent, not a confirmed appointment.</p>
+        <BarList points={bookingPages} color="#5faf6b" />
+      </section>
     </div>
   );
 }

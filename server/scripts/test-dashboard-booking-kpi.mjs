@@ -111,10 +111,14 @@ test('10. no Production-mutating call (insert/update/delete/upsert) was introduc
   assert.doesNotMatch(dashboardSource, /\.upsert\(/);
 });
 
-test('11. the analytics.controller.ts conversion summary logic (Phase 8 audit scope) is untouched', () => {
+test('11. the analytics.controller.ts conversionCounts (type-total) logic this task depended on remains present and unchanged', () => {
+  // P1-1 (booking-by-path) was out of scope for P0-1 at the time this test
+  // was written and has since been implemented as its own, separately
+  // authorized task (see test-analytics-booking-pages.mjs) — so this test
+  // no longer asserts the file is free of "booking_click" entirely, only
+  // that the specific aggregate this P0-1 fix relied on is intact.
   const controllerSource = readFileSync(join(root, 'src/controllers/analytics.controller.ts'), 'utf8');
   assert.match(controllerSource, /const conversionCounts = conversions\.reduce/);
-  assert.doesNotMatch(controllerSource, /booking_click/, 'P1-1 (booking-by-path) must not be implemented by this task');
 });
 
 // --- Behavioral: the real route still requires auth, unaffected by the query change ---

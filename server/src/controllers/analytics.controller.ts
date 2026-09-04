@@ -86,6 +86,17 @@ export async function getAnalyticsSummary(_req: Request, res: Response): Promise
     return acc;
   }, {});
 
+  const byBookingClickPath: Record<string, number> = {};
+  for (const c of conversions) {
+    if (c.conversion_type !== 'booking_click') continue;
+    const path = c.path || '/';
+    byBookingClickPath[path] = (byBookingClickPath[path] ?? 0) + 1;
+  }
+  const topBookingPages = Object.entries(byBookingClickPath)
+    .map(([path, clicks]) => ({ path, clicks }))
+    .sort((a, b) => b.clicks - a.clicks)
+    .slice(0, 15);
+
   const priorSince = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
   const midpoint = since;
   const [priorEvents, priorConversions] = await Promise.all([
@@ -120,6 +131,7 @@ export async function getAnalyticsSummary(_req: Request, res: Response): Promise
       trafficSources,
       trends,
       conversionCounts,
+      topBookingPages,
     },
   });
 }
