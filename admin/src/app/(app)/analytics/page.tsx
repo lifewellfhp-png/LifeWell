@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Eye, Globe, MousePointerClick, Smartphone, Monitor, Tablet } from 'lucide-react';
+import { Eye, MousePointerClick, Smartphone, Monitor, Tablet } from 'lucide-react';
 import { api } from '@/lib/api';
 import { AreaChart, BarList, DonutChart } from '@/components/charts';
 
 type Summary = {
   rangeDays: number;
-  totals: { pageViews: number; sessions: number; conversions: number };
-  deltas: { pageViews: number; sessions: number; conversions: number };
+  totals: { pageViews: number; conversions: number };
+  deltas: { pageViews: number; conversions: number };
   popularPages: { path: string; views: number }[];
   devices: Record<string, number>;
   trafficSources: { source: string; visits: number }[];
@@ -93,7 +93,7 @@ export default function AnalyticsPage() {
 
       {error ? <div className="error-banner">{error}</div> : null}
 
-      <div className="kpi-grid three">
+      <div className="kpi-grid two">
         <article className="kpi-card static">
           <div className="kpi-top">
             <span className="stat-icon">
@@ -103,16 +103,6 @@ export default function AnalyticsPage() {
           <div className="kpi-value">{data?.totals.pageViews ?? '—'}</div>
           <div className="kpi-label">Page views</div>
           <Delta value={data?.deltas.pageViews ?? 0} />
-        </article>
-        <article className="kpi-card static">
-          <div className="kpi-top">
-            <span className="stat-icon">
-              <Globe size={18} />
-            </span>
-          </div>
-          <div className="kpi-value">{data?.totals.sessions ?? '—'}</div>
-          <div className="kpi-label">Sessions</div>
-          <Delta value={data?.deltas.sessions ?? 0} />
         </article>
         <article className="kpi-card static">
           <div className="kpi-top">

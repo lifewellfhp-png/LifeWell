@@ -113,10 +113,14 @@ test('9. the new Admin section does not claim a confirmed appointment/booking wa
   assert.doesNotMatch(pageSourceRaw, /new patient/i);
 });
 
-test('10. this change does not implement P1-2 (Sessions) or any other Phase 8 recommendation', () => {
+test('10. this task (P1-1) did not itself alter the Sessions KPI one way or the other', () => {
+  // P1-2 (removing the permanently-zero Sessions KPI) was out of scope for
+  // P1-1 at the time this test was written and has since been implemented
+  // as its own, separately authorized task (see
+  // test-analytics-sessions-removed.mjs) — so this test no longer asserts
+  // the Sessions computation is present, only that P1-1's own diff never
+  // mentioned/touched it either way.
   assert.doesNotMatch(summarySource, /session_start.*fix|fixed.*session/i);
-  // Sessions totals logic must be present and untouched, not removed or altered.
-  assert.match(controllerSource, /sessions: events\.filter\(\(e\) => e\.event_type === 'session_start'\)\.length/);
 });
 
 // --- Behavioral: the summary route still requires admin auth + permission ---

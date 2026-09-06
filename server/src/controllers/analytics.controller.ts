@@ -104,7 +104,6 @@ export async function getAnalyticsSummary(_req: Request, res: Response): Promise
     sb.from('conversions').select('id, created_at').gte('created_at', priorSince).lt('created_at', midpoint),
   ]);
   const priorViews = (priorEvents.data ?? []).filter((e) => e.event_type === 'page_view').length;
-  const priorSessions = (priorEvents.data ?? []).filter((e) => e.event_type === 'session_start').length;
   const priorConv = (priorConversions.data ?? []).length;
 
   const pct = (now: number, prev: number) => {
@@ -118,12 +117,10 @@ export async function getAnalyticsSummary(_req: Request, res: Response): Promise
       rangeDays: 30,
       totals: {
         pageViews: pageViews.length,
-        sessions: events.filter((e) => e.event_type === 'session_start').length,
         conversions: conversions.length,
       },
       deltas: {
         pageViews: pct(pageViews.length, priorViews),
-        sessions: pct(events.filter((e) => e.event_type === 'session_start').length, priorSessions),
         conversions: pct(conversions.length, priorConv),
       },
       popularPages,
