@@ -6,6 +6,9 @@ import { api } from '@/lib/api';
 import { AreaChart, BarList, DonutChart } from '@/components/charts';
 
 type Summary = {
+  from: string;
+  to: string;
+  timezone: string;
   rangeDays: number;
   totals: { pageViews: number; conversions: number };
   deltas: { pageViews: number; conversions: number };
@@ -24,17 +27,30 @@ const DEVICE_COLORS: Record<string, string> = {
   unknown: '#9aa6b2',
 };
 
+/** `iso` is a plain YYYY-MM-DD calendar date — parsed as local midnight so the
+ * displayed day never shifts across a UTC/local boundary. */
 function formatDay(iso: string) {
   const d = new Date(`${iso}T00:00:00`);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function Delta({ value }: { value: number }) {
+function formatDayLong(iso: string) {
+  const d = new Date(`${iso}T00:00:00`);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+const TIMEZONE_LABELS: Record<string, string> = {
+  'America/New_York': 'Eastern Time (ET)',
+};
+
+type PresetOption = 'today' | '7d' | '30d' | 'custom';
+
+function Delta({ value, days }: { value: number; days: number }) {
   const up = value >= 0;
   return (
     <span className={`kpi-delta ${up ? 'up' : 'down'}`}>
       {up ? '+' : ''}
-      {value}% vs prior 30 days
+      {value}% vs prior {days} {days === 1 ? 'day' : 'days'}
     </span>
   );
 }
@@ -42,13 +58,35 @@ function Delta({ value }: { value: number }) {
 export default function AnalyticsPage() {
   const [data, setData] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [preset, setPreset] = useState<PresetOption>('30d');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
 
   useEffect(() => {
-    void api<Summary>('/api/admin/analytics/summary').then((res) => {
+    if (preset === 'custom') return; // wait for explicit Apply
+    setError(null);
+    void api<Summary>(`/api/admin/analytics/summary?preset=${preset}`).then((res) => {
       if (!res.success) setError(res.message || 'Failed to load analytics');
       else setData(res.data || null);
     });
-  }, []);
+  }, [preset]);
+
+  function applyCustomRange() {
+    if (!customFrom || !customTo) {
+      setError('Choose both a start and end date.');
+      return;
+    }
+    if (customFrom > customTo) {
+      setError('Start date must not be after end date.');
+      return;
+    }
+    setError(null);
+    const qs = new URLSearchParams({ from: customFrom, to: customTo }).toString();
+    void api<Summary>(`/api/admin/analytics/summary?${qs}`).then((res) => {
+      if (!res.success) setError(res.message || 'Failed to load analytics');
+      else setData(res.data || null);
+    });
+  }
 
   const trend = useMemo(
     () => (data?.trends || []).map((t) => ({ label: formatDay(t.date), value: t.views })),
@@ -84,11 +122,49 @@ export default function AnalyticsPage() {
     [data]
   );
 
+  const timezoneLabel = data ? TIMEZONE_LABELS[data.timezone] || data.timezone : '';
+
   return (
     <div className="stack">
       <div>
         <h1 className="page-title">Analytics</h1>
-        <p className="page-sub">Last {data?.rangeDays ?? 30} days of anonymous public-site traffic.</p>
+        <p className="page-sub">
+          {data
+            ? `${formatDayLong(data.from)} – ${formatDayLong(data.to)} · ${timezoneLabel} · anonymous public-site traffic.`
+            : 'Loading anonymous public-site traffic…'}
+        </p>
+      </div>
+
+      <div className="filter-bar">
+        <select
+          value={preset}
+          onChange={(e) => setPreset(e.target.value as PresetOption)}
+          aria-label="Date range"
+        >
+          <option value="today">Today</option>
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="custom">Custom range</option>
+        </select>
+        {preset === 'custom' && (
+          <>
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              aria-label="Start date"
+            />
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              aria-label="End date"
+            />
+            <button type="button" className="btn btn-primary" onClick={applyCustomRange}>
+              Apply
+            </button>
+          </>
+        )}
       </div>
 
       {error ? <div className="error-banner">{error}</div> : null}
@@ -102,7 +178,7 @@ export default function AnalyticsPage() {
           </div>
           <div className="kpi-value">{data?.totals.pageViews ?? '—'}</div>
           <div className="kpi-label">Page views</div>
-          <Delta value={data?.deltas.pageViews ?? 0} />
+          <Delta value={data?.deltas.pageViews ?? 0} days={data?.rangeDays ?? 30} />
         </article>
         <article className="kpi-card static">
           <div className="kpi-top">
@@ -112,7 +188,7 @@ export default function AnalyticsPage() {
           </div>
           <div className="kpi-value">{data?.totals.conversions ?? '—'}</div>
           <div className="kpi-label">Conversions</div>
-          <Delta value={data?.deltas.conversions ?? 0} />
+          <Delta value={data?.deltas.conversions ?? 0} days={data?.rangeDays ?? 30} />
         </article>
       </div>
 

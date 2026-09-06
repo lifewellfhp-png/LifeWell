@@ -35,13 +35,159 @@ export async function handleConversionIngest(req: Request, res: Response): Promi
   res.status(201).json({ success: true });
 }
 
-export async function getAnalyticsSummary(_req: Request, res: Response): Promise<void> {
+/**
+ * Phase 8 P2-1: one explicit reporting timezone, used end-to-end for every
+ * date boundary and trend bucket in getAnalyticsSummary — America/New_York,
+ * matching the practice's Orlando, FL location and its own published
+ * business hours (client/src/data/site.ts labels them "EST"; an IANA zone is
+ * used here instead of a fixed offset so DST is handled automatically and
+ * correctly year-round, rather than repeating that "always EST" imprecision).
+ * The resolved zone is echoed back in the API response (`timezone`) so the
+ * Admin UI displays it rather than hardcoding a second copy of this fact.
+ *
+ * Boundary rule (defined before implementation, applies everywhere in this
+ * file): `from` and `to` are calendar dates (YYYY-MM-DD) as observed in
+ * REPORT_TIMEZONE, and both are INCLUSIVE from the caller's perspective. The
+ * underlying Supabase query window is the standard half-open interval
+ * [localMidnight(from), localMidnight(to + 1 day)) — start inclusive, end
+ * exclusive — so every calendar day in the range is counted exactly once,
+ * whether it's the first, last, or a middle day, with no midnight-boundary
+ * event ever double-counted or dropped. Day-bucketing for the trend chart
+ * uses the same zone, so "Aug 30" always means Aug 30 in REPORT_TIMEZONE,
+ * never Aug 30 UTC.
+ */
+const REPORT_TIMEZONE = 'America/New_York';
+const MAX_RANGE_DAYS = 366;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The UTC instant of `dateStr`'s (YYYY-MM-DD) local midnight in `timeZone`. */
+function zonedMidnightToUtc(dateStr: string, timeZone: string): Date {
+  const naiveUtc = new Date(`${dateStr}T00:00:00.000Z`);
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  const parts: Record<string, string> = {};
+  for (const part of fmt.formatToParts(naiveUtc)) parts[part.type] = part.value;
+  const hour = Number(parts.hour) % 24; // some ICU builds render midnight as "24"
+  const zonedAsUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    hour,
+    Number(parts.minute),
+    Number(parts.second)
+  );
+  const offsetMs = zonedAsUtc - naiveUtc.getTime();
+  return new Date(naiveUtc.getTime() - offsetMs);
+}
+
+/** Adds (or subtracts, for a negative count) whole calendar days to a YYYY-MM-DD string. */
+function addCalendarDays(dateStr: string, days: number): string {
+  const d = new Date(`${dateStr}T00:00:00.000Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Whole calendar days from `fromStr` to `toStr` (0 when equal). */
+function calendarDaysBetween(fromStr: string, toStr: string): number {
+  const a = new Date(`${fromStr}T00:00:00.000Z`).getTime();
+  const b = new Date(`${toStr}T00:00:00.000Z`).getTime();
+  return Math.round((b - a) / 86_400_000);
+}
+
+/** Today's calendar date (YYYY-MM-DD) as observed in `timeZone`. */
+function todayInZone(timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(
+    new Date()
+  );
+}
+
+/** The calendar date (YYYY-MM-DD) a stored UTC timestamp falls on, as observed in `timeZone`. */
+function dateKeyInZone(isoUtc: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(
+    new Date(isoUtc)
+  );
+}
+
+function isValidCalendarDate(value: string): boolean {
+  if (!DATE_RE.test(value)) return false;
+  const parts = value.split('-').map(Number);
+  const y = parts[0] ?? 0;
+  const m = parts[1] ?? 0;
+  const d = parts[2] ?? 0;
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
+const PRESETS = ['today', '7d', '30d'] as const;
+type Preset = (typeof PRESETS)[number];
+
+function isPreset(value: string): value is Preset {
+  return (PRESETS as readonly string[]).includes(value);
+}
+
+/** Resolves and validates the requested (or default) reporting range — see the boundary-rule comment above. */
+function resolveRange(query: Request['query']): { from: string; to: string } {
+  const presetRaw = typeof query.preset === 'string' ? query.preset : undefined;
+  const fromRaw = typeof query.from === 'string' ? query.from : undefined;
+  const toRaw = typeof query.to === 'string' ? query.to : undefined;
+
+  if (presetRaw !== undefined) {
+    if (fromRaw !== undefined || toRaw !== undefined) {
+      throw badRequest('Provide either preset or from/to, not both.');
+    }
+    if (!isPreset(presetRaw)) throw badRequest("preset must be one of: 'today', '7d', '30d'.");
+    const to = todayInZone(REPORT_TIMEZONE);
+    const spanDays = presetRaw === 'today' ? 1 : presetRaw === '7d' ? 7 : 30;
+    return { from: addCalendarDays(to, -(spanDays - 1)), to };
+  }
+
+  if (fromRaw === undefined && toRaw === undefined) {
+    // Default: last 30 calendar days ending today, in REPORT_TIMEZONE —
+    // preserves the pre-P2-1 default window.
+    const to = todayInZone(REPORT_TIMEZONE);
+    return { from: addCalendarDays(to, -29), to };
+  }
+
+  if (fromRaw === undefined || toRaw === undefined) {
+    throw badRequest('Both from and to must be provided together.');
+  }
+  if (!isValidCalendarDate(fromRaw) || !isValidCalendarDate(toRaw)) {
+    throw badRequest('from/to must be valid calendar dates in YYYY-MM-DD format.');
+  }
+  if (fromRaw > toRaw) throw badRequest('from must not be after to.');
+  const spanDays = calendarDaysBetween(fromRaw, toRaw) + 1;
+  if (spanDays > MAX_RANGE_DAYS) throw badRequest(`Date range cannot exceed ${MAX_RANGE_DAYS} days.`);
+
+  return { from: fromRaw, to: toRaw };
+}
+
+export async function getAnalyticsSummary(req: Request, res: Response): Promise<void> {
   const sb = getSupabase();
-  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { from, to } = resolveRange(req.query);
+  const rangeDays = calendarDaysBetween(from, to) + 1;
+
+  const rangeStart = zonedMidnightToUtc(from, REPORT_TIMEZONE);
+  const rangeEnd = zonedMidnightToUtc(addCalendarDays(to, 1), REPORT_TIMEZONE);
 
   const [eventsRes, conversionsRes] = await Promise.all([
-    sb.from('analytics_events').select('event_type, path, referrer_host, device, created_at').gte('created_at', since),
-    sb.from('conversions').select('conversion_type, path, created_at').gte('created_at', since),
+    sb
+      .from('analytics_events')
+      .select('event_type, path, referrer_host, device, created_at')
+      .gte('created_at', rangeStart.toISOString())
+      .lt('created_at', rangeEnd.toISOString()),
+    sb
+      .from('conversions')
+      .select('conversion_type, path, created_at')
+      .gte('created_at', rangeStart.toISOString())
+      .lt('created_at', rangeEnd.toISOString()),
   ]);
 
   if (eventsRes.error) throw badRequest(eventsRes.error.message);
@@ -63,7 +209,7 @@ export async function getAnalyticsSummary(_req: Request, res: Response): Promise
     byDevice[device] = (byDevice[device] ?? 0) + 1;
     const ref = e.referrer_host || 'direct';
     byReferrer[ref] = (byReferrer[ref] ?? 0) + 1;
-    const day = (e.created_at as string).slice(0, 10);
+    const day = dateKeyInZone(e.created_at as string, REPORT_TIMEZONE);
     byDay[day] = (byDay[day] ?? 0) + 1;
   }
 
@@ -97,11 +243,26 @@ export async function getAnalyticsSummary(_req: Request, res: Response): Promise
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 15);
 
-  const priorSince = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
-  const midpoint = since;
+  // Comparison period: the immediately preceding window of the SAME length
+  // (in calendar days) as the selected range, bounded by the same
+  // REPORT_TIMEZONE half-open rule — generalizes the old hardcoded
+  // "prior 30 days" comparison to any range length.
+  const priorTo = addCalendarDays(from, -1);
+  const priorFrom = addCalendarDays(priorTo, -(rangeDays - 1));
+  const priorStart = zonedMidnightToUtc(priorFrom, REPORT_TIMEZONE);
+  const priorEnd = rangeStart;
+
   const [priorEvents, priorConversions] = await Promise.all([
-    sb.from('analytics_events').select('event_type, created_at').gte('created_at', priorSince).lt('created_at', midpoint),
-    sb.from('conversions').select('id, created_at').gte('created_at', priorSince).lt('created_at', midpoint),
+    sb
+      .from('analytics_events')
+      .select('event_type, created_at')
+      .gte('created_at', priorStart.toISOString())
+      .lt('created_at', priorEnd.toISOString()),
+    sb
+      .from('conversions')
+      .select('id, created_at')
+      .gte('created_at', priorStart.toISOString())
+      .lt('created_at', priorEnd.toISOString()),
   ]);
   const priorViews = (priorEvents.data ?? []).filter((e) => e.event_type === 'page_view').length;
   const priorConv = (priorConversions.data ?? []).length;
@@ -114,7 +275,10 @@ export async function getAnalyticsSummary(_req: Request, res: Response): Promise
   res.json({
     success: true,
     data: {
-      rangeDays: 30,
+      from,
+      to,
+      timezone: REPORT_TIMEZONE,
+      rangeDays,
       totals: {
         pageViews: pageViews.length,
         conversions: conversions.length,
