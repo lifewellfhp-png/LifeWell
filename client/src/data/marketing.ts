@@ -218,7 +218,7 @@ export const faqs: Faq[] = [
   {
     question: 'How do I schedule an appointment?',
     answer:
-      'You can schedule an appointment using the online booking system. After scheduling, you will receive confirmation and instructions for your telehealth session.',
+      'You can schedule an appointment using the online booking system. Most patients are seen through secure telehealth, and Florida residents may also choose an in-person visit at our Orlando office. After scheduling, you will receive confirmation and instructions for your appointment.',
   },
   {
     question: 'Do you accept insurance?',
