@@ -22,6 +22,8 @@ type Campaign = {
   subject: string;
   preview_text: string | null;
   content: string;
+  html_body: string | null;
+  subject_fallback: string | null;
   status: CampaignStatus;
   audience_type: AudienceType | null;
   created_by: string | null;
@@ -69,8 +71,10 @@ function campaignStatusLabel(row: Campaign): string {
 const emptyCampaignForm = {
   name: '',
   subject: '',
+  subject_fallback: '',
   preview_text: '',
   content: '',
+  html_body: '',
   audience_type: '' as AudienceType | '',
 };
 type CampaignForm = typeof emptyCampaignForm;
@@ -178,8 +182,10 @@ export default function MarketingCampaignsPage() {
     const payload: Record<string, unknown> = {
       name: createForm.name.trim(),
       subject: createForm.subject.trim(),
+      subject_fallback: createForm.subject_fallback.trim() || null,
       preview_text: createForm.preview_text.trim() || null,
       content: createForm.content,
+      html_body: createForm.html_body.trim() || null,
       audience_type: createForm.audience_type || null,
     };
 
@@ -204,8 +210,10 @@ export default function MarketingCampaignsPage() {
     setEditForm({
       name: campaign.name,
       subject: campaign.subject,
+      subject_fallback: campaign.subject_fallback ?? '',
       preview_text: campaign.preview_text ?? '',
       content: campaign.content,
+      html_body: campaign.html_body ?? '',
       audience_type: campaign.audience_type ?? '',
     });
     setEditError(null);
@@ -228,8 +236,10 @@ export default function MarketingCampaignsPage() {
     const payload: Record<string, unknown> = {
       name: editForm.name.trim(),
       subject: editForm.subject.trim(),
+      subject_fallback: editForm.subject_fallback.trim() || null,
       preview_text: editForm.preview_text.trim() || null,
       content: editForm.content,
+      html_body: editForm.html_body.trim() || null,
       audience_type: editForm.audience_type || null,
     };
 
@@ -590,6 +600,25 @@ export default function MarketingCampaignsPage() {
                 onChange={(e) => setCreateForm({ ...createForm, subject: e.target.value })}
               />
               {createFieldErrors.subject ? <p className="field-error">{createFieldErrors.subject}</p> : null}
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                May include the <code>{'{{first_name}}'}</code> token. If used, set a Fallback subject below —
+                it is never auto-personalized with a generic word.
+              </p>
+            </div>
+            <div className="field">
+              <label htmlFor="mc-subject-fallback">Fallback subject (optional)</label>
+              <input
+                id="mc-subject-fallback"
+                maxLength={200}
+                value={createForm.subject_fallback}
+                onChange={(e) => setCreateForm({ ...createForm, subject_fallback: e.target.value })}
+              />
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                Used instead of Subject when a recipient has no usable first name.
+              </p>
+              {createFieldErrors.subject_fallback ? (
+                <p className="field-error">{createFieldErrors.subject_fallback}</p>
+              ) : null}
             </div>
             <div className="field">
               <label htmlFor="mc-preview">Preview text</label>
@@ -631,7 +660,23 @@ export default function MarketingCampaignsPage() {
               />
               {createFieldErrors.content ? <p className="field-error">{createFieldErrors.content}</p> : null}
               <p className="muted" style={{ marginTop: '0.35rem' }}>
-                Plain text only.
+                Plain-text alternative — required. May include <code>{'{{first_name_or_there}}'}</code> and{' '}
+                <code>{'{{unsubscribe_url}}'}</code>.
+              </p>
+            </div>
+            <div className="field">
+              <label htmlFor="mc-html-body">HTML body (optional)</label>
+              <textarea
+                id="mc-html-body"
+                rows={10}
+                value={createForm.html_body}
+                onChange={(e) => setCreateForm({ ...createForm, html_body: e.target.value })}
+              />
+              {createFieldErrors.html_body ? <p className="field-error">{createFieldErrors.html_body}</p> : null}
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                Full HTML email. When set, this replaces the plain-text-only rendering for the HTML part of the
+                message. May include <code>{'{{first_name_or_there}}'}</code> and{' '}
+                <code>{'{{unsubscribe_url}}'}</code> — both are substituted per recipient at send time.
               </p>
             </div>
 
@@ -682,6 +727,25 @@ export default function MarketingCampaignsPage() {
                 onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
               />
               {editFieldErrors.subject ? <p className="field-error">{editFieldErrors.subject}</p> : null}
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                May include the <code>{'{{first_name}}'}</code> token. If used, set a Fallback subject below —
+                it is never auto-personalized with a generic word.
+              </p>
+            </div>
+            <div className="field">
+              <label htmlFor="mc-edit-subject-fallback">Fallback subject (optional)</label>
+              <input
+                id="mc-edit-subject-fallback"
+                maxLength={200}
+                value={editForm.subject_fallback}
+                onChange={(e) => setEditForm({ ...editForm, subject_fallback: e.target.value })}
+              />
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                Used instead of Subject when a recipient has no usable first name.
+              </p>
+              {editFieldErrors.subject_fallback ? (
+                <p className="field-error">{editFieldErrors.subject_fallback}</p>
+              ) : null}
             </div>
             <div className="field">
               <label htmlFor="mc-edit-preview">Preview text</label>
@@ -723,7 +787,23 @@ export default function MarketingCampaignsPage() {
               />
               {editFieldErrors.content ? <p className="field-error">{editFieldErrors.content}</p> : null}
               <p className="muted" style={{ marginTop: '0.35rem' }}>
-                Plain text only.
+                Plain-text alternative — required. May include <code>{'{{first_name_or_there}}'}</code> and{' '}
+                <code>{'{{unsubscribe_url}}'}</code>.
+              </p>
+            </div>
+            <div className="field">
+              <label htmlFor="mc-edit-html-body">HTML body (optional)</label>
+              <textarea
+                id="mc-edit-html-body"
+                rows={10}
+                value={editForm.html_body}
+                onChange={(e) => setEditForm({ ...editForm, html_body: e.target.value })}
+              />
+              {editFieldErrors.html_body ? <p className="field-error">{editFieldErrors.html_body}</p> : null}
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                Full HTML email. When set, this replaces the plain-text-only rendering for the HTML part of the
+                message. May include <code>{'{{first_name_or_there}}'}</code> and{' '}
+                <code>{'{{unsubscribe_url}}'}</code> — both are substituted per recipient at send time.
               </p>
             </div>
 

@@ -250,9 +250,14 @@ test('21. a fresh unsubscribe token is generated per actual recipient, inside th
 test('22. the token/unsubscribe URL is never persisted', () => {
   // `token: string` is a function parameter type annotation
   // (buildUnsubscribeUrl), not a persisted field — the real check is for
-  // an actual DB write payload key.
+  // an actual DB write payload key. `{{unsubscribe_url}}` (the Labor Day
+  // personalization work's token constant/placeholder NAME) legitimately
+  // contains this substring in comments/constants — that is not the same
+  // as persisting a real, computed unsubscribeUrl VALUE, so the literal
+  // substring check below is scoped to DB write payloads only, not the
+  // whole file.
   assert.doesNotMatch(serviceSource, /\.(insert|update)\(\{[^}]*\btoken\b/s);
-  assert.doesNotMatch(serviceSource, /unsubscribe_url/);
+  assert.doesNotMatch(serviceSource, /\.(insert|update)\(\{[^}]*unsubscribe_url/s);
   assert.doesNotMatch(serviceSource, /unsubscribeUrl,\s*\n?\s*\}\)\s*\n?\s*\.eq/); // never part of an update payload
 });
 
@@ -533,9 +538,12 @@ test('53. P4-I2E CSV import protections remain intact', () => {
 });
 
 test('54. the campaign draft API remains intact (editable-field shape and archived-immutability unchanged)', () => {
+  // html_body/subject_fallback (Labor Day personalization work) are the
+  // only additions — both additive, both optional, neither replaces or
+  // weakens an existing field.
   assert.deepEqual(
     Object.keys(marketingCampaignUpdate.shape).sort(),
-    ['audience_type', 'content', 'name', 'preview_text', 'subject'].sort()
+    ['audience_type', 'content', 'html_body', 'name', 'preview_text', 'subject', 'subject_fallback'].sort()
   );
   assert.doesNotThrow(() => assertCampaignEditable('draft'));
   assert.throws(() => assertCampaignEditable('archived'));

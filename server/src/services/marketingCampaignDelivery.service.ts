@@ -109,45 +109,149 @@ export function buildUnsubscribeUrl(token: string): string {
 }
 
 /**
+ * First-name personalization (Labor Day 2026 subscriber-greeting work).
+ * This is genuinely new capability — no token-substitution mechanism
+ * existed anywhere in this codebase before this change; campaign content
+ * was always static plain text applied identically to every recipient.
+ *
+ * Token syntax, embedded literally in a campaign's stored `subject`/
+ * `content`/`html_body`:
+ *   {{first_name}}          — subject only. Substituted with the
+ *                              recipient's normalized first name. A
+ *                              campaign using this MUST also set
+ *                              subject_fallback for the no-name case —
+ *                              this is never itself replaced with a
+ *                              generic word, since "there, wishing you..."
+ *                              reads worse than a non-personalized subject.
+ *   {{first_name_or_there}} — content/html_body. Substituted with the
+ *                              recipient's normalized first name, or the
+ *                              literal word "there" when no usable name
+ *                              exists. Never left unsubstituted.
+ *   {{unsubscribe_url}}     — content/html_body, optional. Lets a
+ *                              campaign's own compliance footer embed the
+ *                              real unsubscribe link inline (e.g. inside
+ *                              a styled <a> tag) instead of relying on the
+ *                              generic appended-line fallback below.
+ *
+ * Exact string substitution (no regex), so there is no possibility of an
+ * unintended partial match or ReDoS surface from recipient-controlled
+ * input — first names are never used as pattern text, only as
+ * replacement values.
+ */
+const GREETING_TOKEN = '{{first_name_or_there}}';
+const SUBJECT_TOKEN = '{{first_name}}';
+const UNSUBSCRIBE_TOKEN = '{{unsubscribe_url}}';
+const MAX_FIRST_NAME_LENGTH = 60;
+
+function replaceAllLiteral(haystack: string, token: string, value: string): string {
+  return haystack.split(token).join(value);
+}
+
+/**
+ * Normalizes a raw first name for use in a greeting or subject line: trims
+ * whitespace, and rejects blank, excessively long, or control-character/
+ * angle-bracket-containing values (a data-quality problem at best, an
+ * injection attempt at worst) rather than rendering them as-is. Returns
+ * null for "no usable name" — callers substitute the safe literal "there"
+ * in a greeting, or an entirely separate, non-personalized subject line.
+ */
+export function normalizeFirstName(raw: string | null | undefined): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.length > MAX_FIRST_NAME_LENGTH) return null;
+  // Rejects blank-after-trim already handled above; here we reject any
+  // control character or angle bracket via explicit char-code checks
+  // (avoids embedding a literal control-character range in a regex).
+  for (let i = 0; i < trimmed.length; i++) {
+    const code = trimmed.charCodeAt(i);
+    if (code < 0x20 || code === 0x7f) return null;
+  }
+  if (trimmed.includes('<') || trimmed.includes('>')) return null;
+  return trimmed;
+}
+
+/** The exact greeting name to display — the real name, or "there". Never blank, never the raw token. */
+export function greetingDisplayName(firstName: string | null | undefined): string {
+  return normalizeFirstName(firstName) ?? 'there';
+}
+
+/**
+ * Personalized subject when a usable name exists; the campaign's own
+ * distinct subject_fallback (or, absent one, the base subject unchanged)
+ * when it does not. Never leaves a {{first_name}} token unsubstituted in
+ * an outbound subject line.
+ */
+export function renderCampaignSubject(
+  campaign: { subject: string; subject_fallback?: string | null },
+  firstName: string | null | undefined
+): string {
+  const name = normalizeFirstName(firstName);
+  if (!name) return campaign.subject_fallback || campaign.subject;
+  return replaceAllLiteral(campaign.subject, SUBJECT_TOKEN, name);
+}
+
+/**
  * Assembles the final outbound message from persisted campaign content
- * plus the system-controlled unsubscribe footer. preview_text is
+ * plus the system-controlled unsubscribe link. preview_text is
  * deliberately NOT included here: it is a preheader concept (a client-
  * rendered inbox snippet), and the existing Paubox wrapper has no distinct
- * preheader field — folding it into the visible body would misrepresent
- * its purpose rather than serve it, so campaign.subject and campaign.content
- * are the only campaign-authored inputs to the message. The Admin's own
- * campaign content can never remove or alter the footer: it is appended
- * here, in code, after the Admin-authored content, never accepted as part
- * of it.
+ * preheader field — a campaign that wants a preheader embeds it directly
+ * in html_body instead. The Admin's own campaign content can never remove
+ * or alter the unsubscribe mechanism: when html_body has no
+ * {{unsubscribe_url}} token, or when there is no html_body at all, a
+ * fixed, code-controlled unsubscribe line is appended — never accepted as
+ * part of the Admin-authored content itself.
  *
- * html is a minimal escape-and-preserve-whitespace wrapper — the exact
- * same technique already used by sendOutboundMail() in email.service.ts —
- * not a new template mechanism, and not "converting plain text into
- * unsanitized HTML": every character is HTML-escaped.
+ * When htmlBody is absent (every campaign created before this change, and
+ * any future campaign that doesn't need rich HTML), behavior is byte-for-
+ * byte identical to the original implementation: a minimal escape-and-
+ * preserve-whitespace wrapper, the exact same technique already used by
+ * sendOutboundMail() in email.service.ts. Every character substituted into
+ * HTML output is HTML-escaped via the existing escapeHtml() — no new
+ * escaping mechanism.
  */
 export function buildCampaignEmailContent(input: {
   subject: string;
   content: string;
+  htmlBody?: string | null;
   unsubscribeUrl: string;
+  firstName?: string | null;
 }): { text: string; html: string } {
-  const footer = `To stop receiving marketing emails from LifeWell, unsubscribe here: ${input.unsubscribeUrl}`;
-  const text = `${input.content}\n\n—\n${footer}`;
+  const displayName = greetingDisplayName(input.firstName);
+  const footerLine = `To stop receiving marketing emails from LifeWell, unsubscribe here: ${input.unsubscribeUrl}`;
+
+  const greetedText = replaceAllLiteral(input.content, GREETING_TOKEN, displayName);
+  const textHasEmbeddedUnsubscribe = greetedText.includes(UNSUBSCRIBE_TOKEN);
+  const personalizedText = textHasEmbeddedUnsubscribe
+    ? replaceAllLiteral(greetedText, UNSUBSCRIBE_TOKEN, input.unsubscribeUrl)
+    : greetedText;
+  const text = textHasEmbeddedUnsubscribe ? personalizedText : `${personalizedText}\n\n—\n${footerLine}`;
+
+  if (input.htmlBody) {
+    const html = replaceAllLiteral(
+      replaceAllLiteral(input.htmlBody, GREETING_TOKEN, escapeHtml(displayName)),
+      UNSUBSCRIBE_TOKEN,
+      escapeHtml(input.unsubscribeUrl)
+    );
+    return { text, html };
+  }
+
   const html = `
     <div style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#374151;line-height:1.6">
-      <div style="white-space:pre-wrap">${escapeHtml(input.content)}</div>
-      <p style="margin-top:24px;font-size:12px;color:#5b6675">${escapeHtml(footer)}</p>
+      <div style="white-space:pre-wrap">${escapeHtml(personalizedText)}</div>
+      <p style="margin-top:24px;font-size:12px;color:#5b6675">${escapeHtml(footerLine)}</p>
     </div>
   `;
   return { text, html };
 }
 
-type EligibleContact = { id: string; email: string; marketing_status: string };
+type EligibleContact = { id: string; email: string; marketing_status: string; first_name: string | null };
 
 async function fetchEligibleContacts(audienceType: string | null): Promise<EligibleContact[]> {
   const filters = buildRecipientEligibilityFilters(audienceType);
   let query = getSupabase()
     .from('marketing_contacts')
-    .select('id, email, marketing_status')
+    .select('id, email, marketing_status, first_name')
     .eq('marketing_status', filters.marketing_status);
   if (filters.audience_type) {
     query = query.eq('audience_type', filters.audience_type);
@@ -189,6 +293,10 @@ export async function initiateCampaignSend(
   assertCampaignSendable({ ...campaign, delivery_locked: deliveryLocked });
 
   const eligible = await fetchEligibleContacts(campaign.audience_type as string | null);
+  // In-memory only — never written to marketing_campaign_recipients, which
+  // deliberately snapshots only the destination address (see this file's
+  // module docblock and the P4-I5A schema comment on email_snapshot).
+  const firstNameByContactId = new Map(eligible.map((c) => [c.id, c.first_name]));
 
   if (eligible.length > MAX_SEND_RECIPIENTS) {
     throw new AppError(
@@ -301,18 +409,25 @@ export async function initiateCampaignSend(
 
     const token = createMarketingUnsubscribeToken(row.contact_id);
     const unsubscribeUrl = buildUnsubscribeUrl(token);
+    const firstName = firstNameByContactId.get(row.contact_id) ?? null;
+    const subject = renderCampaignSubject(
+      { subject: campaign.subject as string, subject_fallback: campaign.subject_fallback as string | null },
+      firstName
+    );
     const { text, html } = buildCampaignEmailContent({
       subject: campaign.subject as string,
       content: campaign.content as string,
+      htmlBody: campaign.html_body as string | null,
       unsubscribeUrl,
+      firstName,
     });
 
     // One recipient per provider request (P4-I5B section 14/15) — never a
-    // multi-recipient/BCC blast. token/unsubscribeUrl exist only in this
-    // function's local scope: never persisted, never logged.
+    // multi-recipient/BCC blast. token/unsubscribeUrl/firstName exist only
+    // in this function's local scope: never persisted, never logged.
     const providerResult = await sendViaPauboxApi({
       to: { address: row.email_snapshot },
-      subject: campaign.subject as string,
+      subject,
       text,
       html,
     });

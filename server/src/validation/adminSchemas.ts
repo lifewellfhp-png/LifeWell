@@ -535,6 +535,25 @@ const marketingCampaignBase = z.object({
   // (nonblank only).
   content: z.string().trim().min(1, 'Content is required.'),
   audience_type: z.enum(MARKETING_AUDIENCE_TYPES).optional().nullable(),
+  /**
+   * Optional rich HTML alternative to `content`. May contain the
+   * `{{first_name_or_there}}` personalization token — substituted, HTML-
+   * escaped, per recipient at render time (see
+   * marketingCampaignDelivery.service.ts). No CR/LF restriction and no
+   * upper length bound, matching `content`'s own shape — this is markup,
+   * not a header value.
+   */
+  html_body: z.string().trim().optional().nullable(),
+  /**
+   * Exact subject line to use when a recipient has no usable first name.
+   * Same header-injection safety as `subject` (single line, bounded).
+   */
+  subject_fallback: z
+    .string()
+    .max(200, 'Fallback subject must be 200 characters or fewer.')
+    .refine((v) => !/[\r\n]/.test(v), { message: 'Fallback subject cannot contain line breaks.' })
+    .optional()
+    .nullable(),
 });
 
 export const marketingCampaignCreate = marketingCampaignBase.strict();

@@ -623,3 +623,34 @@ alter table conversions add column if not exists referrer_host text;
 --   alter table conversions drop column if exists referrer_host;
 
 notify pgrst, 'reload schema';
+
+-- Marketing campaign personalization (Labor Day 2026 subscriber-greeting
+-- work). Both columns are nullable and purely additive — no existing
+-- campaign row is rewritten, and no existing campaign's send behavior
+-- changes: buildCampaignEmailContent() in
+-- server/src/services/marketingCampaignDelivery.service.ts falls back to
+-- its original plain-text-escaped rendering whenever html_body is null,
+-- exactly as every campaign created before this change already does.
+--
+-- html_body: an optional rich HTML alternative to the existing plain-text
+-- `content` column, used verbatim (after per-recipient token
+-- substitution — see the service file) instead of the auto-escaped
+-- <div style="white-space:pre-wrap"> wrapper. No DB-level length/format
+-- check, matching every other free-text column in this schema (content,
+-- path, referrer_host) — validated at the application layer instead
+-- (server/src/validation/adminSchemas.ts).
+--
+-- subject_fallback: the exact subject line to use when a recipient has no
+-- usable first name, so a campaign author is never forced to write a
+-- subject line that silently breaks if personalization data is missing.
+-- Nullable because most existing/future campaigns have no personalization
+-- token in their subject at all and need no fallback.
+alter table marketing_campaigns add column if not exists html_body text;
+alter table marketing_campaigns add column if not exists subject_fallback text;
+
+-- Rollback (manual — see the note above; this schema has no automated
+-- down-migration tooling):
+--   alter table marketing_campaigns drop column if exists html_body;
+--   alter table marketing_campaigns drop column if exists subject_fallback;
+
+notify pgrst, 'reload schema';

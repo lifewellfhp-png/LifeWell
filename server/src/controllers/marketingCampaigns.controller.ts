@@ -136,6 +136,8 @@ export async function createMarketingCampaign(req: Request, res: Response): Prom
     preview_text: parsed.data.preview_text ?? null,
     content: parsed.data.content,
     audience_type: parsed.data.audience_type ?? null,
+    html_body: parsed.data.html_body ?? null,
+    subject_fallback: parsed.data.subject_fallback ?? null,
     // Server-controlled — never accepted from the request body (the schema
     // has no `created_by` field at all). Falls back to null rather than
     // throwing if, for some reason, no admin claim is present, matching how

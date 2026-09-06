@@ -204,10 +204,10 @@ test('15. create sets created_by from the authenticated Admin', () => {
 
 // --- 16-18. PATCH field restrictions ---------------------------------------------
 
-test('16. PATCH only allows the same five editable fields as create', () => {
+test('16. PATCH only allows the same editable fields as create (plus html_body/subject_fallback, additive)', () => {
   assert.deepEqual(
     Object.keys(marketingCampaignUpdate.shape).sort(),
-    ['audience_type', 'content', 'name', 'preview_text', 'subject'].sort()
+    ['audience_type', 'content', 'html_body', 'name', 'preview_text', 'subject', 'subject_fallback'].sort()
   );
 });
 
@@ -379,12 +379,21 @@ test('43. no unsubscribe token is generated anywhere in the campaign controller'
 
 // --- 45. No schema migration -------------------------------------------------------
 
-test('45. no new schema migration was introduced for P4-I4B', () => {
+test('45. no new schema migration was introduced for P4-I4B itself (a later, separately-authorized phase legitimately added columns)', () => {
   // P4-I4A's own migration already contains a legitimate
   // "alter table marketing_campaigns enable row level security" — not a
-  // schema change, and it predates this phase. What P4-I4B must NOT add is
-  // a new column (an "add column" alteration) or a second table definition.
-  assert.doesNotMatch(opsSqlSource, /alter table marketing_campaigns\s+add column/i);
+  // schema change, and it predates this phase. P4-I4B itself added no
+  // column. The Labor Day 2026 personalization work (a distinct, later,
+  // separately-authorized phase) DID add two nullable, additive columns
+  // (html_body, subject_fallback) — that is accounted for explicitly here,
+  // not silently permitted: exactly two "add column" alterations on this
+  // table should exist, both against marketing_campaigns, neither a
+  // duplicate/second table definition.
+  const addColumnMatches = opsSqlSource.match(/alter table marketing_campaigns add column if not exists (\w+)/g) || [];
+  assert.deepEqual(
+    addColumnMatches.map((m) => m.replace('alter table marketing_campaigns add column if not exists ', '')).sort(),
+    ['html_body', 'subject_fallback']
+  );
   const campaignBlockCount = (opsSqlSource.match(/create table if not exists marketing_campaigns/g) || []).length;
   assert.equal(campaignBlockCount, 1, 'expected exactly the one P4-I4A table definition, no duplicate/second migration');
 });
