@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { ContentSections } from '@/components/sections/ContentSections';
+import { ArticleDisclaimer } from '@/components/sections/ArticleDisclaimer';
 import { BenefitsGrid } from '@/components/sections/BenefitsGrid';
 import { ServicesGrid } from '@/components/sections/ServicesGrid';
 import { SwapButton } from '@/components/ui/SwapButton';
@@ -10,6 +11,18 @@ import { getService } from '@/data/services';
 import { getResolvedContent } from '@/lib/cms-resolve';
 import { site } from '@/data/site';
 import { provider } from '@/data/provider';
+
+/**
+ * Services whose subject matter warrants the same YMYL safety disclaimer
+ * already used on every Wellness Resource Hub article (educational-only
+ * framing + the 988 crisis line) — reused verbatim via ArticleDisclaimer,
+ * not a new/second disclaimer, so the two never drift out of sync. Scoped
+ * to this one service page rather than added to the shared template
+ * sitewide: the combined depression/anxiety/ADHD/bipolar/PTSD page is the
+ * one place a visitor in acute distress is most likely to land, and no
+ * other service page was reviewed/authorized for this addition yet.
+ */
+const CRISIS_DISCLAIMER_SLUGS = new Set(['treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd']);
 
 /**
  * Individual /services/[slug] template — live Elementor service layout:
@@ -99,6 +112,8 @@ export async function ServicePageContent({ slug }: { slug: string }) {
                 </div>
               </div>
             )}
+
+            {CRISIS_DISCLAIMER_SLUGS.has(slug) && <ArticleDisclaimer />}
           </article>
 
           <aside className="lg:sticky lg:top-32 lg:self-start">
