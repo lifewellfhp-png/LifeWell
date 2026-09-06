@@ -117,6 +117,14 @@ export function NewPatientsPageContent() {
             <br />
             {inPersonSection.address.cityLine}
           </address>
+          <div className="mt-4">
+            <Link
+              href={inPersonSection.href}
+              className="text-[15px] font-semibold text-[var(--lw-primary)] underline-offset-4 hover:underline sm:text-[16px]"
+            >
+              {inPersonSection.linkLabel}
+            </Link>
+          </div>
         </Container>
       </Section>
 

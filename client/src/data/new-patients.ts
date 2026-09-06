@@ -52,6 +52,8 @@ export const inPersonSection = {
     street: '3680 Avalon Park E Blvd, Suite 310',
     cityLine: 'Orlando, FL 32828',
   },
+  href: '/orlando-psychiatric-care',
+  linkLabel: 'Get directions and office details',
 };
 
 export const insuranceSection = {

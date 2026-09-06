@@ -84,6 +84,7 @@ export const footerProfessionalEducationLinks: NavLink[] = summariesByCategory('
 export const footerExploreLinks: NavLink[] = [
   { label: 'Home', href: '/' },
   { label: 'Bio', href: '/bio' },
+  { label: 'Orlando Office', href: '/orlando-psychiatric-care' },
   { label: 'Fees & Insurance', href: '/fees-insurance' },
   { label: 'Blog', href: '/blog' },
   { label: 'Testimonials', href: '/telehealth-mental-health-testimonials' },
