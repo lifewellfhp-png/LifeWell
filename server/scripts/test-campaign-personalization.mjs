@@ -237,6 +237,37 @@ test('21. no urgency language, discount offer, or testimonial claim appears in t
   }
 });
 
+/* ---------------------------------- 21b-21e. logo, colors, contact block --- */
+
+test('21b. the header uses the real approved logo asset (public/logo.png), not a text wordmark or an invented image', () => {
+  assert.match(LABOR_DAY_CAMPAIGN.html_body, /<img\s+src="https:\/\/www\.lifewellfhp\.com\/logo\.png"/);
+  assert.match(LABOR_DAY_CAMPAIGN.html_body, /alt="LifeWell Family Health &amp; Psychiatry"/);
+});
+
+test('21c. brand colors are sampled from the actual logo file, not the site\'s softer CSS palette', () => {
+  // Sampled directly from public/logo.png (see the module docblock) —
+  // deliberately different from --lw-primary (#3e7fb1) / --lw-accent
+  // (#5faf6b), which are softer UI colors, not the printed logo's own.
+  assert.match(LABOR_DAY_CAMPAIGN.html_body, /#002573/);
+  assert.match(LABOR_DAY_CAMPAIGN.html_body, /#029015/);
+  assert.doesNotMatch(LABOR_DAY_CAMPAIGN.html_body, /#3e7fb1/);
+  assert.doesNotMatch(LABOR_DAY_CAMPAIGN.html_body, /#5faf6b/);
+});
+
+test('21d. the personal name sign-off was removed per owner request, and never reappears anywhere in either variant', () => {
+  const flat = LABOR_DAY_CAMPAIGN.content + LABOR_DAY_CAMPAIGN.html_body;
+  assert.doesNotMatch(flat, /Lourdie Chachoute and the LifeWell Family Health/);
+});
+
+test('21e. the office/fax/email contact block and practice tagline are present, using only already-verified NAP facts', () => {
+  for (const target of [LABOR_DAY_CAMPAIGN.content, LABOR_DAY_CAMPAIGN.html_body]) {
+    assert.match(target, /\(407\) 603-1717/); // office — matches site.ts's verified phone
+    assert.match(target, /\(407\) 710-8252/); // fax — matches site.ts's verified fax
+    assert.match(target, /contact@lifewellfhp\.com/); // matches site.ts's verified email
+    assert.match(target, /Treating the Whole Person: Mind and Body\./);
+  }
+});
+
 /* -------------------------------------------- 22-24. compliance footer --- */
 
 test('22. the plain-text version contains the org name, address, reason-for-receiving line, unsubscribe token, and privacy link', () => {
@@ -282,8 +313,14 @@ test('25. the plain-text output contains the complete approved message (headline
   assert.match(rendered, /celebrate the dedication, care, and hard work/);
   assert.match(rendered, /pause, recharge, and enjoy meaningful time/);
   assert.match(rendered, /safe, peaceful, and restorative Labor Day/);
-  assert.match(rendered, /Lourdie Chachoute and the LifeWell Family Health & Psychiatry team/);
+  assert.match(rendered, /Warmly,/);
   assert.match(rendered, /virtual across Florida, Massachusetts, and Arizona/);
+  // Owner-requested revision: the personal name sign-off was removed in
+  // favor of an office/fax/email contact block and the practice tagline.
+  assert.doesNotMatch(rendered, /Lourdie Chachoute and the LifeWell Family Health & Psychiatry team/);
+  assert.match(rendered, /Office: \(407\) 603-1717 \| Fax: \(407\) 710-8252/);
+  assert.match(rendered, /Email: contact@lifewellfhp\.com/);
+  assert.match(rendered, /"Treating the Whole Person: Mind and Body\."/);
 });
 
 /* ------------------------------------------------ 26-28. draft-only safety --- */

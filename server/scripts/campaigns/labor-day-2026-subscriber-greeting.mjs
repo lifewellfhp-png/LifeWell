@@ -10,9 +10,19 @@
  * campaigns), which this environment does not have credentials for — see
  * the Phase completion report for the exact owner action required.
  *
- * Content approved verbatim per the campaign brief. No PHI, no diagnosis/
- * appointment/medication reference, no urgency language, no discount
- * offer, no testimonial claim.
+ * Content approved verbatim per the campaign brief, later revised per
+ * owner request: removed the personal name sign-off line, added an
+ * office/fax/email contact block and the "Treating the Whole Person: Mind
+ * and Body." tagline, and swapped the header from a text wordmark to the
+ * real approved logo asset (public/logo.png). Brand colors (primary/accent
+ * below) were sampled directly from that logo file's actual pixels rather
+ * than reused from the website's softer UI palette — the printed logo mark
+ * uses a deeper navy and a more saturated green than the site's CSS
+ * variables (--lw-primary/--lw-accent), and the owner asked for the email
+ * to match the logo specifically.
+ *
+ * No PHI, no diagnosis/appointment/medication reference, no urgency
+ * language, no discount offer, no testimonial claim.
  */
 
 export const LABOR_DAY_CAMPAIGN = {
@@ -39,9 +49,13 @@ We hope the holiday gives you an opportunity to pause, recharge, and enjoy meani
 Wishing you a safe, peaceful, and restorative Labor Day.
 
 Warmly,
-Lourdie Chachoute and the LifeWell Family Health & Psychiatry team
 
 Thoughtful care for mind and body—virtual across Florida, Massachusetts, and Arizona, with in-person appointments available in Orlando where applicable.
+
+Office: (407) 603-1717 | Fax: (407) 710-8252
+Email: contact@lifewellfhp.com
+
+"Treating the Whole Person: Mind and Body."
 
 Visit LifeWell: https://www.lifewellfhp.com
 
@@ -58,8 +72,13 @@ Privacy Policy: https://www.lifewellfhp.com/privacy-policy
 };
 
 function buildHtmlBody() {
-  const primary = '#3e7fb1';
-  const accent = '#5faf6b';
+  // Sampled directly from public/logo.png's actual pixels (the approved
+  // logo file) rather than reused from the site's softer CSS palette
+  // (--lw-primary #3e7fb1 / --lw-accent #5faf6b) — the owner asked for the
+  // email to match the printed logo's own deeper navy and more saturated
+  // green.
+  const primary = '#002573';
+  const accent = '#029015';
   const ink = '#2f3b47';
   const muted = '#5b6675';
   const cardBg = '#fffdf8';
@@ -107,11 +126,16 @@ function buildHtmlBody() {
       <td align="center" style="padding:32px 16px;">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="email-container" style="width:600px;max-width:600px;">
 
-          <!-- Logo / header (text wordmark -- the repo's only approved logo asset is AVIF-only, which many email clients cannot render reliably, so the brand name is rendered as styled text using the site's own colors for guaranteed compatibility) -->
+          <!-- Logo / header: the real, approved logo asset (public/logo.png) -->
           <tr>
-            <td align="center" style="padding:8px 24px 20px;">
-              <span class="heading-serif dark-text" style="font-size:22px;color:${primary};font-weight:700;letter-spacing:-0.3px;">LifeWell</span>
-              <span class="dark-muted" style="font-size:13px;color:${muted};display:block;margin-top:2px;">Family Health &amp; Psychiatry</span>
+            <td align="center" style="padding:16px 24px 20px;">
+              <img
+                src="https://www.lifewellfhp.com/logo.png"
+                width="240"
+                height="80"
+                alt="LifeWell Family Health &amp; Psychiatry"
+                style="display:block;margin:0 auto;width:240px;height:80px;max-width:100%;"
+              />
             </td>
           </tr>
 
@@ -140,18 +164,20 @@ function buildHtmlBody() {
                     <p class="dark-text" style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${ink};">This Labor Day, we&rsquo;re taking a moment to celebrate the dedication, care, and hard work that strengthen our families and communities.</p>
                     <p class="dark-text" style="margin:0 0 16px;font-size:16px;line-height:1.6;color:${ink};">We hope the holiday gives you an opportunity to pause, recharge, and enjoy meaningful time with the people and activities that matter most to you.</p>
                     <p class="dark-text" style="margin:0 0 24px;font-size:16px;line-height:1.6;color:${ink};">Wishing you a safe, peaceful, and restorative Labor Day.</p>
-                    <p class="dark-text" style="margin:0 0 4px;font-size:16px;line-height:1.6;color:${ink};">Warmly,</p>
-                    <p class="dark-text" style="margin:0 0 28px;font-size:16px;line-height:1.6;color:${ink};font-weight:600;">Lourdie Chachoute and the LifeWell Family Health &amp; Psychiatry team</p>
+                    <p class="dark-text" style="margin:0;font-size:16px;line-height:1.6;color:${ink};">Warmly,</p>
                   </td>
                 </tr>
 
-                <!-- Optional closing line -->
+                <!-- Closing informational block: practice tagline + contact details -->
                 <tr>
-                  <td class="fluid-padding" style="padding:0 40px 32px;">
+                  <td class="fluid-padding" style="padding:16px 40px 32px;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef3ef;border-radius:14px;">
                       <tr>
                         <td style="padding:18px 22px;">
-                          <p class="dark-muted" style="margin:0;font-size:14px;line-height:1.55;color:${muted};">Thoughtful care for mind and body&mdash;virtual across Florida, Massachusetts, and Arizona, with in-person appointments available in Orlando where applicable.</p>
+                          <p class="dark-muted" style="margin:0 0 12px;font-size:14px;line-height:1.55;color:${muted};">Thoughtful care for mind and body&mdash;virtual across Florida, Massachusetts, and Arizona, with in-person appointments available in Orlando where applicable.</p>
+                          <p class="dark-muted" style="margin:0 0 4px;font-size:14px;line-height:1.55;color:${muted};">Office: <a href="tel:+14076031717" style="color:${muted};text-decoration:none;">(407) 603-1717</a>&nbsp;&nbsp;|&nbsp;&nbsp;Fax: (407) 710-8252</p>
+                          <p class="dark-muted" style="margin:0 0 14px;font-size:14px;line-height:1.55;color:${muted};">Email: <a href="mailto:contact@lifewellfhp.com" style="color:${muted};text-decoration:none;">contact@lifewellfhp.com</a></p>
+                          <p class="heading-serif dark-text" style="margin:0;font-size:15px;line-height:1.5;color:${primary};font-style:italic;">&ldquo;Treating the Whole Person: Mind and Body.&rdquo;</p>
                         </td>
                       </tr>
                     </table>
