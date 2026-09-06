@@ -18,6 +18,8 @@ type Summary = {
   trends: { date: string; views: number }[];
   conversionCounts: Record<string, number>;
   topBookingPages: { path: string; clicks: number }[];
+  bookingClicksByDevice: Record<string, number>;
+  bookingClicksByReferrer: { source: string; visits: number }[];
 };
 
 const DEVICE_COLORS: Record<string, string> = {
@@ -119,6 +121,19 @@ export default function AnalyticsPage() {
   );
   const bookingPages = useMemo(
     () => (data?.topBookingPages || []).slice(0, 8).map((p) => ({ label: p.path, value: p.clicks })),
+    [data]
+  );
+  const bookingDevices = useMemo(
+    () =>
+      Object.entries(data?.bookingClicksByDevice || {}).map(([label, value]) => ({
+        label,
+        value,
+        color: DEVICE_COLORS[label.toLowerCase()] || '#9aa6b2',
+      })),
+    [data]
+  );
+  const bookingReferrers = useMemo(
+    () => (data?.bookingClicksByReferrer || []).slice(0, 6).map((p) => ({ label: p.source, value: p.visits })),
     [data]
   );
 
@@ -245,6 +260,29 @@ export default function AnalyticsPage() {
         <p className="page-sub">Pages where visitors clicked a Book an Appointment button. A click reflects booking intent, not a confirmed appointment.</p>
         <BarList points={bookingPages} color="#5faf6b" />
       </section>
+
+      <div className="dash-split">
+        <section className="card card-pad">
+          <h2>Booking clicks by device</h2>
+          <p className="page-sub">"Unknown" includes clicks recorded before device attribution existed.</p>
+          <DonutChart
+            slices={
+              bookingDevices.length
+                ? bookingDevices
+                : [
+                    { label: 'desktop', value: 0, color: DEVICE_COLORS.desktop },
+                    { label: 'mobile', value: 0, color: DEVICE_COLORS.mobile },
+                    { label: 'tablet', value: 0, color: DEVICE_COLORS.tablet },
+                  ]
+            }
+          />
+        </section>
+        <section className="card card-pad">
+          <h2>Booking clicks by referral source</h2>
+          <p className="page-sub">"Direct" includes clicks with no referrer and clicks recorded before referrer attribution existed.</p>
+          <BarList points={bookingReferrers} color="#2f6691" />
+        </section>
+      </div>
     </div>
   );
 }

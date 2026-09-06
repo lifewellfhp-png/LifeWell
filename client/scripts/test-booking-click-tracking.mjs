@@ -78,7 +78,7 @@ test('1c. trackConversion resolves cleanly even when fetch itself is unavailable
 
 /* --------------------------------------------------- 2. payload shape --- */
 
-test('2. booking_click payload contains only conversion_type, path, and empty meta — no PII/PHI', async () => {
+test('2. booking_click payload contains only conversion_type, path, meta, device, and referrer_host — no PII/PHI (Phase 8 P3-1 added device/referrer_host)', async () => {
   stubFetch(async () => ({ ok: true, status: 200, json: async () => ({ success: true }) }));
   await trackConversion('booking_click', '/telehealth/massachusetts');
 
@@ -88,10 +88,15 @@ test('2. booking_click payload contains only conversion_type, path, and empty me
   assert.equal(init.method, 'POST');
 
   const body = JSON.parse(init.body);
-  assert.deepEqual(Object.keys(body).sort(), ['conversion_type', 'meta', 'path']);
+  assert.deepEqual(Object.keys(body).sort(), ['conversion_type', 'device', 'meta', 'path', 'referrer_host']);
   assert.equal(body.conversion_type, 'booking_click');
   assert.equal(body.path, '/telehealth/massachusetts');
   assert.deepEqual(body.meta, {});
+  // This test runs outside a browser (no window/document), so both
+  // attribution helpers fall back exactly as documented — 'unknown' device,
+  // null referrer — never throwing, never fabricating a value.
+  assert.equal(body.device, 'unknown');
+  assert.equal(body.referrer_host, null);
 
   const flat = JSON.stringify(body).toLowerCase();
   for (const forbidden of ['email', 'phone', 'name', 'dob', 'diagnos', 'medication', 'symptom', 'message', 'ssn', 'mrn']) {

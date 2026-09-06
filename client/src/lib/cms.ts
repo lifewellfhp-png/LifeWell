@@ -77,16 +77,47 @@ export async function fetchPublicBlogPost(slug: string): Promise<Record<string, 
   return null;
 }
 
+export type DeviceCategory = 'mobile' | 'tablet' | 'desktop' | 'unknown';
+
+/**
+ * Coarse, privacy-safe device classification by viewport width — no
+ * user-agent parsing, no browser fingerprinting. Shared by trackPageView and
+ * trackConversion (Phase 8 P3-1) so the two event types can never classify
+ * device differently for the same visit.
+ */
+export function classifyDevice(): DeviceCategory {
+  if (typeof window === 'undefined') return 'unknown';
+  if (window.matchMedia('(max-width: 767px)').matches) return 'mobile';
+  if (window.matchMedia('(max-width: 1024px)').matches) return 'tablet';
+  return 'desktop';
+}
+
+/**
+ * Extracts a bare hostname from document.referrer for conversion events
+ * (Phase 8 P3-1). Deliberately stricter than trackPageView's own inline
+ * referrer capture below: http(s) only, and `.hostname` (never `.host`, so
+ * a nonstandard port is never even sent) — matching the P3-1 task's explicit
+ * "never retain ports" / "reject non-HTTP(S)" rules. trackPageView's
+ * existing capture is left exactly as it already ships (not part of this
+ * task's scope, no regression risk to already-shipped page-view analytics);
+ * this is a new, separate, more conservative extraction used only for
+ * conversions. The server independently re-validates whatever is sent here
+ * regardless (see server/src/lib/attribution.ts) — this is a best-effort
+ * clean value, not the trust boundary.
+ */
+export function extractReferrerHost(): string | null {
+  if (typeof document === 'undefined' || !document.referrer) return null;
+  if (!/^https?:\/\//i.test(document.referrer)) return null;
+  try {
+    return new URL(document.referrer).hostname || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function trackPageView(path: string): Promise<void> {
   try {
-    const device =
-      typeof window === 'undefined'
-        ? 'unknown'
-        : window.matchMedia('(max-width: 767px)').matches
-          ? 'mobile'
-          : window.matchMedia('(max-width: 1024px)').matches
-            ? 'tablet'
-            : 'desktop';
+    const device = classifyDevice();
 
     let referrer_host: string | null = null;
     try {
@@ -119,7 +150,13 @@ export async function trackConversion(
     await fetch(`${API_URL}/api/public/conversions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversion_type, path: path ?? null, meta: {} }),
+      body: JSON.stringify({
+        conversion_type,
+        path: path ?? null,
+        meta: {},
+        device: classifyDevice(),
+        referrer_host: extractReferrerHost(),
+      }),
       keepalive: true,
     });
   } catch {

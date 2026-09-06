@@ -5,6 +5,7 @@ import {
   analyticsIngestSchema,
   conversionIngestSchema,
 } from '../validation/adminSchemas.js';
+import { normalizeReferrerHost } from '../lib/attribution.js';
 
 export async function handleAnalyticsIngest(req: Request, res: Response): Promise<void> {
   const parsed = analyticsIngestSchema.safeParse(req.body);
@@ -30,6 +31,13 @@ export async function handleConversionIngest(req: Request, res: Response): Promi
     conversion_type: parsed.data.conversion_type,
     path: parsed.data.path ?? null,
     meta,
+    // Phase 8 P3-1: device is already validated to the closed enum by the
+    // schema above; referrer_host is independently re-validated here
+    // (this is a public, unauthenticated endpoint — the submitted string is
+    // never trusted just because a well-behaved client would have already
+    // sent a clean value). Never a raw user agent or full referrer URL.
+    device: parsed.data.device ?? null,
+    referrer_host: normalizeReferrerHost(parsed.data.referrer_host),
   });
   if (error) throw badRequest(error.message);
   res.status(201).json({ success: true });
@@ -185,7 +193,7 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
       .lt('created_at', rangeEnd.toISOString()),
     sb
       .from('conversions')
-      .select('conversion_type, path, created_at')
+      .select('conversion_type, path, device, referrer_host, created_at')
       .gte('created_at', rangeStart.toISOString())
       .lt('created_at', rangeEnd.toISOString()),
   ]);
@@ -243,6 +251,27 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
     .sort((a, b) => b.clicks - a.clicks)
     .slice(0, 15);
 
+  // Phase 8 P3-1: device/referrer attribution for booking_click only —
+  // matches topBookingPages' own scoping above (the conversion type this
+  // reporting was built for). Missing values are historical rows recorded
+  // before this column existed, or the rare payload that omitted them; both
+  // are treated identically to page views' own fallback convention
+  // ('unknown' device, 'direct' referrer) — never fabricated as a specific
+  // value.
+  const byBookingClickDevice: Record<string, number> = {};
+  const byBookingClickReferrer: Record<string, number> = {};
+  for (const c of conversions) {
+    if (c.conversion_type !== 'booking_click') continue;
+    const device = c.device || 'unknown';
+    byBookingClickDevice[device] = (byBookingClickDevice[device] ?? 0) + 1;
+    const ref = c.referrer_host || 'direct';
+    byBookingClickReferrer[ref] = (byBookingClickReferrer[ref] ?? 0) + 1;
+  }
+  const bookingClicksByReferrer = Object.entries(byBookingClickReferrer)
+    .map(([source, visits]) => ({ source, visits }))
+    .sort((a, b) => b.visits - a.visits)
+    .slice(0, 15);
+
   // Comparison period: the immediately preceding window of the SAME length
   // (in calendar days) as the selected range, bounded by the same
   // REPORT_TIMEZONE half-open rule — generalizes the old hardcoded
@@ -293,6 +322,8 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
       trends,
       conversionCounts,
       topBookingPages,
+      bookingClicksByDevice: byBookingClickDevice,
+      bookingClicksByReferrer,
     },
   });
 }

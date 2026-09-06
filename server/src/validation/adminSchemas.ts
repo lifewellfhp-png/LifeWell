@@ -311,11 +311,19 @@ export const sendCredentialsSchema = z.object({
   admin_url: z.string().url().optional(),
 });
 
+/**
+ * Shared closed vocabulary for coarse, privacy-safe device classification —
+ * reused by both analyticsIngestSchema (page views) and
+ * conversionIngestSchema (Phase 8 P3-1) so the two event types can never
+ * drift into divergent device categories.
+ */
+const deviceCategorySchema = z.enum(['mobile', 'tablet', 'desktop', 'unknown']);
+
 export const analyticsIngestSchema = z.object({
   event_type: z.enum(['page_view', 'session_start', 'outbound_click']),
   path: z.string().max(500).optional(),
   referrer_host: z.string().max(200).optional().nullable(),
-  device: z.enum(['mobile', 'tablet', 'desktop', 'unknown']).default('unknown'),
+  device: deviceCategorySchema.default('unknown'),
   utm_source: z.string().max(120).optional().nullable(),
   utm_medium: z.string().max(120).optional().nullable(),
   utm_campaign: z.string().max(120).optional().nullable(),
@@ -325,6 +333,16 @@ export const conversionIngestSchema = z.object({
   conversion_type: z.enum(['contact', 'newsletter', 'booking_click']),
   path: z.string().max(500).optional().nullable(),
   meta: z.record(z.unknown()).default({}),
+  /**
+   * Phase 8 P3-1: optional, privacy-minimized attribution, same shape as
+   * page views. `device` is validated by the shared enum above; the raw
+   * `referrer_host` string is re-validated/normalized server-side by
+   * normalizeReferrerHost() in handleConversionIngest — this schema only
+   * bounds its length as a first-pass filter, the same way
+   * analyticsIngestSchema.referrer_host does.
+   */
+  device: deviceCategorySchema.optional(),
+  referrer_host: z.string().max(253).optional().nullable(),
 });
 
 export const emailSendSchema = z.object({

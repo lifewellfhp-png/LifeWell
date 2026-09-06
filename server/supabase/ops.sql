@@ -587,3 +587,39 @@ alter table marketing_campaign_recipients enable row level security;
 -- API using the existing service-role client; no direct browser access.
 
 notify pgrst, 'reload schema';
+
+-- Phase 8 P3-1: privacy-minimized device/referrer attribution for
+-- conversion events (particularly booking_click), matching the same
+-- normalized dimensions analytics_events already stores for page views.
+-- Both columns are nullable and purely additive — no existing row is
+-- rewritten, no existing constraint changes, and no NOT NULL is added.
+-- Historical conversions predate this column and will read back as NULL;
+-- application code must treat that as "unknown"/"direct" in aggregates,
+-- never fabricate a value for it, and never backfill it retroactively.
+--
+-- `device` reuses the exact same closed vocabulary as
+-- analytics_events.device (mobile/tablet/desktop/unknown) — a CHECK
+-- constraint enforces it at the DB level the same way analytics_events'
+-- own check does, so the two tables can never drift into divergent device
+-- categories. `referrer_host` intentionally has NO DB-level length/format
+-- check, matching analytics_events.referrer_host and every other free-text
+-- column in this schema (conversions.path included) — validation and
+-- normalization live at the application layer (Zod schema + a shared,
+-- tested normalizeReferrerHost() utility in server/src/lib/attribution.ts),
+-- consistent with how every other business rule in this app is enforced in
+-- code rather than a DB CHECK.
+--
+-- Neither column stores a raw user-agent string, full referrer URL, IP
+-- address, or any other high-entropy/identifying value — see
+-- server/src/lib/attribution.ts and client/src/lib/cms.ts for exactly what
+-- is derived and sent.
+alter table conversions add column if not exists device text
+  check (device is null or device in ('mobile', 'tablet', 'desktop', 'unknown'));
+alter table conversions add column if not exists referrer_host text;
+
+-- Rollback (manual — this schema has no automated down-migration tooling;
+-- run only if this change ever needs to be reverted):
+--   alter table conversions drop column if exists device;
+--   alter table conversions drop column if exists referrer_host;
+
+notify pgrst, 'reload schema';

@@ -22,7 +22,14 @@ const root = join(__dirname, '..');
 const opsSource = readFileSync(join(root, 'supabase', 'ops.sql'), 'utf8');
 
 const start = opsSource.indexOf('-- P4-I5A: Marketing Campaign Delivery');
-const notifyIdx = opsSource.lastIndexOf('notify pgrst');
+// The FIRST `notify pgrst` at or after `start` closes this specific section
+// — not the LAST one in the whole file. ops.sql is append-only (each phase
+// adds its own section, each ending in its own `notify pgrst`), so using
+// lastIndexOf here would silently swallow every section appended after this
+// one (as Phase 8 P3-1's own section now is) into `block`, rather than
+// scoping this test to only the marketing_campaign_recipients migration it
+// is meant to check.
+const notifyIdx = opsSource.indexOf('notify pgrst', start);
 const end = opsSource.indexOf(';', notifyIdx) + 1;
 const block = opsSource.slice(start, end);
 
