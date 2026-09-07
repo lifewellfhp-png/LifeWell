@@ -59,6 +59,25 @@ type Props = {
   confirmFieldChange?: ConfirmFieldChangeConfig;
 };
 
+/** Phase 12: structural equality for a single field's coerced form value vs. the row's stored value (JSON/array fields compare by content, not reference). */
+function valuesEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a != null && b != null && typeof a === 'object' && typeof b === 'object') {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+/** Phase 12: keeps only the keys in `body` whose value actually differs from `original` — used so a PATCH never resends (and can't clobber) a field the current edit session didn't touch. */
+function diffAgainst(body: Record<string, unknown>, original: Record<string, unknown> | null): Record<string, unknown> {
+  if (!original) return body;
+  return Object.fromEntries(Object.entries(body).filter(([key, value]) => !valuesEqual(value, original[key])));
+}
+
 export function ResourceManager({
   title,
   subtitle,
@@ -192,9 +211,18 @@ export function ResourceManager({
       }
     }
 
+    // Phase 12: a PATCH only sends fields that actually changed from the
+    // row as it was when the edit modal opened — every field used to be
+    // resent unconditionally (every configured field, every save), which
+    // meant an edit that only touched one field could silently overwrite
+    // any other field (e.g. `published`) with a stale value if something
+    // else changed that field in the DB between opening the modal and
+    // saving. create (POST) is unaffected — it still sends every field.
+    const payloadForRequest = isEdit ? diffAgainst(body, editing) : body;
+
     const res = isEdit
-      ? await api(`${endpoint}/${editing?.id}`, { method: 'PATCH', body: JSON.stringify(body) })
-      : await api(endpoint, { method: 'POST', body: JSON.stringify(body) });
+      ? await api(`${endpoint}/${editing?.id}`, { method: 'PATCH', body: JSON.stringify(payloadForRequest) })
+      : await api(endpoint, { method: 'POST', body: JSON.stringify(payloadForRequest) });
 
     setSaving(false);
     if (!res.success) {

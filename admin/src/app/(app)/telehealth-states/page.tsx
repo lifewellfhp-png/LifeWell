@@ -2,6 +2,11 @@
 
 import { ResourceManager } from '@/components/ResourceManager';
 
+const INSURANCE_MODE_HINTS: Record<string, string> = {
+  existing: 'Publicly states this state uses the existing insurance & self-pay structure (currently only Florida). Do not select this for Massachusetts or Arizona unless that has actually changed.',
+  self_pay_only: 'Publicly states this state is Self-Pay Only — no insurance accepted here.',
+};
+
 export default function Page() {
   return (
     <ResourceManager
@@ -10,6 +15,11 @@ export default function Page() {
       endpoint="/api/admin/telehealth-states"
       createDefaults={{ published: true, insurance_mode: 'self_pay_only', self_pay_enabled: true, faqs: [] }}
       itemLabel={(r) => String(r.state_name || 'State page')}
+      confirmFieldChange={{
+        key: 'insurance_mode',
+        message: (from, to) =>
+          `Change insurance mode from "${from || 'self_pay_only'}" to "${to}"? ${INSURANCE_MODE_HINTS[to] || ''}`.trim(),
+      }}
       columns={[
         { key: 'state_name', label: 'State' },
         { key: 'insurance_mode', label: 'Insurance mode' },
@@ -41,6 +51,7 @@ export default function Page() {
             { value: 'existing', label: 'Existing insurance & self-pay structure (Florida)' },
             { value: 'self_pay_only', label: 'Self-pay only — no insurance shown' },
           ],
+          hint: (value) => INSURANCE_MODE_HINTS[String(value || 'self_pay_only')] || null,
         },
         { key: 'self_pay_enabled', label: 'Show self-pay pricing block', type: 'checkbox' },
         {
@@ -57,9 +68,17 @@ export default function Page() {
         { key: 'hero_image_url', label: 'Hero image URL (upload via Media, then paste the URL here)', type: 'url', full: true },
         { key: 'hero_image_alt', label: 'Hero image alt text', full: true },
         { key: 'primary_cta_label', label: 'Primary button label' },
-        { key: 'primary_cta_href', label: 'Primary button link' },
+        {
+          key: 'primary_cta_href',
+          label: 'Primary button link',
+          hint: () => 'Use an internal path starting with / (e.g. /fees-insurance) or a full https:// URL.',
+        },
         { key: 'secondary_cta_label', label: 'Secondary link label' },
-        { key: 'secondary_cta_href', label: 'Secondary link URL' },
+        {
+          key: 'secondary_cta_href',
+          label: 'Secondary link URL',
+          hint: () => 'Use an internal path starting with / (e.g. /fees-insurance) or a full https:// URL.',
+        },
         {
           key: 'faqs',
           label: 'FAQs (JSON list of {"question": "...", "answer": "..."})',

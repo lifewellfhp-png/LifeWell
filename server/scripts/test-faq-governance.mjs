@@ -158,11 +158,19 @@ test('validateUpdate runs before the update payload is written to the database',
   assert.ok(validateIdx > patchIdx && updateIdx > validateIdx, 'expected validateUpdate to run strictly before update');
 });
 
-test('no other createCrudRouter call site passes validateCreate/validateUpdate — the hook is opt-in, not a behavior change for other resources', () => {
+test('validateCreate/validateUpdate stay opt-in — only the resources that legitimately need write-time validation use them', () => {
+  // As of Phase 11 this was FAQs only (count 1). Phase 12 (Admin Content
+  // Governance Audit) legitimately added two more, narrowly-scoped uses of
+  // the same opt-in hook mechanism: /locations (assertAtMostOnePrimaryLocation)
+  // and /blog (assertValidRelatedServiceSlug) — see test-phase12-governance.mjs
+  // for their own dedicated coverage. This test's job is only to confirm the
+  // hook remains opt-in (not silently applied to every resource) — the count
+  // is expected to grow deliberately over time as new resources need it, not
+  // to stay pinned at its Phase-11 value forever.
   const createCount = (adminRoutesSource.match(/validateCreate:/g) || []).length;
   const updateCount = (adminRoutesSource.match(/validateUpdate:/g) || []).length;
-  assert.equal(createCount, 1, 'expected exactly one validateCreate: usage (the /faqs route)');
-  assert.equal(updateCount, 1, 'expected exactly one validateUpdate: usage (the /faqs route)');
+  assert.equal(createCount, 3, 'expected exactly 3 validateCreate: usages (faqs, locations, blog)');
+  assert.equal(updateCount, 3, 'expected exactly 3 validateUpdate: usages (faqs, locations, blog)');
 });
 
 // --- no database migration introduced for this phase ---

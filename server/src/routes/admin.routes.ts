@@ -471,6 +471,33 @@ adminRouter.use(
   })
 );
 
+/**
+ * Phase 12 (Admin Content Governance Audit): "primary location" is used by
+ * 4 separate public-client lookups (Footer, SiteHeader, /bio, /contact —
+ * each does `.find((row) => row.isPrimary) ?? cms.locations[0]`) as if it
+ * were guaranteed unique, but nothing before this change actually enforced
+ * that — the public `locations` query has no ORDER BY either, so if two
+ * rows both had `is_primary: true`, which one every one of those 4 lookups
+ * treats as "the" primary location would depend on unspecified Postgres/
+ * PostgREST row order. Only 1 location currently exists in Production, so
+ * this was latent, not yet manifesting — but the field's own semantics
+ * ("the" primary location, singular) make this squarely the kind of
+ * identity that's supposed to be unique.
+ */
+async function assertAtMostOnePrimaryLocation(isPrimary: unknown, excludeId?: string): Promise<void> {
+  if (isPrimary !== true) return;
+  const { data, error } = await getSupabase().from('locations').select('id, is_primary');
+  if (error) throw badRequest(error.message);
+  const collision = (data ?? []).find((row) => row.id !== excludeId && row.is_primary === true);
+  if (collision) {
+    throw new AppError(
+      'Another location is already set as primary. Unset it first, then mark this one as primary.',
+      409,
+      { expose: true }
+    );
+  }
+}
+
 adminRouter.use(
   '/locations',
   createCrudRouter({
@@ -479,6 +506,12 @@ adminRouter.use(
     createSchema: locationCreate,
     updateSchema: locationUpdate,
     orderBy: { column: 'created_at', ascending: false },
+    validateCreate: async (data) => {
+      await assertAtMostOnePrimaryLocation(data.is_primary);
+    },
+    validateUpdate: async (data, id) => {
+      await assertAtMostOnePrimaryLocation(data.is_primary, id);
+    },
   })
 );
 
@@ -492,6 +525,25 @@ adminRouter.use(
     orderBy: { column: 'sort_order', ascending: true },
   })
 );
+
+/**
+ * Phase 12: `related_service_slug` is free text server-side (see
+ * blogCreate's comment in adminSchemas.ts) but the Admin blog editor only
+ * ever offers a fixed dropdown of known service slugs — validating against
+ * the live `services` table at request time (rather than a hardcoded
+ * server-side list) means this can never drift from whatever services
+ * actually exist right now, without duplicating the Admin's own list
+ * server-side. An empty/blank value ('no related service') is always
+ * allowed and skips the check entirely.
+ */
+async function assertValidRelatedServiceSlug(slug: unknown): Promise<void> {
+  if (typeof slug !== 'string' || !slug.trim()) return;
+  const { data, error } = await getSupabase().from('services').select('id').eq('slug', slug).maybeSingle();
+  if (error) throw badRequest(error.message);
+  if (!data) {
+    throw new AppError('That related service no longer exists. Choose a current service.', 409, { expose: true });
+  }
+}
 
 adminRouter.use(
   '/blog',
@@ -510,6 +562,12 @@ adminRouter.use(
       published_at:
         data.published === true && !data.published_at ? new Date().toISOString() : data.published_at,
     }),
+    validateCreate: async (data) => {
+      await assertValidRelatedServiceSlug(data.related_service_slug);
+    },
+    validateUpdate: async (data) => {
+      await assertValidRelatedServiceSlug(data.related_service_slug);
+    },
   })
 );
 

@@ -147,6 +147,36 @@ export const locationCreate = z.object({
 });
 export const locationUpdate = locationCreate.partial();
 
+/**
+ * Phase 12: `primary_cta_href`/`secondary_cta_href` on a telehealth state
+ * page were free text with zero format validation, and
+ * `secondary_cta_href` is rendered directly into a Next.js `<Link href>`
+ * on the public page with no sanitization in between (client/src/
+ * components/sections/TelehealthStatePageContent.tsx) — a value like
+ * `javascript:...` would have been accepted end-to-end. Restricting to an
+ * internal path (`/...`, explicitly excluding the protocol-relative `//`
+ * form) or an absolute `https://` URL closes this off while still
+ * allowing every legitimate use (linking to another page on this site, or
+ * to an external https resource) unchanged.
+ */
+const safeInternalOrHttpsHref = z
+  .string()
+  .max(300)
+  .optional()
+  .nullable()
+  .refine(
+    (value) => {
+      if (value == null || value === '') return true;
+      if (value.startsWith('/') && !value.startsWith('//')) return true;
+      try {
+        return new URL(value).protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'Must be an internal path starting with / or a valid https:// URL.' }
+  );
+
 export const telehealthStateCreate = z.object({
   state_name: z.string().min(1).max(60),
   state_code: z.string().min(2).max(2),
@@ -167,9 +197,9 @@ export const telehealthStateCreate = z.object({
   hero_image_url: z.string().max(1000).optional().nullable(),
   hero_image_alt: z.string().max(300).optional().nullable(),
   primary_cta_label: z.string().max(80).optional().nullable(),
-  primary_cta_href: z.string().max(300).optional().nullable(),
+  primary_cta_href: safeInternalOrHttpsHref,
   secondary_cta_label: z.string().max(80).optional().nullable(),
-  secondary_cta_href: z.string().max(300).optional().nullable(),
+  secondary_cta_href: safeInternalOrHttpsHref,
   faqs: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
   seo_title: z.string().max(200).optional().nullable(),
   seo_description: z.string().max(500).optional().nullable(),
@@ -178,6 +208,32 @@ export const telehealthStateCreate = z.object({
 });
 export const telehealthStateUpdate = telehealthStateCreate.partial();
 
+/**
+ * Phase 12: matches the exact 8 values the Admin blog editor's own category
+ * dropdown offers (admin/src/app/(app)/blog/page.tsx's CATEGORIES const).
+ * Before this change the server accepted any string up to 80 chars — a
+ * typo or a value never present in the Admin's own dropdown would save
+ * successfully and just silently not match anything the dropdown itself
+ * ever shows again, the same class of drift Phase 11 closed for FAQs.
+ * Blank ('') from the dropdown's placeholder option means "no category" —
+ * preprocessed to null, matching services' own category preprocessing
+ * (see serviceUpdate above).
+ */
+export const BLOG_CATEGORIES = [
+  'Anxiety',
+  'Depression',
+  'ADHD',
+  'Psychiatric Care & Evaluations',
+  'Medication & Treatment',
+  'Sleep & Wellness',
+  'Trauma & Stress',
+  'Whole-Person Wellness',
+] as const;
+const blogCategorySchema = z.preprocess(
+  (v) => (v === '' ? null : v),
+  z.enum(BLOG_CATEGORIES).nullable().optional()
+);
+
 export const blogCreate = z.object({
   slug: z.string().min(1).max(160),
   title: z.string().min(1).max(300),
@@ -185,7 +241,13 @@ export const blogCreate = z.object({
   body: z.string().max(100000).optional().nullable(),
   cover_image_url: z.string().optional().nullable(),
   author_name: z.string().max(120).optional().nullable(),
-  category: z.string().max(80).optional().nullable(),
+  category: blogCategorySchema,
+  // Validated against the live `services` table at request time (see
+  // assertValidRelatedServiceSlug in admin.routes.ts) rather than a fixed
+  // enum here, since valid slugs change whenever a service is added,
+  // renamed, or removed — a hardcoded server-side list would drift from
+  // the Admin's own dropdown (admin/src/app/(app)/blog/page.tsx's SERVICES
+  // const) immediately.
   related_service_slug: z.string().max(160).optional().nullable(),
   published: z.boolean().default(true),
   published_at: z.string().datetime().optional().nullable(),
@@ -244,18 +306,115 @@ export const videoCreate = videoFields.refine((row) => Boolean(row.url && String
 });
 export const videoUpdate = videoFields.partial();
 
-export const sectionCreate = z.object({
+/**
+ * Phase 12 (Admin Content Governance Audit): `site_sections.content` is a
+ * generic, unstructured JSONB blob shared by every homepage/marketing
+ * section AND by the `page_key:'fees', section_key:'self_pay'` row that
+ * backs the /fees-insurance self-pay pricing table (client/src/lib/
+ * cms-resolve.ts's mapFees(), which reads `content.psychiatricStatePricing`
+ * and overrides client/src/data/pricing.ts's static Florida/Massachusetts/
+ * Arizona figures whenever exactly 3 valid entries are present). Before
+ * this change, `content` had zero validation of any kind — a typo'd,
+ * negative, zero, or wildly-wrong-magnitude dollar amount, or a misspelled
+ * state name, would publish immediately with no server-side check at all.
+ *
+ * This check is deliberately narrow: it only ever inspects a `content`
+ * object that actually contains a `psychiatricStatePricing` key (any other
+ * section's content, including one that happens to share the same generic
+ * JSON field name for something else, is untouched), and it validates
+ * *shape and sanity bounds*, not the specific approved dollar figures —
+ * this preserves the Admin's existing ability to intentionally update
+ * pricing through this CMS row (the dedicated FeesCopy admin UI exists
+ * for exactly that), while closing the fat-finger/garbage-value failure
+ * mode. A full read-only lock (matching telehealth_state_pages.self_pay_fee
+ * /self_pay_fee_label's fully-static-only precedent, which the Phase 12
+ * audit confirmed exists for the *separate* per-state telehealth pricing
+ * fields) would be a materially different CMS-authority change and is
+ * intentionally NOT made here without separate authorization — see the
+ * Phase 12 report.
+ */
+export const PROTECTED_PRICING_STATES = ['Florida', 'Massachusetts', 'Arizona'] as const;
+const PRICING_SANITY_CEILING = 2000;
+
+export function validatePsychiatricStatePricingShape(content: unknown): string | null {
+  if (!content || typeof content !== 'object' || Array.isArray(content)) return null;
+  const pricing = (content as Record<string, unknown>).psychiatricStatePricing;
+  if (pricing === undefined) return null; // this payload doesn't touch pricing at all
+  if (!Array.isArray(pricing)) return 'psychiatricStatePricing must be a list of state pricing entries.';
+  for (const entry of pricing) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return 'Each pricing entry must be an object with state, initialFee, and followUpFee.';
+    }
+    const { state, initialFee, followUpFee } = entry as Record<string, unknown>;
+    if (typeof state !== 'string' || !(PROTECTED_PRICING_STATES as readonly string[]).includes(state)) {
+      return `Each pricing entry's state must be one of: ${PROTECTED_PRICING_STATES.join(', ')}.`;
+    }
+    for (const [label, fee] of [
+      ['initialFee', initialFee],
+      ['followUpFee', followUpFee],
+    ] as const) {
+      if (typeof fee !== 'number' || !Number.isFinite(fee) || fee <= 0 || fee > PRICING_SANITY_CEILING) {
+        return `${state} ${label} must be a positive dollar amount no greater than $${PRICING_SANITY_CEILING}.`;
+      }
+    }
+  }
+  return null;
+}
+
+const sectionBase = z.object({
   page_key: z.string().min(1).max(80),
   section_key: z.string().min(1).max(80),
   title: z.string().max(200).optional().nullable(),
   content: z.record(z.unknown()).default({}),
   published: z.boolean().default(true),
 });
-export const sectionUpdate = sectionCreate.partial();
+
+function withPricingGuard<T extends z.ZodTypeAny>(schema: T) {
+  return schema.superRefine((data, ctx) => {
+    const content = (data as { content?: unknown }).content;
+    const error = validatePsychiatricStatePricingShape(content);
+    if (error) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: error, path: ['content'] });
+    }
+  });
+}
+
+export const sectionCreate = withPricingGuard(sectionBase);
+export const sectionUpdate = withPricingGuard(sectionBase.partial());
+
+/**
+ * Phase 12: `booking_url` is the CharmHealth calendar iframe's `src`. Before
+ * this change, the server accepted any `z.string().url()` (any scheme,
+ * any host) — the only thing standing between an Admin typo/mistake and a
+ * live public iframe pointed at an arbitrary URL was a client-side check
+ * (client/src/lib/cms-resolve.ts's calendarEmbedUrl()) that does a raw
+ * substring test (`/charmtracker\.com|clientsecure\.me/i.test(url)`)
+ * rather than parsing the actual hostname — a value merely *containing*
+ * one of those substrings anywhere (not necessarily as its real host)
+ * would pass that check. Validating the real hostname server-side closes
+ * this regardless of what the client-side fallback does, and matches the
+ * https-only precedent already established for video URLs (see httpsUrl
+ * above).
+ */
+const ALLOWED_BOOKING_HOSTS = ['charmtracker.com', 'clientsecure.me'];
+function isAllowedBookingHost(hostname: string): boolean {
+  return ALLOWED_BOOKING_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`));
+}
+const bookingUrlSchema = z.string().max(2000).refine(
+  (value) => {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'https:' && isAllowedBookingHost(url.hostname);
+    } catch {
+      return false;
+    }
+  },
+  { message: 'Booking URL must be an https:// link to the approved booking provider (charmtracker.com or clientsecure.me).' }
+);
 
 export const bookingCreate = z.object({
   label: z.string().min(1).max(120).default('Book appointment'),
-  booking_url: z.string().url(),
+  booking_url: bookingUrlSchema,
   provider: z.string().max(80).default('charmhealth'),
   active: z.boolean().default(true),
 });

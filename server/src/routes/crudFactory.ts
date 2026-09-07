@@ -9,9 +9,26 @@ import {
   type AdminModule,
   type AuthedRequest,
 } from '../middleware/adminAuth.js';
-import { badRequest, notFound } from '../utils/errors.js';
+import { badRequest, notFound, AppError } from '../utils/errors.js';
 import { diffChanges, recordLabel, writeAuditLog } from '../lib/audit.js';
 import { refreshPublicSite } from '../lib/refreshSite.js';
+
+/**
+ * Phase 12 (Admin Content Governance Audit): several tables have a real
+ * DB-level unique constraint (services.slug, site_sections(page_key,
+ * section_key), telehealth_state_pages.state_code/.slug) but nothing
+ * mapped a violation to an owner-friendly message the way FAQs' dedicated
+ * assertUniqueFaqQuestion does — a duplicate-slug attempt surfaced as the
+ * raw Postgres error text (e.g. `duplicate key value violates unique
+ * constraint "services_slug_key"`) returned straight through as a 400.
+ * Postgres error code 23505 is unique_violation regardless of which table/
+ * constraint triggered it, so this one generic mapping covers all of them
+ * without knowing per-resource details, and never exposes the raw
+ * constraint name/SQL text to the Admin UI.
+ */
+function isUniqueViolation(error: { code?: string } | null | undefined): boolean {
+  return Boolean(error && error.code === '23505');
+}
 
 function withoutOptionalMediaFields(payload: Record<string, unknown>) {
   const next = { ...payload };
@@ -112,6 +129,9 @@ export function createCrudRouter(options: CrudOptions): Router {
         data = retry.data;
         error = retry.error;
       }
+      if (isUniqueViolation(error)) {
+        throw new AppError('A record with this value already exists.', 409, { expose: true });
+      }
       if (error) throw badRequest(error.message);
       const actor = (req as AuthedRequest).admin;
       await writeAuditLog({
@@ -173,6 +193,9 @@ export function createCrudRouter(options: CrudOptions): Router {
           .maybeSingle();
         data = retry.data;
         error = retry.error;
+      }
+      if (isUniqueViolation(error)) {
+        throw new AppError('A record with this value already exists.', 409, { expose: true });
       }
       if (error) throw badRequest(error.message);
       if (!data) throw notFound('Record not found.');
