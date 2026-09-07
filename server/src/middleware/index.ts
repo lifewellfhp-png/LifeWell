@@ -112,6 +112,20 @@ export const marketingUnsubscribeLimiter = limiter(
   'Too many requests. Please try again later.'
 );
 
+/**
+ * Campaign test-send (campaign management + safe test send). Authenticated
+ * admin-only, but each request still triggers one real outbound Paubox API
+ * call, so a bounded per-IP limiter guards against an accidental client
+ * retry loop or a compromised admin session burning provider send quota.
+ * Hardcoded, not env-configurable — same reasoning as analyticsLimiter/
+ * conversionLimiter/marketingUnsubscribeLimiter.
+ */
+export const marketingCampaignTestSendLimiter = limiter(
+  60 * 60 * 1000,
+  20,
+  'Too many test emails sent. Please wait before sending another test.'
+);
+
 /** Wraps async handlers so rejections reach the error middleware. */
 export const asyncHandler =
   (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>): RequestHandler =>

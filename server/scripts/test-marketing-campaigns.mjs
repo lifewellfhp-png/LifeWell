@@ -250,8 +250,8 @@ test('23. no unarchive/restore endpoint exists', () => {
   assert.doesNotMatch(routesSource, /\/marketing-campaigns.*restore/i);
 });
 
-test('24. no DELETE endpoint exists for marketing-campaigns', () => {
-  assert.doesNotMatch(routesSource, /adminRouter\.delete\(\s*'\/marketing-campaigns/);
+test('24. a DELETE endpoint now exists for marketing-campaigns (campaign management + safe test send) — its permission-gating and delivery-lock enforcement are covered in test-marketing-campaign-management.mjs, not here', () => {
+  assert.match(routesSource, /adminRouter\.delete\(\s*'\/marketing-campaigns\/:id'/);
 });
 
 test('25. no send endpoint exists', () => {
@@ -411,10 +411,11 @@ test('47. existing P4-I2E CSV import protections remain intact', () => {
   assert.equal(rows[0].classification, 'existing_unsubscribed');
 });
 
-// --- Supplementary: no DELETE handler exists in the controller itself -----------
+// --- Supplementary: no send/schedule handler exists in the controller itself ----
+// (a delete handler now legitimately exists here — campaign management + safe
+// test send — see test-marketing-campaign-management.mjs for its coverage)
 
-test('the controller exports no delete/send/schedule handler', () => {
-  assert.doesNotMatch(controllerSource, /export async function delete/i);
+test('the controller exports no send/schedule handler', () => {
   assert.doesNotMatch(controllerSource, /export async function send/i);
   assert.doesNotMatch(controllerSource, /export async function schedule/i);
 });

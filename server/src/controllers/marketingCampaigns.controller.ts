@@ -333,6 +333,119 @@ export async function archiveMarketingCampaign(req: Request, res: Response): Pro
   res.json({ success: true, data });
 }
 
+/**
+ * Deletes a campaign DRAFT. Only ever reachable for a campaign that has
+ * never had delivery initiated — the same isCampaignDeliveryLocked() guard
+ * used by edit/archive/send, checked here independently of whatever the
+ * Admin UI shows, since a client-side button being hidden is not a safety
+ * guarantee. The marketing_campaign_recipients FK
+ * (campaign_id references marketing_campaigns(id), no ON DELETE CASCADE —
+ * see server/supabase/ops.sql) means Postgres itself would refuse a delete
+ * with any recipient rows attached even if this check were ever bypassed;
+ * this application-level check exists to return a clear 409 rather than a
+ * raw database error.
+ */
+export async function deleteMarketingCampaign(req: Request, res: Response): Promise<void> {
+  const parsedId = uuidParam.safeParse(req.params.id);
+  if (!parsedId.success) throw badRequest('Invalid campaign id.');
+
+  const { data: before, error: beforeError } = await getSupabase()
+    .from('marketing_campaigns')
+    .select('id, name, status')
+    .eq('id', parsedId.data)
+    .maybeSingle();
+  if (beforeError) throw badRequest(beforeError.message);
+  if (!before) throw notFound('Marketing campaign not found.');
+
+  const deliveryLocked = await isCampaignDeliveryLocked(parsedId.data);
+  if (deliveryLocked) {
+    throw new AppError('This campaign has already had delivery initiated and cannot be deleted.', 409, { expose: true });
+  }
+
+  const { error } = await getSupabase().from('marketing_campaigns').delete().eq('id', parsedId.data);
+  if (error) throw badRequest(error.message);
+
+  const actor = (req as AuthedRequest).admin;
+  await writeAuditLog({
+    actor,
+    action: 'delete',
+    resource: 'marketing_campaigns',
+    resourceId: parsedId.data,
+    summary: 'Deleted marketing campaign draft',
+    meta: { status: before.status },
+  });
+
+  res.json({ success: true });
+}
+
+/**
+ * Duplicates a campaign as a brand-new draft. Content fields only
+ * (name/subject/subject_fallback/preview_text/audience_type/content/
+ * html_body) — status is always forced to 'draft' regardless of the
+ * source campaign's own status/lock state, and no delivery history,
+ * recipient rows, provider ids, or timestamps are ever copied. This is the
+ * only way to reuse a locked (delivery-initiated) or archived campaign's
+ * content: editing or resending the original stays permanently blocked.
+ */
+export async function duplicateMarketingCampaign(req: Request, res: Response): Promise<void> {
+  const parsedId = uuidParam.safeParse(req.params.id);
+  if (!parsedId.success) throw badRequest('Invalid campaign id.');
+
+  const { data: source, error: sourceError } = await getSupabase()
+    .from('marketing_campaigns')
+    .select('name, subject, subject_fallback, preview_text, audience_type, content, html_body')
+    .eq('id', parsedId.data)
+    .maybeSingle();
+  if (sourceError) throw badRequest(sourceError.message);
+  if (!source) throw notFound('Marketing campaign not found.');
+
+  const actor = (req as AuthedRequest).admin;
+  const suffix = ' — Copy';
+  const maxNameLength = 200 - suffix.length;
+  const baseName = String(source.name);
+  const newName = (baseName.length > maxNameLength ? baseName.slice(0, maxNameLength) : baseName) + suffix;
+
+  const payload = {
+    name: newName,
+    subject: source.subject,
+    subject_fallback: source.subject_fallback ?? null,
+    preview_text: source.preview_text ?? null,
+    audience_type: source.audience_type ?? null,
+    content: source.content,
+    html_body: source.html_body ?? null,
+    status: 'draft',
+    created_by: actor?.sub ?? null,
+  };
+
+  const { data, error } = await getSupabase().from('marketing_campaigns').insert(payload).select('*').single();
+  if (error) throw badRequest(error.message);
+
+  await writeAuditLog({
+    actor,
+    action: 'duplicate',
+    resource: 'marketing_campaigns',
+    resourceId: data.id,
+    summary: 'Duplicated marketing campaign as new draft',
+    // The SOURCE campaign id, so this event is traceable back to what was
+    // duplicated — never name/subject/content, matching the rest of this file.
+    meta: { source_campaign_id: parsedId.data },
+  });
+
+  res.status(201).json({
+    success: true,
+    data: {
+      ...data,
+      delivery_locked: false,
+      pending: 0,
+      processing: 0,
+      sent: 0,
+      failed: 0,
+      skipped: 0,
+      ambiguous_timeout: 0,
+    },
+  });
+}
+
 export type RecipientEligibilityFilters = {
   marketing_status: 'subscribed';
   audience_type?: string;

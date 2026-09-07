@@ -43,6 +43,7 @@ type Pagination = { page: number; pageSize: number; total: number; totalPages: n
 type ListData = { items: Campaign[]; pagination: Pagination };
 type RecipientPreviewData = { eligible_count: number; audience_type: AudienceType | null };
 type SendResult = { requested: number; snapshotted: number; sent: number; failed: number; skipped: number };
+type TestSendResult = { ok: boolean; httpStatus: number };
 
 const STATUS_LABELS: Record<CampaignStatus, string> = { draft: 'Draft', archived: 'Archived' };
 const AUDIENCE_LABELS: Record<AudienceType, string> = {
@@ -120,6 +121,17 @@ export default function MarketingCampaignsPage() {
   const [sendError, setSendError] = useState<string | null>(null);
   const [sendResult, setSendResult] = useState<SendResult | null>(null);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+
+  const [testSending, setTestSending] = useState<Campaign | null>(null);
+  const [testSendEmail, setTestSendEmail] = useState('');
+  const [testSendFirstName, setTestSendFirstName] = useState('');
+  const [testSendChecked, setTestSendChecked] = useState(false);
+  const [testSendSubmitting, setTestSendSubmitting] = useState(false);
+  const [testSendError, setTestSendError] = useState<string | null>(null);
+  const [testSendResult, setTestSendResult] = useState<TestSendResult | null>(null);
+
   async function load() {
     const params = new URLSearchParams();
     params.set('page', String(page));
@@ -155,11 +167,12 @@ export default function MarketingCampaignsPage() {
   }, [searchInput]);
 
   useEffect(() => {
-    document.body.style.overflow = createOpen || editing || viewing || previewing || sending ? 'hidden' : '';
+    document.body.style.overflow =
+      createOpen || editing || viewing || previewing || sending || testSending ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [createOpen, editing, viewing, previewing, sending]);
+  }, [createOpen, editing, viewing, previewing, sending, testSending]);
 
   function openCreate() {
     setCreateForm(emptyCampaignForm);
@@ -338,6 +351,69 @@ export default function MarketingCampaignsPage() {
     await load();
   }
 
+  async function onDelete(campaign: Campaign) {
+    if (!confirm(`Delete "${campaign.name}"? This cannot be undone.`)) return;
+    setDeletingId(campaign.id);
+    setError(null);
+    const res = await api(`/api/admin/marketing-campaigns/${campaign.id}`, { method: 'DELETE' });
+    setDeletingId(null);
+    if (!res.success) {
+      setError(res.message || 'Could not delete this campaign draft.');
+      return;
+    }
+    setMessage('Campaign draft deleted.');
+    await load();
+  }
+
+  async function onDuplicate(campaign: Campaign) {
+    setDuplicatingId(campaign.id);
+    setError(null);
+    const res = await api(`/api/admin/marketing-campaigns/${campaign.id}/duplicate`, { method: 'POST' });
+    setDuplicatingId(null);
+    if (!res.success) {
+      setError(res.message || 'Could not duplicate this campaign.');
+      return;
+    }
+    setMessage('Campaign duplicated as a new draft. Delivery history is preserved on the original.');
+    setPage(1);
+    await load();
+  }
+
+  function openTestSend(campaign: Campaign) {
+    setTestSending(campaign);
+    setTestSendEmail('');
+    setTestSendFirstName('');
+    setTestSendChecked(false);
+    setTestSendError(null);
+    setTestSendResult(null);
+  }
+
+  function closeTestSend() {
+    if (testSendSubmitting) return;
+    setTestSending(null);
+  }
+
+  async function onConfirmTestSend() {
+    if (!testSending || !testSendChecked || !testSendEmail.trim()) return;
+    setTestSendSubmitting(true);
+    setTestSendError(null);
+    const payload: Record<string, unknown> = { email: testSendEmail.trim(), confirm: true };
+    if (testSendFirstName.trim()) payload.first_name = testSendFirstName.trim();
+    // Dedicated endpoint only — the server always renders the already-
+    // persisted campaign content; this request carries no subject/content/
+    // html_body of its own.
+    const res = await api<TestSendResult>(`/api/admin/marketing-campaigns/${testSending.id}/test-send`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    setTestSendSubmitting(false);
+    if (!res.success) {
+      setTestSendError(res.message || 'Could not send this test email.');
+      return;
+    }
+    setTestSendResult(res.data ?? null);
+  }
+
   const hasActiveFilter = Boolean(searchInput || statusFilter || audienceFilter);
 
   return (
@@ -346,8 +422,8 @@ export default function MarketingCampaignsPage() {
         <div>
           <h1 className="page-title">Campaigns</h1>
           <p className="page-sub">
-            Draft marketing campaign content and audience criteria. This is a draft builder only — no email is sent
-            from this page.
+            Draft marketing campaign content and audience criteria, then send to a test address or to currently
+            subscribed contacts.
           </p>
         </div>
         <button type="button" className="btn btn-primary" onClick={openCreate}>
@@ -443,6 +519,8 @@ export default function MarketingCampaignsPage() {
                     const canEdit = row.status === 'draft' && !locked;
                     const canArchive = row.status === 'draft' && !locked;
                     const canSend = row.status === 'draft' && !locked;
+                    const canTestSend = row.status === 'draft' && !locked;
+                    const canDelete = row.status === 'draft' && !locked;
                     return (
                       <tr key={row.id}>
                         <td>{row.name}</td>
@@ -467,9 +545,33 @@ export default function MarketingCampaignsPage() {
                             <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
                               Preview
                             </button>
+                            {canTestSend ? (
+                              <button type="button" className="btn btn-ghost" onClick={() => openTestSend(row)}>
+                                Send Test
+                              </button>
+                            ) : null}
                             {canArchive ? (
                               <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
                                 Archive
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              className="btn btn-ghost"
+                              title="Delivery history is preserved. Duplicate this campaign to make changes or send it again."
+                              onClick={() => onDuplicate(row)}
+                              disabled={duplicatingId === row.id}
+                            >
+                              {duplicatingId === row.id ? 'Duplicating…' : 'Duplicate as Draft'}
+                            </button>
+                            {canDelete ? (
+                              <button
+                                type="button"
+                                className="btn btn-danger"
+                                onClick={() => onDelete(row)}
+                                disabled={deletingId === row.id}
+                              >
+                                {deletingId === row.id ? 'Deleting…' : 'Delete'}
                               </button>
                             ) : null}
                             {canSend ? (
@@ -492,6 +594,8 @@ export default function MarketingCampaignsPage() {
                 const canEdit = row.status === 'draft' && !locked;
                 const canArchive = row.status === 'draft' && !locked;
                 const canSend = row.status === 'draft' && !locked;
+                const canTestSend = row.status === 'draft' && !locked;
+                const canDelete = row.status === 'draft' && !locked;
                 return (
                   <article key={row.id} className="mobile-card">
                     <div className="mobile-card-row">
@@ -524,9 +628,33 @@ export default function MarketingCampaignsPage() {
                       <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
                         Preview
                       </button>
+                      {canTestSend ? (
+                        <button type="button" className="btn btn-ghost" onClick={() => openTestSend(row)}>
+                          Send Test
+                        </button>
+                      ) : null}
                       {canArchive ? (
                         <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
                           Archive
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        title="Delivery history is preserved. Duplicate this campaign to make changes or send it again."
+                        onClick={() => onDuplicate(row)}
+                        disabled={duplicatingId === row.id}
+                      >
+                        {duplicatingId === row.id ? 'Duplicating…' : 'Duplicate as Draft'}
+                      </button>
+                      {canDelete ? (
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          onClick={() => onDelete(row)}
+                          disabled={deletingId === row.id}
+                        >
+                          {deletingId === row.id ? 'Deleting…' : 'Delete'}
                         </button>
                       ) : null}
                       {canSend ? (
@@ -1077,6 +1205,107 @@ export default function MarketingCampaignsPage() {
                 </p>
                 <div className="modal-actions">
                   <button type="button" className="btn btn-primary" onClick={closeSend}>
+                    Done
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {testSending ? (
+        <div className="overlay modal-overlay">
+          <div className="card card-pad modal-card">
+            <div className="modal-head">
+              <div>
+                <p className="modal-kicker">Marketing Campaigns</p>
+                <h2>Send test: {testSending.name}</h2>
+              </div>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={closeTestSend}
+                aria-label="Close"
+                disabled={testSendSubmitting}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {testSendError ? <div className="error-banner">{testSendError}</div> : null}
+
+            {!testSendResult ? (
+              <>
+                <p className="muted" style={{ marginTop: 0 }}>
+                  Sends one real email of this draft&rsquo;s saved content to the address below, with a{' '}
+                  <strong>[TEST]</strong> subject prefix and a visible test banner. No subscriber list is used, no
+                  delivery record is created for this campaign, and it remains fully editable afterward.
+                </p>
+                <div className="field">
+                  <label htmlFor="mc-test-email">Test recipient email</label>
+                  <input
+                    id="mc-test-email"
+                    type="email"
+                    required
+                    value={testSendEmail}
+                    onChange={(e) => setTestSendEmail(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="mc-test-first-name">Test first name (optional)</label>
+                  <input
+                    id="mc-test-first-name"
+                    maxLength={60}
+                    value={testSendFirstName}
+                    onChange={(e) => setTestSendFirstName(e.target.value)}
+                  />
+                  <p className="muted" style={{ marginTop: '0.35rem' }}>
+                    Used only to preview personalization for this test message — never saved.
+                  </p>
+                </div>
+
+                <label className="access-tile" style={{ marginBottom: '1rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={testSendChecked}
+                    onChange={(e) => setTestSendChecked(e.target.checked)}
+                  />
+                  <span>I confirm this address is mine or otherwise approved to receive a test email.</span>
+                </label>
+
+                <div className="modal-actions">
+                  <button type="button" className="btn btn-ghost" onClick={closeTestSend} disabled={testSendSubmitting}>
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={onConfirmTestSend}
+                    disabled={!testSendChecked || !testSendEmail.trim() || testSendSubmitting}
+                  >
+                    {testSendSubmitting ? 'Sending…' : 'Send Test'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="detail-grid" style={{ marginBottom: '1rem' }}>
+                  <p>
+                    <span>Provider accepted</span>
+                    <strong>{testSendResult.ok ? 'Yes' : 'No'}</strong>
+                  </p>
+                  <p>
+                    <span>HTTP status</span>
+                    <strong>{testSendResult.httpStatus}</strong>
+                  </p>
+                </div>
+                {!testSendResult.ok ? (
+                  <div className="error-banner" style={{ marginBottom: '1rem' }}>
+                    The email provider did not accept this test message.
+                  </div>
+                ) : null}
+                <div className="modal-actions">
+                  <button type="button" className="btn btn-primary" onClick={closeTestSend}>
                     Done
                   </button>
                 </div>

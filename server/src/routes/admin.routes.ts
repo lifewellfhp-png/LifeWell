@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { asyncHandler, adminLoginLimiter, changePasswordLimiter } from '../middleware/index.js';
+import { asyncHandler, adminLoginLimiter, changePasswordLimiter, marketingCampaignTestSendLimiter } from '../middleware/index.js';
 import {
   requireAdmin,
   requirePermission,
@@ -51,8 +51,10 @@ import {
   updateMarketingCampaign,
   archiveMarketingCampaign,
   previewMarketingCampaignRecipients,
+  deleteMarketingCampaign,
+  duplicateMarketingCampaign,
 } from '../controllers/marketingCampaigns.controller.js';
-import { sendMarketingCampaign } from '../services/marketingCampaignDelivery.service.js';
+import { sendMarketingCampaign, sendTestMarketingCampaign } from '../services/marketingCampaignDelivery.service.js';
 import { getSupabase } from '../lib/supabase.js';
 import { badRequest } from '../utils/errors.js';
 
@@ -488,8 +490,8 @@ adminRouter.post(
  * Marketing campaign DRAFTS (P4-I4B). Gated by its own dedicated
  * marketing_campaigns permission — deliberately NOT marketing_contacts,
  * since managing the contact directory and managing campaign drafts are
- * different responsibilities. No DELETE route (no delete exists in this
- * phase) and no send/schedule route (delivery does not exist yet — P4-I5).
+ * different responsibilities. DELETE, duplicate, and manual/test send all
+ * share this same permission — see below for each route's own scope notes.
  */
 adminRouter.get(
   '/marketing-campaigns',
@@ -538,6 +540,45 @@ adminRouter.post(
   requireAdmin,
   requirePermission('marketing_campaigns'),
   asyncHandler(sendMarketingCampaign)
+);
+/**
+ * Send ONE test email of a saved draft's real content to a caller-supplied
+ * address (campaign management + safe test send). A dedicated rate limiter
+ * sits in front of the auth/permission checks — see
+ * marketingCampaignTestSendLimiter in middleware/index.ts — since this
+ * still fires one real outbound Paubox call per request. Never creates
+ * marketing_campaign_recipients rows, never delivery-locks the campaign,
+ * never touches marketing_contacts.
+ */
+adminRouter.post(
+  '/marketing-campaigns/:id/test-send',
+  marketingCampaignTestSendLimiter,
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(sendTestMarketingCampaign)
+);
+/**
+ * Delete a campaign draft (campaign management + safe test send). Blocked
+ * with a 409 for any campaign with delivery already initiated — see
+ * deleteMarketingCampaign()'s own isCampaignDeliveryLocked() check, backed
+ * by the marketing_campaign_recipients FK having no ON DELETE CASCADE.
+ */
+adminRouter.delete(
+  '/marketing-campaigns/:id',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(deleteMarketingCampaign)
+);
+/**
+ * Duplicate a campaign (locked, archived, or draft) as a brand-new draft —
+ * the only way to reuse a locked/archived campaign's content, since the
+ * original stays permanently un-editable and un-resendable.
+ */
+adminRouter.post(
+  '/marketing-campaigns/:id/duplicate',
+  requireAdmin,
+  requirePermission('marketing_campaigns'),
+  asyncHandler(duplicateMarketingCampaign)
 );
 
 adminRouter.get('/users', requireAdmin, requireSuperAdmin, asyncHandler(listAdminUsers));

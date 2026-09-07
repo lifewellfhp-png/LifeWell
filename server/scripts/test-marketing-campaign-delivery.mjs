@@ -506,9 +506,13 @@ test('50. no patient-system access exists', () => {
 
 // --- 51. Audit aggregate-only ---------------------------------------------------------------
 
-test('51. both audit events contain aggregate counts only — no email, content, subject, or token', () => {
+test('51. both real-send audit events, plus the later test-send audit event, contain aggregate counts only — no email, content, subject, or token', () => {
   const auditCalls = serviceSource.match(/writeAuditLog\(\{[\s\S]*?\}\);/g) || [];
-  assert.equal(auditCalls.length, 4, 'expected 2 audit call sites, one of which (zero-eligible) appears twice in source (initiated+completed) plus the normal path (initiated+completed) = 4 total call sites');
+  // 4 real-send call sites (zero-eligible initiated+completed, normal-path
+  // initiated+completed) plus 1 legitimately-added test-send call site
+  // (campaign management + safe test send, a later, separately-authorized
+  // phase) = 5 total call sites.
+  assert.equal(auditCalls.length, 5, 'expected 4 real-send audit call sites plus 1 test-send audit call site');
   for (const call of auditCalls) {
     assert.doesNotMatch(call, /email/i);
     assert.doesNotMatch(call, /subject/i);

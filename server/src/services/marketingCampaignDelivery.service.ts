@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getSupabase } from '../lib/supabase.js';
 import { AppError, badRequest, notFound } from '../utils/errors.js';
 import { fieldErrors } from '../validation/schemas.js';
-import { marketingCampaignSendSchema } from '../validation/adminSchemas.js';
+import { marketingCampaignSendSchema, marketingCampaignTestSendSchema } from '../validation/adminSchemas.js';
 import { writeAuditLog } from '../lib/audit.js';
 import type { AuthedRequest } from '../middleware/adminAuth.js';
 import { env } from '../config/env.js';
@@ -79,6 +79,16 @@ export function assertCampaignSendable(campaign: { status: string; delivery_lock
   }
   if (campaign.status !== 'draft') {
     throw new AppError('Only a draft campaign can be sent.', 409, { expose: true });
+  }
+}
+
+/** Only a draft, never-delivery-initiated campaign may be test-sent — matches the Action Model's "Unlocked Draft" action set exactly (see admin/.../marketing-campaigns/page.tsx). */
+export function assertCampaignTestSendable(campaign: { status: string; delivery_locked?: boolean }): void {
+  if (campaign.delivery_locked === true) {
+    throw new AppError('This campaign has already had delivery initiated and cannot be test-sent.', 409, { expose: true });
+  }
+  if (campaign.status !== 'draft') {
+    throw new AppError('Only a draft campaign can be test-sent.', 409, { expose: true });
   }
 }
 
@@ -481,5 +491,134 @@ export async function sendMarketingCampaign(req: Request, res: Response): Promis
 
   const actor = (req as AuthedRequest).admin;
   const result = await initiateCampaignSend(parsedId.data, actor);
+  res.json({ success: true, data: result });
+}
+
+/**
+ * Sentinel, deliberately non-existent contact id used only to mint a
+ * syntactically-real (but functionally inert) unsubscribe link for test
+ * sends. createMarketingUnsubscribeToken() only needs a string to sign —
+ * it never looks up marketing_contacts itself — so this never touches a
+ * real contact row. If a test recipient actually followed the link,
+ * handleMarketingUnsubscribe() would look this id up, find no contact, and
+ * return its neutral "invalid or expired" response with no mutation (see
+ * marketingUnsubscribe.controller.ts) — safe by construction, not just by
+ * convention.
+ */
+const TEST_SEND_SENTINEL_CONTACT_ID = '00000000-0000-0000-0000-000000000000';
+
+const TEST_BANNER_TEXT = 'This is a test campaign email. No subscriber delivery has occurred.\n\n';
+const TEST_BANNER_HTML =
+  '<div style="background:#fef3c7;color:#92400e;padding:10px 16px;font:600 13px system-ui,-apple-system,sans-serif;text-align:center;border-bottom:2px solid #f59e0b;">This is a test campaign email. No subscriber delivery has occurred.</div>';
+
+/**
+ * Inserts the test-only banner right after the opening &lt;body&gt; tag
+ * when the rendered HTML is a full document (a campaign with an
+ * Admin-authored html_body), or prepends it when the HTML is just the
+ * fragment buildCampaignEmailContent() generates for a campaign with no
+ * html_body. Pure and independently testable — never applied to a real
+ * send's output.
+ */
+export function injectTestBanner(html: string): string {
+  const bodyOpenMatch = html.match(/<body[^>]*>/i);
+  if (bodyOpenMatch && typeof bodyOpenMatch.index === 'number') {
+    const insertAt = bodyOpenMatch.index + bodyOpenMatch[0].length;
+    return html.slice(0, insertAt) + TEST_BANNER_HTML + html.slice(insertAt);
+  }
+  return TEST_BANNER_HTML + html;
+}
+
+export type TestSendResult = { ok: boolean; httpStatus: number };
+
+/**
+ * Sends ONE test email of a SAVED draft campaign's real, already-persisted
+ * content to a caller-supplied address — never arbitrary client-supplied
+ * subject/content/html. Deliberately mirrors initiateCampaignSend()'s
+ * rendering pipeline (renderCampaignSubject/buildCampaignEmailContent) so
+ * a test genuinely previews what a real send would produce, with three
+ * differences only: (1) a non-real sentinel unsubscribe link, never a real
+ * contact's token, (2) a "[TEST] " subject prefix, applied to the local
+ * string only — the campaign's own stored subject is never touched, and
+ * (3) a visible in-body test banner. No marketing_campaign_recipients row
+ * is created, no delivery lock results, campaign.status is never changed,
+ * and marketing_contacts is never read or written.
+ */
+export async function sendTestCampaignEmail(
+  campaignId: string,
+  testEmail: string,
+  testFirstName: string | null | undefined,
+  actor: AuthedRequest['admin']
+): Promise<TestSendResult> {
+  const sb = getSupabase();
+
+  const { data: campaign, error: campaignError } = await sb
+    .from('marketing_campaigns')
+    .select('*')
+    .eq('id', campaignId)
+    .maybeSingle();
+  if (campaignError) throw badRequest(campaignError.message);
+  if (!campaign) throw notFound('Marketing campaign not found.');
+
+  const deliveryLocked = await isCampaignDeliveryLocked(campaignId);
+  assertCampaignTestSendable({ ...campaign, delivery_locked: deliveryLocked });
+
+  if (!pauboxConfigured) {
+    throw new AppError('Email delivery is not configured. No test email was sent.', 409, { expose: true });
+  }
+
+  const unsubscribeUrl = buildUnsubscribeUrl(createMarketingUnsubscribeToken(TEST_SEND_SENTINEL_CONTACT_ID));
+  const renderedSubject = renderCampaignSubject(
+    { subject: campaign.subject as string, subject_fallback: campaign.subject_fallback as string | null },
+    testFirstName
+  );
+  const { text, html } = buildCampaignEmailContent({
+    subject: campaign.subject as string,
+    content: campaign.content as string,
+    htmlBody: campaign.html_body as string | null,
+    unsubscribeUrl,
+    firstName: testFirstName,
+  });
+
+  const providerResult = await sendViaPauboxApi({
+    to: { address: testEmail },
+    subject: `[TEST] ${renderedSubject}`,
+    text: `${TEST_BANNER_TEXT}${text}`,
+    html: injectTestBanner(html),
+  });
+
+  // Aggregate outcome only, via a locally-named boolean — never the raw
+  // providerResult object, the recipient address, rendered body, or test
+  // first name (same discipline this file already follows for real-send
+  // audit events, which likewise never reference providerResult directly).
+  const acceptedCount = providerResult.ok ? 1 : 0;
+  await writeAuditLog({
+    actor,
+    action: 'test_send',
+    resource: 'marketing_campaigns',
+    resourceId: campaignId,
+    summary: 'Sent marketing campaign test message',
+    meta: { accepted_count: acceptedCount },
+  });
+
+  return { ok: providerResult.ok, httpStatus: providerResult.httpStatus };
+}
+
+/**
+ * POST /api/admin/marketing-campaigns/:id/test-send. Like sendMarketingCampaign,
+ * no campaign content is ever accepted from this request — only the
+ * destination email, an optional test first name, and the explicit
+ * `confirm: true` attestation.
+ */
+export async function sendTestMarketingCampaign(req: Request, res: Response): Promise<void> {
+  const parsedId = uuidParam.safeParse(req.params.id);
+  if (!parsedId.success) throw badRequest('Invalid campaign id.');
+
+  const parsed = marketingCampaignTestSendSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw badRequest('A valid test email address and explicit confirmation are required.', fieldErrors(parsed.error));
+  }
+
+  const actor = (req as AuthedRequest).admin;
+  const result = await sendTestCampaignEmail(parsedId.data, parsed.data.email, parsed.data.first_name ?? null, actor);
   res.json({ success: true, data: result });
 }

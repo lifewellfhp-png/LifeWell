@@ -571,6 +571,27 @@ export const marketingCampaignSendSchema = z
   })
   .strict();
 
+/**
+ * Campaign test-send (campaign management + safe test send). A single
+ * real email address only — no array, no CC/BCC field exists on this
+ * schema at all, so a caller cannot smuggle in extra recipients. `confirm`
+ * mirrors marketingCampaignSendSchema's own explicit-attestation shape.
+ * `first_name` is optional, in-memory-only test personalization input —
+ * it is never looked up against or written to marketing_contacts.
+ */
+export const marketingCampaignTestSendSchema = z
+  .object({
+    email: z.string().trim().email('A valid email address is required.').max(320),
+    first_name: z
+      .string()
+      .trim()
+      .max(60, 'Test first name must be 60 characters or fewer.')
+      .optional()
+      .nullable(),
+    confirm: z.literal(true),
+  })
+  .strict();
+
 // ---------------------------------------------------------------------------
 // Marketing contacts CSV import (P4-I2E). Two-stage: an in-memory
 // preview/classify step that never writes to the database, followed by a
