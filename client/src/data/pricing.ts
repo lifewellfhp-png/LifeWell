@@ -33,7 +33,7 @@ export const selfPay = {
   heading: 'Cash-Pay / Self-Pay Options',
   body: [
     'We offer self-pay options for individuals who do not have insurance coverage or who prefer not to use their insurance benefits. Self-pay allows you to receive confidential, personalized care without insurance requirements or limitations.',
-    'Payment is due at the time services are provided. Fees vary depending on the type and duration of the appointment.',
+    'Payment for self-pay appointments is due at least 24 hours before the scheduled appointment. Fees vary depending on the type and duration of the appointment.',
   ],
 };
 
