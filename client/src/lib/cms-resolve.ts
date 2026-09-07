@@ -939,7 +939,7 @@ export function mapStats(cms: PublicCmsPayload | null): Stat[] {
   return items;
 }
 
-function mapFees(cms: PublicCmsPayload | null) {
+export function mapFees(cms: PublicCmsPayload | null) {
   const intro = sectionContent(cms, 'fees', 'intro') ?? {};
   const selfPay = sectionContent(cms, 'fees', 'self_pay') ?? {};
   const insurance = sectionContent(cms, 'fees', 'insurance') ?? {};
@@ -956,32 +956,6 @@ function mapFees(cms: PublicCmsPayload | null) {
     : typeof selfPay.body === 'string' && selfPay.body.trim()
       ? selfPay.body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
       : staticSelfPay.body;
-  const psychiatricStatePricing = Array.isArray(selfPay.psychiatricStatePricing)
-    ? selfPay.psychiatricStatePricing
-      .map((item) => {
-        if (!item || typeof item !== 'object') return null;
-        const row = item as Record<string, unknown>;
-        if (
-          typeof row.state !== 'string' ||
-          typeof row.initialFee !== 'number' ||
-          typeof row.followUpFee !== 'number'
-        ) {
-          return null;
-        }
-        const staticState = staticPsychiatricStatePricing.find((item) => item.state === row.state);
-        return {
-          state: row.state,
-          selfPayOnly: row.selfPayOnly === true,
-          slidingScaleAvailable:
-            typeof row.slidingScaleAvailable === 'boolean'
-              ? row.slidingScaleAvailable
-              : staticState?.slidingScaleAvailable ?? false,
-          initialFee: row.initialFee,
-          followUpFee: row.followUpFee,
-        };
-      })
-      .filter((item): item is typeof staticPsychiatricStatePricing[number] => Boolean(item))
-    : staticPsychiatricStatePricing;
   return {
     introHeading: typeof intro.heading === 'string' && intro.heading.trim() ? intro.heading : staticFeesIntro.heading,
     introBody,
@@ -992,10 +966,22 @@ function mapFees(cms: PublicCmsPayload | null) {
       typeof insurance.disclaimer === 'string' && insurance.disclaimer.trim()
         ? insurance.disclaimer
         : 'Insurance coverage and network participation vary by plan. Please contact us to verify your benefits and eligibility before scheduling.',
-    psychiatricStatePricing:
-      psychiatricStatePricing.length === staticPsychiatricStatePricing.length
-        ? psychiatricStatePricing
-        : staticPsychiatricStatePricing,
+    /**
+     * Phase 12A (Pricing Authority Hardening): psychiatric self-pay pricing
+     * (per-state initial/follow-up fee and self-pay-only status) is a
+     * protected business fact, not marketing copy — this now matches the
+     * precedent already established for telehealth state pages
+     * (mapTelehealthStates() above never reads its equivalent
+     * selfPayInitialFee/selfPayFollowUpFee fields from CMS at all). Always
+     * the static source; a `selfPay.psychiatricStatePricing` CMS value —
+     * however it's shaped, however wrong, or entirely absent — is never
+     * read here and so can have zero effect on these six approved dollar
+     * figures or either state's self-pay-only status. `selfPay.heading`/
+     * `selfPay.body` above remain fully CMS-editable, as does every other
+     * field returned by this function — only this one fact-carrying field
+     * lost CMS authority.
+     */
+    psychiatricStatePricing: staticPsychiatricStatePricing,
   };
 }
 export const getResolvedContent = cache(async (): Promise<ResolvedContent> => {
