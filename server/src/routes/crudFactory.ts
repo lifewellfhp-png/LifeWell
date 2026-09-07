@@ -31,6 +31,16 @@ type CrudOptions = {
   orderBy?: { column: string; ascending?: boolean };
   beforeCreate?: (data: Record<string, unknown>) => Record<string, unknown>;
   beforeUpdate?: (data: Record<string, unknown>) => Record<string, unknown>;
+  /**
+   * Phase 11: optional async validation, run after schema parsing but
+   * before beforeCreate/insert — separate from beforeCreate/beforeUpdate
+   * (which only ever transform the payload) because this may REJECT the
+   * request (throw an AppError/badRequest) instead of just reshaping it.
+   * Not used by any resource before FAQs; every other createCrudRouter
+   * call site is unaffected (these are optional, undefined by default).
+   */
+  validateCreate?: (data: Record<string, unknown>) => Promise<void>;
+  validateUpdate?: (data: Record<string, unknown>, id: string | undefined) => Promise<void>;
 };
 
 export function createCrudRouter(options: CrudOptions): Router {
@@ -43,6 +53,8 @@ export function createCrudRouter(options: CrudOptions): Router {
     orderBy = { column: 'created_at', ascending: false },
     beforeCreate,
     beforeUpdate,
+    validateCreate,
+    validateUpdate,
   } = options;
 
   const guard: RequestHandler[] = [requireAdmin, requirePermission(module)];
@@ -86,6 +98,7 @@ export function createCrudRouter(options: CrudOptions): Router {
         ));
       }
       let payload = parsed.data as Record<string, unknown>;
+      if (validateCreate) await validateCreate(payload);
       if (beforeCreate) payload = beforeCreate(payload);
       if (module === 'testimonials') {
         const { published, consent_confirmed } = payload;
@@ -123,6 +136,7 @@ export function createCrudRouter(options: CrudOptions): Router {
           parsed.error.issues.map((i) => [i.path.join('.') || 'body', i.message])
         ));
       }
+      if (validateUpdate) await validateUpdate(parsed.data as Record<string, unknown>, req.params.id);
       let payload: Record<string, unknown> = {
         ...(parsed.data as Record<string, unknown>),
         updated_at: new Date().toISOString(),

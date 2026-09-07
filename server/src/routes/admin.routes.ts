@@ -56,7 +56,7 @@ import {
 } from '../controllers/marketingCampaigns.controller.js';
 import { sendMarketingCampaign, sendTestMarketingCampaign } from '../services/marketingCampaignDelivery.service.js';
 import { getSupabase } from '../lib/supabase.js';
-import { badRequest } from '../utils/errors.js';
+import { badRequest, AppError } from '../utils/errors.js';
 
 /**
  * home/stats governance (P3-E2): a stat item explicitly marked
@@ -418,6 +418,39 @@ adminRouter.use(
   })
 );
 
+/**
+ * Phase 11 (FAQ Admin Governance Hardening): the exact incident this
+ * guards against — the same "Do you offer a sliding scale option?"
+ * question was created twice in Production, once with slightly different
+ * wording, because nothing stopped it. Normalization is deliberately
+ * conservative (trim + collapse internal whitespace + lowercase) — no
+ * fuzzy/semantic matching, so "How much will my copay be?" and "What
+ * determines my copay?" are correctly treated as different questions.
+ * Global across categories, not scoped to one: the incident's duplicate
+ * was the exact same category, but a duplicate question sitting in two
+ * different categories would be exactly as confusing for an owner
+ * managing this list, and a Production inventory check before this
+ * change found zero legitimate cross-category (or same-category) exact
+ * duplicates — so nothing legitimate is broken by enforcing this
+ * globally.
+ */
+export function normalizeFaqQuestion(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+async function assertUniqueFaqQuestion(question: string, excludeId?: string): Promise<void> {
+  const normalized = normalizeFaqQuestion(question);
+  const { data, error } = await getSupabase().from('faqs').select('id, question');
+  if (error) throw badRequest(error.message);
+  const collision = (data ?? []).find(
+    (row) => row.id !== excludeId && normalizeFaqQuestion(String(row.question ?? '')) === normalized
+  );
+  if (collision) {
+    // Owner-friendly, no row id/SQL/internals exposed.
+    throw new AppError('An FAQ with this question already exists.', 409, { expose: true });
+  }
+}
+
 adminRouter.use(
   '/faqs',
   createCrudRouter({
@@ -426,6 +459,15 @@ adminRouter.use(
     createSchema: faqCreate,
     updateSchema: faqUpdate,
     orderBy: { column: 'sort_order', ascending: true },
+    // Only runs the check when `question` is actually part of this
+    // request's payload — a category-only PATCH never touches it, so it
+    // can never accidentally block an otherwise-unrelated edit.
+    validateCreate: async (data) => {
+      if (typeof data.question === 'string') await assertUniqueFaqQuestion(data.question);
+    },
+    validateUpdate: async (data, id) => {
+      if (typeof data.question === 'string') await assertUniqueFaqQuestion(data.question, id);
+    },
   })
 );
 

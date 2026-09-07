@@ -107,10 +107,26 @@ export const testimonialUpdate = testimonialBase.partial().refine(
   }
 );
 
+/**
+ * Phase 11 (FAQ Admin Governance Hardening): the exact category values
+ * confirmed to be in current legitimate use in Production (verified via
+ * the public content API before this change — General, Fees,
+ * Appointments, nothing else). Narrowed from a free-text string
+ * specifically because a category typo/casing slip (e.g. "fees" instead
+ * of "Fees") is exactly the kind of silent, hard-to-notice mistake that
+ * caused the real Production incident this phase addresses — a row with
+ * a near-miss category value doesn't error, it just silently never
+ * appears on the page an editor expects. Still `.nullable()` for
+ * backward compatibility with any historical null-category row, but no
+ * longer accepts arbitrary strings.
+ */
+export const FAQ_CATEGORIES = ['General', 'Fees', 'Appointments'] as const;
+export type FaqCategory = (typeof FAQ_CATEGORIES)[number];
+
 export const faqCreate = z.object({
   question: z.string().min(1).max(500),
   answer: z.string().min(1).max(10000),
-  category: z.string().max(120).optional().nullable(),
+  category: z.enum(FAQ_CATEGORIES).optional().nullable(),
   published: z.boolean().default(true),
   sort_order: z.number().int().default(0),
 });

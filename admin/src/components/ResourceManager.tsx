@@ -12,12 +12,38 @@ type Field = {
   type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'url' | 'json';
   options?: { value: string; label: string }[];
   full?: boolean;
+  /**
+   * Phase 11: optional helper text shown below the input, driven by the
+   * field's own current value — e.g. "Appears in the Fees & Insurance FAQ
+   * section." for a category picker. Returns null/empty to show nothing.
+   * Purely presentational, never affects validation/save.
+   */
+  hint?: (value: unknown, form: Record<string, unknown>) => string | null;
 };
 
 type PreviewConfig = {
   render: (form: Record<string, unknown>, rows: Record<string, unknown>[]) => ReactNode;
   liveHref?: (row: Record<string, unknown>) => string | null;
   hint?: string;
+};
+
+/** Phase 11: an optional client-side filter control above the list — narrows the visible rows only, never mutates data or the underlying fetch. */
+type FilterConfig = {
+  key: string;
+  label: string;
+  options: { value: string; label: string }[];
+  allLabel?: string;
+};
+
+/**
+ * Phase 11: when editing an existing row and this field's value actually
+ * changes, ask for confirmation before saving — e.g. moving a FAQ between
+ * categories, which can silently move it to a different public page. Never
+ * triggered on create, and never triggered when the field didn't change.
+ */
+type ConfirmFieldChangeConfig = {
+  key: string;
+  message: (from: string, to: string) => string;
 };
 
 type Props = {
@@ -29,6 +55,8 @@ type Props = {
   createDefaults?: Record<string, unknown>;
   preview?: PreviewConfig;
   itemLabel?: (row: Record<string, unknown>) => string;
+  filters?: FilterConfig[];
+  confirmFieldChange?: ConfirmFieldChangeConfig;
 };
 
 export function ResourceManager({
@@ -40,6 +68,8 @@ export function ResourceManager({
   createDefaults = {},
   preview,
   itemLabel,
+  filters,
+  confirmFieldChange,
 }: Props) {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +79,7 @@ export function ResourceManager({
   const [form, setForm] = useState<Record<string, unknown>>(createDefaults);
   const [saving, setSaving] = useState(false);
   const [previewRow, setPreviewRow] = useState<Record<string, unknown> | null>(null);
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
   async function load() {
     setLoading(true);
@@ -73,6 +104,20 @@ export function ResourceManager({
   }, [editing, previewRow]);
 
   const isEdit = Boolean(editing?.id);
+
+  // Phase 11: client-side only — narrows which rows render, never mutates
+  // data, never re-fetches, never touches sort_order. Each filter with a
+  // non-empty selected value must match; empty ("All ...") never excludes.
+  const visibleRows = useMemo(() => {
+    if (!filters || !filters.length) return rows;
+    return rows.filter((row) =>
+      filters.every((f) => {
+        const selected = filterValues[f.key];
+        if (!selected) return true;
+        return String(row[f.key] ?? '') === selected;
+      })
+    );
+  }, [rows, filters, filterValues]);
 
   function labelOf(row: Record<string, unknown>) {
     if (itemLabel) return itemLabel(row);
@@ -135,6 +180,18 @@ export function ResourceManager({
       body.icon = body.image_url;
     }
 
+    // Phase 11: only asks when editing an EXISTING row AND the configured
+    // field's value actually changed — never on create, never on an
+    // unrelated field, never when the value is unchanged.
+    if (isEdit && confirmFieldChange) {
+      const from = String(editing?.[confirmFieldChange.key] ?? '');
+      const to = String(body[confirmFieldChange.key] ?? '');
+      if (from !== to && !window.confirm(confirmFieldChange.message(from, to))) {
+        setSaving(false);
+        return;
+      }
+    }
+
     const res = isEdit
       ? await api(`${endpoint}/${editing?.id}`, { method: 'PATCH', body: JSON.stringify(body) })
       : await api(endpoint, { method: 'POST', body: JSON.stringify(body) });
@@ -158,6 +215,10 @@ export function ResourceManager({
   }
 
   const empty = useMemo(() => !loading && rows.length === 0, [loading, rows]);
+  const emptyFiltered = useMemo(
+    () => !loading && rows.length > 0 && visibleRows.length === 0,
+    [loading, rows, visibleRows]
+  );
 
   function ActionButtons({ row }: { row: Record<string, unknown> }) {
     return (
@@ -196,6 +257,26 @@ export function ResourceManager({
       {error ? <div className="error-banner">{error}</div> : null}
       {message ? <div className="ok-banner">{message}</div> : null}
 
+      {filters && filters.length ? (
+        <div className="filter-bar">
+          {filters.map((f) => (
+            <select
+              key={f.key}
+              value={filterValues[f.key] ?? ''}
+              onChange={(e) => setFilterValues((prev) => ({ ...prev, [f.key]: e.target.value }))}
+              aria-label={f.label}
+            >
+              <option value="">{f.allLabel || `All ${f.label}`}</option>
+              {f.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          ))}
+        </div>
+      ) : null}
+
       <div className="card">
         {loading ? (
           <PageLoader />
@@ -204,6 +285,8 @@ export function ResourceManager({
             <div className="table-wrap desktop-only">
               {empty ? (
                 <div className="empty">No items yet. Add the first one.</div>
+              ) : emptyFiltered ? (
+                <div className="empty">No items match this filter.</div>
               ) : (
                 <table className="data">
                   <thead>
@@ -215,7 +298,7 @@ export function ResourceManager({
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((row) => (
+                    {visibleRows.map((row) => (
                       <tr key={String(row.id)}>
                         {columns.map((c) => (
                           <td key={c.key}>{c.render ? c.render(row) : String(row[c.key] ?? '—')}</td>
@@ -233,8 +316,10 @@ export function ResourceManager({
             <div className="mobile-cards">
               {empty ? (
                 <div className="empty">No items yet. Add the first one.</div>
+              ) : emptyFiltered ? (
+                <div className="empty">No items match this filter.</div>
               ) : (
-                rows.map((row) => (
+                visibleRows.map((row) => (
                   <article key={String(row.id)} className="mobile-card">
                     {columns.slice(0, 4).map((c) => (
                       <div key={c.key} className="mobile-card-row">
@@ -301,6 +386,12 @@ export function ResourceManager({
                         onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
                       />
                     )}
+                    {field.hint ? (
+                      (() => {
+                        const hintText = field.hint(form[field.key], form);
+                        return hintText ? <p className="field-hint">{hintText}</p> : null;
+                      })()
+                    ) : null}
                   </div>
                 ))}
               </div>
