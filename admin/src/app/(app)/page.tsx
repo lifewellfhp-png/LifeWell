@@ -35,6 +35,8 @@ type LogRow = {
   created_at: string;
 };
 
+type BookingIntentRow = { path: string | null; label: string; count: number };
+
 type Dash = {
   newLeads: number;
   services: number;
@@ -43,6 +45,7 @@ type Dash = {
   insurance: number;
   views7d: number;
   conversions7d: number;
+  bookingIntentByPage: BookingIntentRow[];
   trend: { date: string; views: number }[];
   recentLeads: LeadRow[];
   recentLogs: LogRow[];
@@ -154,6 +157,41 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      <section className="card card-pad" style={{ marginTop: '1rem' }}>
+        <div className="section-head">
+          <div>
+            <h2>Booking Intent by Page</h2>
+            <p className="muted" style={{ margin: '0.2rem 0 0' }}>
+              Where patients clicked to begin scheduling in the last 7 days.
+            </p>
+          </div>
+        </div>
+        {(data?.bookingIntentByPage || []).length === 0 ? (
+          <p className="chart-empty">No booking clicks recorded in the last 7 days.</p>
+        ) : (
+          <ul className="bar-list">
+            {(() => {
+              const rows = data?.bookingIntentByPage || [];
+              const max = Math.max(1, ...rows.map((r) => r.count));
+              return rows.map((row) => (
+                <li key={row.path ?? 'unknown'}>
+                  <div className="booking-row-head">
+                    <div className="booking-row-label">
+                      <span>{row.label}</span>
+                      {row.path ? <span className="muted booking-row-path">{row.path}</span> : null}
+                    </div>
+                    <strong>{row.count}</strong>
+                  </div>
+                  <div className="bar-track">
+                    <span style={{ width: `${Math.max(6, (row.count / max) * 100)}%`, background: '#5faf6b' }} />
+                  </div>
+                </li>
+              ));
+            })()}
+          </ul>
+        )}
+      </section>
 
       <div className="dash-split">
         <section className="card card-pad">

@@ -147,6 +147,118 @@ adminRouter.post(
   asyncHandler(handleChangePassword)
 );
 
+/**
+ * Phase 8 P1-1: friendly display labels for the Dashboard's "Booking Intent
+ * by Page" breakdown below. Covers the well-known canonical routes, using
+ * the SAME wording already established in client/src/data/navigation.ts —
+ * no shared code exists between server/ and client/ (separate deployments),
+ * so this intentionally duplicates only that small, stable set of labels
+ * rather than inventing new wording or importing across the deployment
+ * boundary. Any path not covered here (individual service/condition pages,
+ * anything future) falls through to friendlyBookingPageLabel()'s
+ * conservative humanized fallback below — never collapsed into a shared
+ * bucket, so distinct pages always stay individually distinguishable.
+ */
+export const BOOKING_PATH_LABELS: Record<string, string> = {
+  '/': 'Homepage',
+  '/fees-insurance': 'Fees & Insurance',
+  '/our-services': 'Our Services',
+  '/bio': 'Provider',
+  '/new-patients': 'New Patients',
+  '/contact-telehealth-mental-health-provider': 'Contact',
+  '/telehealth-mental-health-testimonials': 'Testimonials',
+  '/book-telehealth-mental-health-appointment': 'Booking Page',
+  '/orlando-psychiatric-care': 'Orlando Office',
+  '/faqs': 'FAQs',
+  '/blog': 'Blog',
+  '/videos': 'Videos',
+};
+
+/** The three telehealth state pages actually defined in client/src/data/telehealth-states.ts. */
+const TELEHEALTH_STATE_LABELS: Record<string, string> = {
+  florida: 'Florida Telehealth',
+  massachusetts: 'Massachusetts Telehealth',
+  arizona: 'Arizona Telehealth',
+};
+
+/** Hyphenated-slug -> Title Case, e.g. "medication-management" -> "Medication Management". */
+function humanizeSlug(slug: string): string {
+  return slug
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
+ * Resolves a stored conversions.path to a friendly, human-readable label —
+ * never blank, never a generic catch-all shared across genuinely different
+ * pages. Known static routes use the exact site-wide wording; /telehealth/
+ * and /services/ dynamic paths get a targeted, still-distinguishing label;
+ * anything else falls back to a humanized version of its own last path
+ * segment, so a brand-new page always shows something recognizable rather
+ * than disappearing or merging into an unrelated bucket.
+ */
+export function friendlyBookingPageLabel(path: string): string {
+  const known = BOOKING_PATH_LABELS[path];
+  if (known) return known;
+
+  const telehealthMatch = path.match(/^\/telehealth\/([a-z-]+)$/);
+  if (telehealthMatch) {
+    const state = telehealthMatch[1] as string;
+    return TELEHEALTH_STATE_LABELS[state] ?? `${humanizeSlug(state)} Telehealth`;
+  }
+
+  const serviceMatch = path.match(/^\/services\/([a-z0-9-]+)$/);
+  if (serviceMatch) return humanizeSlug(serviceMatch[1] as string);
+
+  const segments = path.split('/').filter(Boolean);
+  if (segments.length === 0) return 'Homepage';
+  return humanizeSlug(segments[segments.length - 1] as string);
+}
+
+export const BOOKING_PATH_UNKNOWN_LABEL = 'Unknown / Unattributed';
+
+export type BookingIntentByPageRow = { path: string | null; label: string; count: number };
+
+/**
+ * Aggregates already-fetched booking_click rows (their `path` field only —
+ * see the /dashboard handler below, which fetches nothing else from this
+ * table) into a friendly-labeled, descending-sorted breakdown. Pure and
+ * directly unit-testable with synthetic input, no live Supabase connection
+ * needed. A null/blank path is never dropped or silently folded into
+ * Homepage — it becomes its own explicit BOOKING_PATH_UNKNOWN_LABEL bucket,
+ * so SUM(returned counts) always equals rows.length exactly: the same
+ * reconciliation guarantee this function's only caller relies on to match
+ * the dashboard's own conversions7d total (both are derived from the exact
+ * same query result, not two separate queries that could drift).
+ */
+export function aggregateBookingIntentByPage(rows: Array<{ path: string | null }>): BookingIntentByPageRow[] {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    const trimmed = (row.path ?? '').trim();
+    const key = trimmed || '';
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([key, count]) => ({
+      path: key === '' ? null : key,
+      label: key === '' ? BOOKING_PATH_UNKNOWN_LABEL : friendlyBookingPageLabel(key),
+      count,
+    }))
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      // Deterministic tie-break: ascending by path, with Unknown/
+      // Unattributed (path: null) always sorting after every real path at
+      // the same count — never by comparing null against a string, which
+      // would place it first (empty-string-like) rather than last.
+      if (a.path === null && b.path === null) return 0;
+      if (a.path === null) return 1;
+      if (b.path === null) return -1;
+      return a.path.localeCompare(b.path);
+    });
+}
+
 adminRouter.get(
   '/dashboard',
   requireAdmin,
@@ -169,13 +281,22 @@ adminRouter.get(
       sb.from('faqs').select('id', { count: 'exact', head: true }),
       sb.from('insurance_plans').select('id', { count: 'exact', head: true }),
       sb.from('analytics_events').select('id, created_at').eq('event_type', 'page_view').gte('created_at', since7),
+      // Phase 8 P1-1: selects `path` (not just a head:true count) so the
+      // booking-intent-by-page breakdown below is computed from this SAME
+      // result set as conversions7d — guaranteeing exact reconciliation by
+      // construction rather than by two queries happening to agree.
+      // { count: 'exact' } without head:true still returns the exact count
+      // alongside the row data (same pattern already used in
+      // marketingCampaigns.controller.ts/marketingContacts.controller.ts).
       sb
         .from('conversions')
-        .select('id', { count: 'exact', head: true })
+        .select('path', { count: 'exact' })
         .eq('conversion_type', 'booking_click')
         .gte('created_at', since7),
       sb.from('leads').select('id, type, name, email, status, created_at').order('created_at', { ascending: false }).limit(6),
     ]);
+
+    const bookingIntentByPage = aggregateBookingIntentByPage(conversions.data ?? []);
 
     const byDay: Record<string, number> = {};
     for (let i = 6; i >= 0; i -= 1) {
@@ -208,6 +329,7 @@ adminRouter.get(
         insurance: insurance.count ?? 0,
         views7d: (views.data ?? []).length,
         conversions7d: conversions.count ?? 0,
+        bookingIntentByPage,
         trend: Object.entries(byDay).map(([date, viewsCount]) => ({ date, views: viewsCount })),
         recentLeads: recentLeads.data ?? [],
         recentLogs,
