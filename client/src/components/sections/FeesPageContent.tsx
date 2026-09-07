@@ -99,7 +99,7 @@ export function FeesPageContent({
             <span className="italic tracking-normal text-[var(--lw-primary)]">Self-Pay Services</span>
           </h2>
           <ul className="mt-12 grid list-none gap-10 lg:mt-16 lg:grid-cols-2 lg:gap-[30px]">
-            {pricingTiers.filter((tier) => tier.name !== 'Mental Health').map((tier) => (
+            {pricingTiers.map((tier) => (
               <li key={tier.name}>
                 <article className="flex h-full flex-col">
                   <h3 className="font-body text-[12px] font-semibold uppercase tracking-[1px] text-[#374151] sm:text-[13px] min-[1181px]:text-[15px]">

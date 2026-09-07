@@ -43,22 +43,16 @@ export const psychiatricStatePricing: PsychiatricStatePricing[] = [
   { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 175 },
 ];
 
+/**
+ * Non-psychiatric self-pay service lines only — the psychiatric self-pay
+ * figures are psychiatricStatePricing above, the sole source of truth for
+ * those. A 'Mental Health' entry here ($250/$150) previously duplicated
+ * and contradicted that figure (Florida's approved initial fee is $300,
+ * not $250); it was never rendered (FeesPageContent filtered it out) and
+ * has been removed rather than left as a landmine one refactor away from
+ * being displayed.
+ */
 export const pricingTiers: PricingTier[] = [
-  {
-    name: 'Mental Health',
-    initialFee: 250,
-    initialDuration: '60 minutes',
-    followUpFee: 150,
-    followUpDuration: '30 minutes',
-    includes: [
-      'Psychiatric Evaluations',
-      'Medication Management',
-      'Anxiety Treatment',
-      'Depression Treatment',
-      'Sleep Health',
-    ],
-    freeConsult: true,
-  },
   {
     name: 'Primary Care',
     initialFee: 125,
