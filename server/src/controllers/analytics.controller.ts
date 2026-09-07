@@ -189,6 +189,29 @@ function resolveRange(query: Request['query']): { from: string; to: string } {
   return { from: fromRaw, to: toRaw };
 }
 
+export type UtmShareRow = { value: string; count: number; share: number };
+
+/**
+ * Turns a value->count map into a descending-sorted, deterministically-
+ * tied ranking with each row's share of THIS map's own total — never the
+ * overall page-view total. That distinction is the whole point of P3-UTM-2
+ * section 13/14: "share" for utm_source must mean "of UTM-source-attributed
+ * page views", not "of all traffic", so unattributed/direct traffic is
+ * never made to look like it belongs to a campaign. Pure and directly
+ * unit-testable with synthetic input.
+ */
+export function buildUtmShareRanking(counts: Record<string, number>): UtmShareRow[] {
+  const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
+  return Object.entries(counts)
+    .map(([value, count]) => ({
+      value,
+      count,
+      // One decimal place — matches the task's own worked examples (62.5%).
+      share: total > 0 ? Math.round((count / total) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => (b.count !== a.count ? b.count - a.count : a.value.localeCompare(b.value)));
+}
+
 export async function getAnalyticsSummary(req: Request, res: Response): Promise<void> {
   const sb = getSupabase();
   const { from, to } = resolveRange(req.query);
@@ -200,7 +223,7 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
   const [eventsRes, conversionsRes] = await Promise.all([
     sb
       .from('analytics_events')
-      .select('event_type, path, referrer_host, device, created_at')
+      .select('event_type, path, referrer_host, device, utm_source, utm_campaign, created_at')
       .gte('created_at', rangeStart.toISOString())
       .lt('created_at', rangeEnd.toISOString()),
     sb
@@ -221,6 +244,19 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
   const byDevice: Record<string, number> = {};
   const byReferrer: Record<string, number> = {};
   const byDay: Record<string, number> = {};
+  // Phase 8 P3-UTM-2: page-view-only UTM traffic reporting, accumulated in
+  // this SAME pass over `pageViews` (never conversions, never other event
+  // types, never a second/independently-scoped query) — one shared range
+  // and event-type filter for every report on this page. Values are read
+  // as normalizeUtmValue() already stored them at ingest (P3-UTM-1) —
+  // trimmed, lowercased, charset-restricted — so this never re-normalizes
+  // or re-derives them differently than what's on the row. A null/absent
+  // value is excluded from its report entirely (never fabricated as
+  // "Direct"/"Organic"/"Unknown" — null UTM simply means not
+  // UTM-attributed, a materially different claim from the page-view rows
+  // that OTHER reports like trafficSources still count via a fallback).
+  const byUtmSource: Record<string, number> = {};
+  const byUtmCampaign: Record<string, number> = {};
 
   for (const e of pageViews) {
     const path = e.path || '/';
@@ -231,6 +267,8 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
     byReferrer[ref] = (byReferrer[ref] ?? 0) + 1;
     const day = dateKeyInZone(e.created_at as string, REPORT_TIMEZONE);
     byDay[day] = (byDay[day] ?? 0) + 1;
+    if (e.utm_source) byUtmSource[e.utm_source] = (byUtmSource[e.utm_source] ?? 0) + 1;
+    if (e.utm_campaign) byUtmCampaign[e.utm_campaign] = (byUtmCampaign[e.utm_campaign] ?? 0) + 1;
   }
 
   const popularPages = Object.entries(byPath)
@@ -242,6 +280,14 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
     .map(([source, visits]) => ({ source, visits }))
     .sort((a, b) => b.visits - a.visits)
     .slice(0, 15);
+
+  // Uncapped (no top-N slice): unlike topBookingPages/popularPages, this
+  // report is not authorized to break its own reconciliation guarantee by
+  // hiding rows without an "Other" bucket — see the P3-UTM-2 task's row-cap
+  // section. UTM value cardinality in practice is small (a curated set of
+  // marketing sources/campaigns, not one row per page), so no cap is safe.
+  const utmSources = buildUtmShareRanking(byUtmSource);
+  const utmCampaigns = buildUtmShareRanking(byUtmCampaign);
 
   const trends = Object.entries(byDay)
     .map(([date, views]) => ({ date, views }))
@@ -331,6 +377,8 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
       popularPages,
       devices: byDevice,
       trafficSources,
+      utmSources,
+      utmCampaigns,
       trends,
       conversionCounts,
       topBookingPages,

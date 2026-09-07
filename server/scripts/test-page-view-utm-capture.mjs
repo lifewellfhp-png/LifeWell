@@ -191,7 +191,16 @@ test('25. conversionIngestSchema gained no UTM fields — P3-UTM-3 (conversion-l
     Object.keys(conversionIngestSchema.shape).sort(),
     ['conversion_type', 'device', 'meta', 'path', 'referrer_host']
   );
-  assert.doesNotMatch(controllerSource.slice(controllerSource.indexOf('export async function handleConversionIngest')), /utm_/);
+  // Bounded to handleConversionIngest's own body only — NOT to end of file.
+  // Phase 8 P3-UTM-2 (a later, separately-authorized task) legitimately
+  // added utm_source/utm_campaign to the UNRELATED getAnalyticsSummary
+  // function further down this file (page-view UTM traffic reporting, not
+  // conversion attribution) — see test-utm-traffic-reporting.mjs for its
+  // own coverage. An open-ended "no utm_ from here to EOF" check would
+  // incorrectly flag that legitimate, later addition.
+  const conversionFnStart = controllerSource.indexOf('export async function handleConversionIngest');
+  const conversionFnEnd = controllerSource.indexOf('\n}', conversionFnStart);
+  assert.doesNotMatch(controllerSource.slice(conversionFnStart, conversionFnEnd), /utm_/);
 });
 
 test('26. booking_click/contact/newsletter conversion types are unaffected — no code path adds UTM fields to a conversion payload', () => {

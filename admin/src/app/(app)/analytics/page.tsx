@@ -15,6 +15,8 @@ type Summary = {
   popularPages: { path: string; views: number }[];
   devices: Record<string, number>;
   trafficSources: { source: string; visits: number }[];
+  utmSources: { value: string; count: number; share: number }[];
+  utmCampaigns: { value: string; count: number; share: number }[];
   trends: { date: string; views: number }[];
   conversionCounts: Record<string, number>;
   topBookingPages: { path: string; clicks: number }[];
@@ -44,6 +46,26 @@ function formatDayLong(iso: string) {
 const TIMEZONE_LABELS: Record<string, string> = {
   'America/New_York': 'Eastern Time (ET)',
 };
+
+/**
+ * Presentation-only readable label for a stored UTM value — never
+ * re-normalizes or alters the stored value itself (that stays visible as
+ * its own secondary text wherever this is used, per the P3-UTM-2 task's
+ * "preserve the raw value as secondary text" guidance). "florida-psychiatry"
+ * -> "Florida Psychiatry", "google" -> "Google".
+ */
+function humanizeUtmValue(value: string): string {
+  return value
+    .split(/[-_.]/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+/** Trims a trailing ".0" (e.g. "60.0" -> "60") while keeping real decimals (e.g. "62.5"). */
+function formatShare(share: number): string {
+  return (Number.isInteger(share) ? share : share.toFixed(1)).toString();
+}
 
 type PresetOption = 'today' | '7d' | '30d' | 'custom';
 
@@ -252,6 +274,74 @@ export default function AnalyticsPage() {
         <section className="card card-pad">
           <h2>Conversion mix</h2>
           <BarList points={conversions} color="#2f6691" />
+        </section>
+      </div>
+
+      <p className="page-sub">
+        UTM reporting reflects attributed page views, not confirmed appointments or booking conversions.
+      </p>
+      <div className="dash-split">
+        <section className="card card-pad">
+          <h2>Traffic by UTM Source</h2>
+          <p className="page-sub">Share of UTM-attributed page views (not all traffic).</p>
+          {(data?.utmSources || []).length === 0 ? (
+            <p className="chart-empty">No UTM-attributed page views were recorded in this period.</p>
+          ) : (
+            <ul className="bar-list">
+              {(() => {
+                const rows = data?.utmSources || [];
+                const max = Math.max(1, ...rows.map((r) => r.count));
+                return rows.map((row) => (
+                  <li key={row.value}>
+                    <div className="utm-row-head">
+                      <div className="utm-row-label">
+                        <span>{humanizeUtmValue(row.value)}</span>
+                        <span className="muted utm-row-raw">{row.value}</span>
+                      </div>
+                      <div className="utm-row-stats">
+                        <strong>{row.count}</strong>
+                        <span className="muted">{formatShare(row.share)}%</span>
+                      </div>
+                    </div>
+                    <div className="bar-track">
+                      <span style={{ width: `${Math.max(6, (row.count / max) * 100)}%`, background: '#3e7fb1' }} />
+                    </div>
+                  </li>
+                ));
+              })()}
+            </ul>
+          )}
+        </section>
+        <section className="card card-pad">
+          <h2>Traffic by UTM Campaign</h2>
+          <p className="page-sub">Share of UTM-attributed page views (not all traffic).</p>
+          {(data?.utmCampaigns || []).length === 0 ? (
+            <p className="chart-empty">No UTM-attributed page views were recorded in this period.</p>
+          ) : (
+            <ul className="bar-list">
+              {(() => {
+                const rows = data?.utmCampaigns || [];
+                const max = Math.max(1, ...rows.map((r) => r.count));
+                return rows.map((row) => (
+                  <li key={row.value}>
+                    <div className="utm-row-head">
+                      <div className="utm-row-label">
+                        <span>{humanizeUtmValue(row.value)}</span>
+                        <span className="muted utm-row-raw">{row.value}</span>
+                      </div>
+                      <div className="utm-row-stats">
+                        <strong>{row.count}</strong>
+                        <span className="muted">{formatShare(row.share)}%</span>
+                      </div>
+                    </div>
+                    <div className="bar-track">
+                      <span style={{ width: `${Math.max(6, (row.count / max) * 100)}%`, background: '#5faf6b' }} />
+                    </div>
+                  </li>
+                ));
+              })()}
+            </ul>
+          )}
         </section>
       </div>
 
