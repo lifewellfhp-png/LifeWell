@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { PROTECTED_PSYCHIATRIC_PRICING } from '@/lib/protected-pricing';
 
 type SectionRow = {
   id: string;
@@ -9,14 +10,6 @@ type SectionRow = {
   section_key: string;
   content?: Record<string, unknown> | null;
   updated_at?: string;
-};
-
-type PsychiatricStatePricing = {
-  state: string;
-  selfPayOnly: boolean;
-  slidingScaleAvailable: boolean;
-  initialFee: number;
-  followUpFee: number;
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -38,12 +31,17 @@ export function FeesCopy() {
   const [selfPayHeading, setSelfPayHeading] = useState('');
   const [selfPayBody, setSelfPayBody] = useState('');
   const [insuranceDisclaimer, setInsuranceDisclaimer] = useState('');
+  // Phase 13: the raw, unmodified CMS record for the self_pay section, kept
+  // only so an unrelated copy save can pass it through byte-for-byte via
+  // the spread in saveSection() below — including any historical/stale
+  // psychiatricStatePricing value it may still contain. Nothing in this
+  // component ever reads, edits, or reconstructs that field: Phase 12A
+  // already made it inert (client/src/lib/cms-resolve.ts's mapFees() never
+  // reads it), so touching it further here would either invent a value
+  // this component has no authority over, or — worse — silently erase the
+  // existing stored value on the next unrelated save (site_sections.content
+  // is replaced wholesale per PATCH, not merged field-by-field).
   const [selfPayContent, setSelfPayContent] = useState<Record<string, unknown>>({});
-  const [psychiatricPricing, setPsychiatricPricing] = useState<PsychiatricStatePricing[]>([
-    { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 300, followUpFee: 150 },
-    { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 300, followUpFee: 175 },
-    { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 175 },
-  ]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -75,19 +73,6 @@ export function FeesCopy() {
       setSelfPayContent(c);
       setSelfPayHeading(String(c.heading || ''));
       setSelfPayBody(bodyText(c.body));
-      if (Array.isArray(c.psychiatricStatePricing)) {
-        const pricing = c.psychiatricStatePricing.filter(
-          (item): item is PsychiatricStatePricing =>
-            Boolean(item) &&
-            typeof item === 'object' &&
-            typeof (item as Record<string, unknown>).state === 'string' &&
-            typeof (item as Record<string, unknown>).initialFee === 'number' &&
-            typeof (item as Record<string, unknown>).followUpFee === 'number' &&
-            ((item as Record<string, unknown>).slidingScaleAvailable === undefined ||
-              typeof (item as Record<string, unknown>).slidingScaleAvailable === 'boolean')
-        );
-        if (pricing.length === 3) setPsychiatricPricing(pricing);
-      }
     }
     if (insurance) {
       const c = asRecord(insurance.content);
@@ -113,6 +98,11 @@ export function FeesCopy() {
     try {
       const results = await Promise.allSettled([
         saveSection(introId, 'intro', 'Fees intro', { heading: introHeading, body: introBody }),
+        // Phase 13: deliberately no `psychiatricStatePricing` key set here —
+        // whatever value already exists in the spread `...selfPayContent`
+        // (loaded verbatim from the CMS row, never edited by this
+        // component) passes through completely unchanged. See the
+        // selfPayContent comment above for why.
         saveSection(selfPayId, 'self_pay', 'Self-pay', {
           ...selfPayContent,
           heading: selfPayHeading,
@@ -120,7 +110,6 @@ export function FeesCopy() {
             .split(/\n\s*\n/)
             .map((p) => p.trim())
             .filter(Boolean),
-          psychiatricStatePricing: psychiatricPricing,
         }),
         saveSection(insuranceId, 'insurance', 'Insurance disclaimer', { disclaimer: insuranceDisclaimer }),
       ]);
@@ -167,8 +156,7 @@ export function FeesCopy() {
     <form className="card card-pad" onSubmit={onSubmit} style={{ marginBottom: '1.25rem' }}>
       <h2>Fees page text</h2>
       <p className="muted" style={{ marginTop: 0 }}>
-        Intro and self-pay copy on /fees-insurance. Plan logos are in the table below. Psychiatric state pricing is
-        managed here and overrides the site's fallback values when published.
+        Intro and self-pay copy on /fees-insurance. Plan logos are in the table below.
       </p>
       {error ? <div className="error-banner">{error}</div> : null}
       {message ? <div className="ok-banner">{message}</div> : null}
@@ -176,48 +164,30 @@ export function FeesCopy() {
         <label htmlFor="fees-intro-heading">Intro heading</label>
         <input id="fees-intro-heading" value={introHeading} onChange={(e) => setIntroHeading(e.target.value)} />
       </div>
-      <h3>Psychiatric state pricing</h3>
-      <p className="muted">Initial and follow-up self-pay fees shown for psychiatric care.</p>
-      {psychiatricPricing.map((pricing, index) => (
-        <div key={pricing.state} style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: '0.75rem' }}>
-          <strong>{pricing.state}{pricing.selfPayOnly ? ' — Self-pay only' : ''}</strong>
-          <label>
-            <input
-              aria-label={`${pricing.state} sliding scale available`}
-              type="checkbox"
-              checked={pricing.slidingScaleAvailable}
-              onChange={(e) =>
-                setPsychiatricPricing((current) =>
-                  current.map((item, itemIndex) =>
-                    itemIndex === index ? { ...item, slidingScaleAvailable: e.target.checked } : item
-                  )
-                )
-              }
-            />
-            Sliding Scale Available
-          </label>
-          <input
-            aria-label={`${pricing.state} initial fee`}
-            type="number"
-            value={pricing.initialFee}
-            onChange={(e) =>
-              setPsychiatricPricing((current) =>
-                current.map((item, itemIndex) => (itemIndex === index ? { ...item, initialFee: Number(e.target.value) } : item))
-              )
-            }
-          />
-          <input
-            aria-label={`${pricing.state} follow-up fee`}
-            type="number"
-            value={pricing.followUpFee}
-            onChange={(e) =>
-              setPsychiatricPricing((current) =>
-                current.map((item, itemIndex) => (itemIndex === index ? { ...item, followUpFee: Number(e.target.value) } : item))
-              )
-            }
-          />
-        </div>
-      ))}
+      <h3>Protected Psychiatric Pricing</h3>
+      <p className="muted">
+        Psychiatric self-pay pricing is managed in protected site configuration to keep pricing consistent across the
+        website. Changes to these amounts require a code-level pricing update and deployment — they cannot be edited
+        here.
+      </p>
+      <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '1rem' }}>
+        {PROTECTED_PSYCHIATRIC_PRICING.map((pricing) => (
+          <div key={pricing.state} className="card card-pad" style={{ margin: 0 }}>
+            <strong>{pricing.state}</strong>
+            {pricing.selfPayOnly ? (
+              <div>
+                <span className="badge warn">Self-Pay Only</span>
+              </div>
+            ) : null}
+            <p className="muted" style={{ margin: '0.5rem 0 0' }}>
+              Initial psychiatric evaluation — ${pricing.initialFee}
+            </p>
+            <p className="muted" style={{ margin: 0 }}>
+              Medication management follow-up — ${pricing.followUpFee}
+            </p>
+          </div>
+        ))}
+      </div>
       <div className="field">
         <label htmlFor="fees-intro-body">Intro body</label>
         <textarea id="fees-intro-body" rows={4} value={introBody} onChange={(e) => setIntroBody(e.target.value)} />

@@ -26,6 +26,16 @@ export default function Page() {
             label: 'Content JSON',
             type: 'json',
             full: true,
+            // Phase 13: the only row this generic JSON editor needs a
+            // targeted warning for — page_key:'fees'/section_key:'self_pay'
+            // is the one CMS row that still carries a psychiatricStatePricing
+            // value from before Phase 12A locked pricing to protected site
+            // configuration. Editing it here no longer changes what
+            // visitors see.
+            hint: (_value, form) =>
+              form.page_key === 'fees' && form.section_key === 'self_pay'
+                ? 'Any psychiatricStatePricing values in this JSON no longer control public pricing — those figures are protected in site configuration. Edit ordinary Fees copy from Admin → Insurance instead.'
+                : null,
           },
           { key: 'published', label: 'Published', type: 'checkbox' },
         ]}
