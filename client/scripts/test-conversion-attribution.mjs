@@ -169,10 +169,13 @@ test('16. trackPageView keeps its own existing referrer capture (.host, not .hos
   assert.doesNotMatch(trackPageViewBlock, /extractReferrerHost/, 'trackPageView must not be changed to use the new stricter helper');
 });
 
-test('17. trackPageView payload shape is unaffected (still exactly event_type/path/referrer_host/device)', async () => {
+test('17. trackPageView payload shape for device/referrer_host is unaffected by this task — Phase 8 P3-UTM-1 (a later, separately-authorized task) additively appended utm_source/utm_medium/utm_campaign, tested in test-page-view-utm-capture.mjs', async () => {
   const calls = stubFetch();
   globalThis.document = { referrer: '' };
   await trackPageView('/some-page');
   const body = JSON.parse(calls[0].init.body);
-  assert.deepEqual(Object.keys(body).sort(), ['device', 'event_type', 'path', 'referrer_host']);
+  assert.deepEqual(
+    Object.keys(body).sort(),
+    ['device', 'event_type', 'path', 'referrer_host', 'utm_campaign', 'utm_medium', 'utm_source']
+  );
 });

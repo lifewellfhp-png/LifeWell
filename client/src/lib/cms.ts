@@ -115,6 +115,29 @@ export function extractReferrerHost(): string | null {
   }
 }
 
+/**
+ * Phase 8 P3-UTM-1: reads ONLY utm_source/utm_medium/utm_campaign from the
+ * current URL's query string — never the full query string itself, and
+ * never any other parameter (utm_term/utm_content/gclid/fbclid/anything
+ * else). Raw values only; the server (normalizeUtmValue in
+ * server/src/lib/attribution.ts) is the authoritative trust boundary, not
+ * this pre-check — this just avoids sending an empty string when a param
+ * is present but blank.
+ */
+function captureUtmParams(): { utm_source: string | null; utm_medium: string | null; utm_campaign: string | null } {
+  if (typeof window === 'undefined') return { utm_source: null, utm_medium: null, utm_campaign: null };
+  const params = new URLSearchParams(window.location.search);
+  const read = (key: string): string | null => {
+    const value = params.get(key);
+    return value && value.trim() ? value : null;
+  };
+  return {
+    utm_source: read('utm_source'),
+    utm_medium: read('utm_medium'),
+    utm_campaign: read('utm_campaign'),
+  };
+}
+
 export async function trackPageView(path: string): Promise<void> {
   try {
     const device = classifyDevice();
@@ -126,6 +149,8 @@ export async function trackPageView(path: string): Promise<void> {
       referrer_host = null;
     }
 
+    const { utm_source, utm_medium, utm_campaign } = captureUtmParams();
+
     await fetch(`${API_URL}/api/public/analytics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -134,6 +159,9 @@ export async function trackPageView(path: string): Promise<void> {
         path,
         referrer_host,
         device,
+        utm_source,
+        utm_medium,
+        utm_campaign,
       }),
       keepalive: true,
     });

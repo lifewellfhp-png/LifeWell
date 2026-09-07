@@ -5,14 +5,26 @@ import {
   analyticsIngestSchema,
   conversionIngestSchema,
 } from '../validation/adminSchemas.js';
-import { normalizeReferrerHost } from '../lib/attribution.js';
+import { normalizeReferrerHost, normalizeUtmValue } from '../lib/attribution.js';
 
 export async function handleAnalyticsIngest(req: Request, res: Response): Promise<void> {
   const parsed = analyticsIngestSchema.safeParse(req.body);
   if (!parsed.success) throw badRequest('Invalid analytics payload.');
 
   // Never accept free-text or identifiers — schema already strips them.
-  const { error } = await getSupabase().from('analytics_events').insert(parsed.data);
+  // Phase 8 P3-UTM-1: utm_source/utm_medium/utm_campaign are independently
+  // re-validated here (this is a public, unauthenticated endpoint — the
+  // schema's max(120) bound is a first-pass filter, not the trust
+  // boundary). An unsafe optional UTM value is normalized to null rather
+  // than failing the whole request — the page_view itself still records.
+  const payload = {
+    ...parsed.data,
+    utm_source: normalizeUtmValue(parsed.data.utm_source),
+    utm_medium: normalizeUtmValue(parsed.data.utm_medium),
+    utm_campaign: normalizeUtmValue(parsed.data.utm_campaign),
+  };
+
+  const { error } = await getSupabase().from('analytics_events').insert(payload);
   if (error) throw badRequest(error.message);
   res.status(201).json({ success: true });
 }
