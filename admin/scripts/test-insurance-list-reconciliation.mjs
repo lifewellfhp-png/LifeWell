@@ -104,6 +104,20 @@ test('PhaseA1Sync still unpublishes any Production row not present in approvedIn
   // merely skip them), so removed payers don't linger published, and
   // approved payers (Curative included, now that it's in the array) are
   // published/kept published instead.
-  assert.match(insurancePageSource, /if \(usedIds\.has\(row\.id\)\) continue;/);
+  assert.match(insurancePageSource, /toUnpublish\s*=\s*rows\.filter\(\(row\)\s*=>\s*!usedIds\.has\(row\.id\)\s*&&\s*row\.published\)/);
   assert.match(insurancePageSource, /published:\s*false/);
+});
+
+test('PhaseA1Sync shows the exact create/update/unpublish plan before applying it', () => {
+  // A prior sync run created 7 duplicate rows (with no logo) and
+  // unpublished the originals (which had logos), because several
+  // Production row names didn't exactly match their approved-list
+  // counterpart. Matching is still exact-name (a real behavior change here
+  // would need Production row names fixed to match, which is out of
+  // this test's reach), but the tool must no longer apply that plan blind
+  // — it has to show what will be created and what will be unpublished so
+  // a human can catch a mismatch before confirming.
+  assert.match(insurancePageSource, /toCreate\.length/);
+  assert.match(insurancePageSource, /toUnpublish\.length/);
+  assert.match(insurancePageSource, /confirm\(`Apply the approved Florida insurance list and disclaimer\?/);
 });

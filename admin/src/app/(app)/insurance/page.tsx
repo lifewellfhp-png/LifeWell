@@ -53,7 +53,6 @@ function PhaseA1Sync() {
   const [message, setMessage] = useState<string | null>(null);
 
   async function sync() {
-    if (!confirm('Apply the approved Florida insurance list and disclaimer?')) return;
     setBusy(true);
     setError(null);
     setMessage(null);
@@ -62,11 +61,52 @@ function PhaseA1Sync() {
       if (!insuranceResponse.success) throw new Error(`Loading insurance plans failed: ${insuranceResponse.message || 'Request failed'}`);
       const rows = insuranceResponse.data || [];
       const usedIds = new Set<string>();
-      for (const [sort_order, name] of approvedInsurance.entries()) {
+
+      // Matching is exact-name only (see below), which silently creates a
+      // duplicate row AND unpublishes the "unmatched" original whenever a
+      // Production row's name doesn't literally equal the approved string
+      // (whitespace, truncation, or any other drift). That already happened
+      // once in Production: several rows had truncated names, so a prior
+      // sync run created fresh full-name rows with no logo and unpublished
+      // the originals that had one. Build the plan first and show exactly
+      // what would be created/unpublished so a human can catch a mismatch
+      // like that before it's applied, instead of finding out afterward.
+      const matchByName = new Map<string, InsuranceRow>();
+      const toCreate: string[] = [];
+      for (const name of approvedInsurance) {
         const existing = rows.find((row) => row.name === name && !usedIds.has(row.id));
         if (existing) {
           usedIds.add(existing.id);
-          const response = await api(`/api/admin/insurance/${existing.id}`, {
+          matchByName.set(name, existing);
+        } else {
+          toCreate.push(name);
+        }
+      }
+      const toUnpublish = rows.filter((row) => !usedIds.has(row.id) && row.published);
+
+      const planLines = [
+        `Update ${matchByName.size} existing row(s) (name matched exactly).`,
+        toCreate.length
+          ? `Create ${toCreate.length} NEW row(s) with no logo (no exact name match found): ${toCreate.join(', ')}`
+          : null,
+        toUnpublish.length
+          ? `Unpublish ${toUnpublish.length} existing row(s) not in the approved list: ${toUnpublish.map((r) => r.name).join(', ')}`
+          : null,
+      ].filter(Boolean);
+      if (toCreate.length && toUnpublish.length) {
+        planLines.push(
+          'Warning: rows are both being created AND unpublished — if a name below is meant to be the same payer as one being unpublished, its logo will be lost. Check for a near-match before continuing.'
+        );
+      }
+      if (!confirm(`Apply the approved Florida insurance list and disclaimer?\n\n${planLines.join('\n')}`)) {
+        setBusy(false);
+        return;
+      }
+
+      for (const [sort_order, name] of approvedInsurance.entries()) {
+        const match = matchByName.get(name);
+        if (match) {
+          const response = await api(`/api/admin/insurance/${match.id}`, {
             method: 'PATCH',
             body: JSON.stringify({ name, published: true, self_pay: false, sort_order }),
           });
@@ -80,15 +120,12 @@ function PhaseA1Sync() {
         }
       }
 
-      for (const row of rows) {
-        if (usedIds.has(row.id)) continue;
-        if (row.published) {
-          const response = await api(`/api/admin/insurance/${row.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ published: false }),
-          });
-          if (!response.success) throw new Error(`Unpublishing ${row.name} failed: ${response.message || 'Request failed'}`);
-        }
+      for (const row of toUnpublish) {
+        const response = await api(`/api/admin/insurance/${row.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ published: false }),
+        });
+        if (!response.success) throw new Error(`Unpublishing ${row.name} failed: ${response.message || 'Request failed'}`);
       }
 
       // Phase 14 (Remove Legacy CMS Pricing Sync Authority): this tool used
