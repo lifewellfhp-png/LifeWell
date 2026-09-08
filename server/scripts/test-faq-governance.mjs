@@ -163,14 +163,17 @@ test('validateCreate/validateUpdate stay opt-in — only the resources that legi
   // Governance Audit) legitimately added two more, narrowly-scoped uses of
   // the same opt-in hook mechanism: /locations (assertAtMostOnePrimaryLocation)
   // and /blog (assertValidRelatedServiceSlug) — see test-phase12-governance.mjs
-  // for their own dedicated coverage. This test's job is only to confirm the
-  // hook remains opt-in (not silently applied to every resource) — the count
-  // is expected to grow deliberately over time as new resources need it, not
-  // to stay pinned at its Phase-11 value forever.
+  // for their own dedicated coverage. Phase 14 (Insurance Admin Governance
+  // Hardening) added a fourth: /insurance (assertUniqueInsuranceName +
+  // assertInsurancePublicationAllowed) — see
+  // test-phase14-insurance-governance.mjs. This test's job is only to
+  // confirm the hook remains opt-in (not silently applied to every
+  // resource) — the count is expected to grow deliberately over time as
+  // new resources need it, not to stay pinned at its Phase-11 value forever.
   const createCount = (adminRoutesSource.match(/validateCreate:/g) || []).length;
   const updateCount = (adminRoutesSource.match(/validateUpdate:/g) || []).length;
-  assert.equal(createCount, 3, 'expected exactly 3 validateCreate: usages (faqs, locations, blog)');
-  assert.equal(updateCount, 3, 'expected exactly 3 validateUpdate: usages (faqs, locations, blog)');
+  assert.equal(createCount, 4, 'expected exactly 4 validateCreate: usages (faqs, locations, blog, insurance)');
+  assert.equal(updateCount, 4, 'expected exactly 4 validateUpdate: usages (faqs, locations, blog, insurance)');
 });
 
 // --- no database migration introduced for this phase ---

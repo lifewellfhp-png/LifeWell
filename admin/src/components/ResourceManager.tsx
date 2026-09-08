@@ -43,7 +43,7 @@ type FilterConfig = {
  */
 type ConfirmFieldChangeConfig = {
   key: string;
-  message: (from: string, to: string) => string;
+  message: (from: string, to: string, form: Record<string, unknown>) => string;
 };
 
 type Props = {
@@ -205,7 +205,7 @@ export function ResourceManager({
     if (isEdit && confirmFieldChange) {
       const from = String(editing?.[confirmFieldChange.key] ?? '');
       const to = String(body[confirmFieldChange.key] ?? '');
-      if (from !== to && !window.confirm(confirmFieldChange.message(from, to))) {
+      if (from !== to && !window.confirm(confirmFieldChange.message(from, to, body))) {
         setSaving(false);
         return;
       }

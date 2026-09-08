@@ -396,6 +396,150 @@ adminRouter.use(
   })
 );
 
+/**
+ * Phase 14 (Insurance Admin Governance Hardening): the exact failure modes
+ * this guards against, all observed in Production without any of these
+ * protections in place — a sync tool created duplicate payer rows because
+ * nothing prevented a second row with a re-worded/differently-cased name;
+ * an unrelated PATCH once carried a stray leading tab straight into
+ * `logo_url` (Oxford) because nothing trimmed or validated it; and the
+ * insurance_plans table has no server-side concept of "approved payer" at
+ * all — any authenticated PATCH can flip `published: true` on any row
+ * regardless of name, and `insuranceCreate`'s `published` defaults to
+ * `true`, so a plain create publishes immediately unless told otherwise.
+ *
+ * APPROVED_INSURANCE_NAMES mirrors admin/src/app/(app)/insurance/page.tsx's
+ * `approvedInsurance` exactly — there's no shared package between the
+ * admin and server apps to import a single source from, so drift between
+ * the two is only caught by
+ * server/scripts/test-phase14-insurance-governance.mjs, which parses both
+ * files' source and asserts they list the same names. Keep them in sync.
+ */
+const APPROVED_INSURANCE_NAMES = new Set([
+  'AVMED Florida Exchange',
+  'Florida Exchange',
+  'Oscar Health Plan',
+  'UBH General',
+  'Veterans Affairs Coordinated Care Network Region 3',
+  'Oxford (Commercial)',
+  'Aetna (Commercial)',
+  'First Health (Coventry Health Care)',
+  'Cigna (Commercial)',
+  'Medicaid',
+  'Medicare',
+  'UHC Medicare Advantage',
+  'Optum',
+  'Curative',
+]);
+
+export function normalizeInsuranceName(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+async function assertUniqueInsuranceName(name: string, excludeId?: string): Promise<void> {
+  const normalized = normalizeInsuranceName(name);
+  const { data, error } = await getSupabase().from('insurance_plans').select('id, name');
+  if (error) throw badRequest(error.message);
+  const collision = (data ?? []).find(
+    (row) => row.id !== excludeId && normalizeInsuranceName(String(row.name ?? '')) === normalized
+  );
+  if (collision) {
+    // Owner-friendly, no row id/SQL/internals exposed.
+    throw new AppError('An insurance payer with this name already exists.', 409, { expose: true });
+  }
+}
+
+/**
+ * Only blocks the transition that actually matters — a payer ending up
+ * *published* with a name outside the approved set. A historical
+ * unapproved row may still exist unpublished (never auto-deleted; see
+ * P4-G1B's Curative row precedent), and editing an unrelated field on it
+ * doesn't touch this check at all, since it only runs when `name` or
+ * `published` is actually present in the request payload.
+ */
+async function assertApprovedForPublication(name: string, published: boolean): Promise<void> {
+  if (!published) return;
+  if (!APPROVED_INSURANCE_NAMES.has(name)) {
+    throw new AppError(
+      `"${name}" is not on LifeWell's approved insurance payer list and cannot be published. It can still be saved unpublished.`,
+      400,
+      { expose: true }
+    );
+  }
+}
+
+const SAFE_LOCAL_LOGO_PREFIX = '/images/insurance/';
+// eslint-disable-next-line no-control-regex
+const CONTROL_CHAR_RE = /[\x00-\x1F\x7F]/;
+const UNSAFE_SCHEME_RE = /^(javascript|data|vbscript|file):/i;
+
+/**
+ * Trims incidental whitespace (the Oxford incident: a bare leading tab,
+ * otherwise a valid path) and rejects anything actually unsafe. Never
+ * rewrites a bad value into a different-but-valid one — an invalid input
+ * fails closed with an owner-facing message, it doesn't get guessed at.
+ */
+export function normalizeAndValidateLogoUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed === '') return trimmed;
+  if (CONTROL_CHAR_RE.test(trimmed)) {
+    throw badRequest('Logo URL contains invalid control characters.');
+  }
+  if (UNSAFE_SCHEME_RE.test(trimmed)) {
+    throw badRequest('Logo URL uses an unsafe scheme and cannot be saved.');
+  }
+  if (trimmed.startsWith('/')) {
+    const lower = trimmed.toLowerCase();
+    if (!trimmed.startsWith(SAFE_LOCAL_LOGO_PREFIX) || trimmed.includes('..') || trimmed.includes('\\') || lower.includes('%2e')) {
+      throw badRequest(`Local logo paths must start with "${SAFE_LOCAL_LOGO_PREFIX}" and cannot contain traversal segments.`);
+    }
+    return trimmed;
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    let parsed: URL;
+    try {
+      parsed = new URL(trimmed);
+    } catch {
+      throw badRequest('Logo URL is not a valid URL.');
+    }
+    if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.hostname) {
+      throw badRequest('Logo URL must be a valid http or https URL.');
+    }
+    return trimmed;
+  }
+  throw badRequest(`Logo URL must be a local "${SAFE_LOCAL_LOGO_PREFIX}" path or a valid http(s) URL.`);
+}
+
+function normalizeInsuranceLogoUrl(data: Record<string, unknown>): Record<string, unknown> {
+  if (typeof data.logo_url === 'string') {
+    return { ...data, logo_url: normalizeAndValidateLogoUrl(data.logo_url) };
+  }
+  return data;
+}
+
+async function assertInsurancePublicationAllowed(
+  data: Record<string, unknown>,
+  id?: string
+): Promise<void> {
+  const nameProvided = typeof data.name === 'string';
+  const publishedProvided = typeof data.published === 'boolean';
+  if (!nameProvided && !publishedProvided) return;
+  let effectiveName = nameProvided ? (data.name as string) : undefined;
+  let effectivePublished = publishedProvided ? (data.published as boolean) : undefined;
+  if (id && (effectiveName === undefined || effectivePublished === undefined)) {
+    const { data: existing } = await getSupabase()
+      .from('insurance_plans')
+      .select('name, published')
+      .eq('id', id)
+      .maybeSingle();
+    if (effectiveName === undefined) effectiveName = existing?.name;
+    if (effectivePublished === undefined) effectivePublished = existing?.published ?? false;
+  }
+  if (effectiveName !== undefined && effectivePublished !== undefined) {
+    await assertApprovedForPublication(effectiveName, effectivePublished);
+  }
+}
+
 adminRouter.use(
   '/insurance',
   createCrudRouter({
@@ -404,6 +548,19 @@ adminRouter.use(
     createSchema: insuranceCreate,
     updateSchema: insuranceUpdate,
     orderBy: { column: 'sort_order', ascending: true },
+    beforeCreate: normalizeInsuranceLogoUrl,
+    beforeUpdate: normalizeInsuranceLogoUrl,
+    // Each check only runs when the field it cares about is actually part
+    // of this request's payload, so an edit to notes/sort_order/logo_url
+    // alone never gets blocked by name-uniqueness or approved-payer rules.
+    validateCreate: async (data) => {
+      if (typeof data.name === 'string') await assertUniqueInsuranceName(data.name);
+      await assertInsurancePublicationAllowed(data);
+    },
+    validateUpdate: async (data, id) => {
+      if (typeof data.name === 'string') await assertUniqueInsuranceName(data.name, id);
+      await assertInsurancePublicationAllowed(data, id);
+    },
   })
 );
 

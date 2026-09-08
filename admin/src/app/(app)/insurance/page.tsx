@@ -25,6 +25,8 @@ const approvedInsurance = [
   'Curative',
 ] as const;
 
+const APPROVED_INSURANCE_SET = new Set<string>(approvedInsurance);
+
 const approvedDisclaimer =
   'Insurance coverage and network participation vary by plan. Please contact us to verify your benefits and eligibility before scheduling.';
 
@@ -194,12 +196,25 @@ export default function Page() {
       <HomepageInsuranceCopy />
       <FeesCopy />
       <PhaseA1Sync />
+      <p className="muted" style={{ marginBottom: '0.75rem' }}>
+        Published insurers appear on the public Fees &amp; Insurance page. Only insurers in LifeWell&rsquo;s approved
+        payer list may be published — the server rejects publishing an insurer that isn&rsquo;t on that list.
+      </p>
       <ResourceManager
       title="Insurance"
       subtitle="Plans and logos on /fees-insurance. Preview the logo card, then Save to update the public page."
       endpoint="/api/admin/insurance"
       createDefaults={{ published: true, self_pay: false, sort_order: 0 }}
       itemLabel={(r) => String(r.name || 'Plan')}
+      confirmFieldChange={{
+        key: 'published',
+        message: (from, to, form) => {
+          const name = String(form?.name || 'this insurer');
+          return to === 'true'
+            ? `Publish ${name}?\n\nThis insurer will appear on the public Fees & Insurance page.`
+            : `Unpublish ${name}?\n\nThis insurer will no longer appear on the public Fees & Insurance page.`;
+        },
+      }}
       preview={{
         hint: 'This logo appears in the Fees & Insurance grid after Save.',
         liveHref: () => '/fees-insurance',
@@ -221,19 +236,44 @@ export default function Page() {
         },
         { key: 'name', label: 'Plan' },
         {
-          key: 'self_pay',
-          label: 'Self-pay',
-          render: (r) => (r.self_pay ? 'Yes' : 'No'),
-        },
-        {
           key: 'published',
           label: 'Published',
           render: (r) => (r.published ? <span className="badge ok">Live</span> : 'Draft'),
         },
+        {
+          // Mobile cards only render the table's first 4 columns
+          // (ResourceManager's columns.slice(0, 4)) — Published stays ahead
+          // of this and self_pay so both remain visible there, not just on
+          // the desktop table.
+          key: 'approved',
+          label: 'Approved',
+          render: (r) =>
+            APPROVED_INSURANCE_SET.has(String(r.name)) ? (
+              <span className="badge ok">Approved</span>
+            ) : (
+              <span className="badge warn">Not approved</span>
+            ),
+        },
+        {
+          key: 'self_pay',
+          label: 'Self-pay',
+          render: (r) => (r.self_pay ? 'Yes' : 'No'),
+        },
       ]}
       fields={[
         { key: 'name', label: 'Name' },
-        { key: 'logo_url', label: 'Logo URL (from Media)' },
+        {
+          key: 'logo_url',
+          label: 'Logo URL (from Media)',
+          // Deliberately not type: 'url' — this field's most common legitimate
+          // value is a relative local path (/images/insurance/badges/...),
+          // which HTML5's native url input validation rejects as invalid
+          // (it requires an absolute URL with a scheme). That validation runs
+          // on the whole form at submit time, not just this field, so it
+          // silently blocked every save — including ones that never touched
+          // logo_url — with no error, no event, nothing to debug from JS.
+          hint: () => `Local path under /images/insurance/ (e.g. /images/insurance/badges/curative.svg) or a valid https:// URL.`,
+        },
         { key: 'notes', label: 'Notes', type: 'textarea', full: true },
         { key: 'sort_order', label: 'Sort order', type: 'number' },
         { key: 'self_pay', label: 'Self-pay option', type: 'checkbox' },
