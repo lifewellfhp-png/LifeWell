@@ -1,6 +1,19 @@
 /**
  * Phase 13 (Admin Pricing Authority Alignment) regression tests.
  *
+ * UPDATE (Phase 15 — Restore Governed CMS Pricing Authority with Protected
+ * Fallback): Phase 13's original premise was "psychiatric pricing is
+ * permanently read-only in Admin, full stop." Phase 15 superseded that per
+ * explicit owner authorization: Admin now exposes a governed, validated
+ * editor for exactly the initial/follow-up fee of each of the three fixed
+ * states, while `selfPayOnly`/`slidingScaleAvailable` remain fixed
+ * governance facts the owner cannot alter. Tests whose assertions
+ * literally contradicted this (e.g. "no number input exists for pricing")
+ * have been updated below to assert the new, still-strict reality instead
+ * — no add/delete/rename/reorder controls, no way to alter governance
+ * flags, and every save is validated before it can reach the API. See
+ * test-phase15-governed-cms-pricing-authority.mjs for the full contract.
+ *
  * No network calls, no CMS, no Production data, no React rendering — mirrors
  * this repo's established pattern (see test-benefits-item-editor.mjs,
  * test-faq-governance-admin.mjs) of reimplementing pure closures for direct
@@ -66,41 +79,53 @@ test('Florida does not display Self-Pay Only', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 6-12: no editable inputs can modify protected pricing
+// 6-12 (Phase 15 update): pricing fees are now editable, but only fees —
+// no state-structure control exists, and governance flags stay fixed.
 // ---------------------------------------------------------------------------
 
-test('6. no editable pricing state exists in FeesCopy.tsx (the old psychiatricPricing useState was removed entirely)', () => {
-  assert.doesNotMatch(feesCopySource, /useState<PsychiatricStatePricing/);
-  assert.doesNotMatch(feesCopySource, /setPsychiatricPricing/);
+test('6 (superseded by Phase 15). governed pricing draft state exists in FeesCopy.tsx (initial/follow-up fee only)', () => {
+  assert.match(feesCopySource, /useState<PricingDraft>/);
+  assert.match(feesCopySource, /setPricingDraft/);
 });
 
-test('7/8. no number input exists for Florida initial or follow-up fee', () => {
-  assert.doesNotMatch(feesCopySource, /aria-label=\{`\$\{pricing\.state\} initial fee`\}/);
-  assert.doesNotMatch(feesCopySource, /aria-label=\{`\$\{pricing\.state\} follow-up fee`\}/);
-});
-
-test('9/10/11/12. no type="number" input exists anywhere in the pricing display block (structurally impossible to edit MA/AZ initial or follow-up)', () => {
-  const pricingBlockStart = feesCopySource.indexOf('Protected Psychiatric Pricing');
+test('7/8/9/10/11/12 (superseded by Phase 15). editable number inputs exist for each state\'s initial and follow-up fee', () => {
+  const pricingBlockStart = feesCopySource.indexOf('Psychiatric Self-Pay Pricing');
   const pricingBlockEnd = feesCopySource.indexOf('Intro body');
   const pricingBlock = feesCopySource.slice(pricingBlockStart, pricingBlockEnd);
-  assert.doesNotMatch(pricingBlock, /type="number"/);
-  assert.doesNotMatch(pricingBlock, /<input/);
-  assert.doesNotMatch(pricingBlock, /<textarea/);
-  assert.doesNotMatch(pricingBlock, /onChange/);
+  assert.match(pricingBlock, /type="number"/);
+  assert.match(pricingBlock, /onChange/);
+  assert.match(pricingBlock, /pricing-\$\{state\.state\}-initial/);
+  assert.match(pricingBlock, /pricing-\$\{state\.state\}-followup/);
 });
 
-test('the pricing display renders PROTECTED_PSYCHIATRIC_PRICING directly (the actual protected source), not a locally editable copy', () => {
+test('the fixed 3-state list (labels, order, Self-Pay Only badge) still comes from PROTECTED_PSYCHIATRIC_PRICING — only the two fee VALUES are separately editable via pricingDraft', () => {
   assert.match(feesCopySource, /PROTECTED_PSYCHIATRIC_PRICING\.map/);
+  // No add/remove/rename/reorder control for the state list itself.
+  assert.doesNotMatch(feesCopySource, /Add state|Remove state|New state|addState|removeState/i);
+});
+
+test('governance flags (selfPayOnly, slidingScaleAvailable) are never rendered as editable checkboxes — only the fixed Self-Pay Only label exists', () => {
+  const pricingBlockStart = feesCopySource.indexOf('Psychiatric Self-Pay Pricing');
+  const pricingBlockEnd = feesCopySource.indexOf('Intro body');
+  const pricingBlock = feesCopySource.slice(pricingBlockStart, pricingBlockEnd);
+  assert.doesNotMatch(pricingBlock, /type="checkbox"/);
+  assert.match(pricingBlock, /badge warn/);
+});
+
+test('invalid pricing input (blank/zero/negative/non-numeric) is blocked before any save — isValidFeeInput enforces finite > 0', () => {
+  assert.match(feesCopySource, /function isValidFeeInput/);
+  assert.match(feesCopySource, /Number\.isFinite\(parsed\) && parsed > 0/);
 });
 
 // ---------------------------------------------------------------------------
 // 13: helper text
 // ---------------------------------------------------------------------------
 
-test('13. protected pricing helper text is present and non-alarming', () => {
-  const helperTextMatch = feesCopySource.match(/Psychiatric self-pay pricing is managed[\s\S]*?here\./);
-  assert.ok(helperTextMatch, 'expected the protected-pricing helper paragraph');
-  assert.match(helperTextMatch[0], /Changes to these amounts require a code-level pricing update and deployment/);
+test('13 (superseded by Phase 15). governed pricing helper text is present, accurate, and non-alarming', () => {
+  const helperTextMatch = feesCopySource.match(/Psychiatric self-pay pricing entered here[\s\S]*?fallback pricing\./);
+  assert.ok(helperTextMatch, 'expected the governed-pricing helper paragraph');
+  assert.match(helperTextMatch[0], /controls the public website after it is saved/);
+  assert.match(helperTextMatch[0], /missing or invalid.*protected fallback pricing/);
   assert.doesNotMatch(helperTextMatch[0], /error|danger|broken|failed/i);
 });
 
@@ -165,7 +190,7 @@ test('a self_pay row with no pre-existing pricing key at all never gains one fro
 // 19-22: no authority change elsewhere; Phase 12A remains intact
 // ---------------------------------------------------------------------------
 
-test('19. no client pricing authority change — mapFees() still always uses the static source (Phase 12A marker still present)', () => {
+test('19 (superseded by Phase 15). the static fallback dataset in client/src/data/pricing.ts is unchanged/intact — mapFees() now uses it conditionally, not unconditionally; see test-phase15-governed-cms-pricing-authority.mjs (client) for the full authority/fallback contract', () => {
   assert.match(clientPricingSource, /export const psychiatricStatePricing: PsychiatricStatePricing\[\] = \[/);
 });
 
@@ -180,14 +205,14 @@ test('21. no schema migration — protected-pricing.ts is a plain TypeScript mod
   );
 });
 
-test('22. the Admin display constant reconciles exactly with client/src/data/pricing.ts\'s approved figures (no second, drifted pricing authority)', () => {
+test('22. the Admin display/payload constant reconciles exactly with client/src/data/pricing.ts\'s approved figures, including slidingScaleAvailable (no second, drifted pricing authority)', () => {
   const match = clientPricingSource.match(/export const psychiatricStatePricing: PsychiatricStatePricing\[\] = \[([\s\S]*?)\];/);
   assert.ok(match, 'expected to find psychiatricStatePricing in client/src/data/pricing.ts');
   for (const state of PROTECTED_PSYCHIATRIC_PRICING) {
     const stateRegex = new RegExp(
-      `state: '${state.state}', selfPayOnly: ${state.selfPayOnly}, slidingScaleAvailable: \\w+, initialFee: ${state.initialFee}, followUpFee: ${state.followUpFee}`
+      `state: '${state.state}', selfPayOnly: ${state.selfPayOnly}, slidingScaleAvailable: ${state.slidingScaleAvailable}, initialFee: ${state.initialFee}, followUpFee: ${state.followUpFee}`
     );
-    assert.match(match[1], stateRegex, `expected ${state.state}'s admin display values to match client/src/data/pricing.ts exactly`);
+    assert.match(match[1], stateRegex, `expected ${state.state}'s admin display/payload values to match client/src/data/pricing.ts exactly`);
   }
 });
 
@@ -243,10 +268,11 @@ test('the generic Sections JSON editor still allows editing every section (no gl
   assert.doesNotMatch(sectionsPageSource, /disabled/);
 });
 
-test('the fees/self_pay row gets a targeted hint warning that its pricing values are inert', () => {
+test('(superseded by Phase 15) the fees/self_pay row gets a targeted hint explaining the conditional authority/fallback model', () => {
   const contentFieldBlock = sectionsPageSource.slice(sectionsPageSource.indexOf("key: 'content'"));
   assert.match(contentFieldBlock, /form\.page_key === 'fees' && form\.section_key === 'self_pay'/);
-  assert.match(contentFieldBlock, /no longer control public pricing/);
+  assert.match(contentFieldBlock, /controls public pricing/);
+  assert.match(contentFieldBlock, /falls? back to protected pricing/);
 });
 
 test('the hint is null (no warning shown) for every other section — it is scoped to exactly one row', () => {

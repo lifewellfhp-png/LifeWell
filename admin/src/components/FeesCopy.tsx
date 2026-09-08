@@ -12,6 +12,10 @@ type SectionRow = {
   updated_at?: string;
 };
 
+/** Phase 15: the editable half of a governed pricing row — only these two fields are ever owner-editable. */
+type PricingFeeDraft = { initialFee: string; followUpFee: string };
+type PricingDraft = Record<string, PricingFeeDraft>;
+
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>;
   return {};
@@ -20,6 +24,48 @@ function asRecord(value: unknown): Record<string, unknown> {
 function bodyText(value: unknown) {
   if (Array.isArray(value)) return value.filter((p) => typeof p === 'string').join('\n\n');
   return typeof value === 'string' ? value : '';
+}
+
+/**
+ * Phase 15: seeds the editable fee fields from whatever is currently
+ * stored, falling back per-field to the protected figure when the stored
+ * value for that specific state isn't itself a sane positive number. This
+ * is presentation-only pre-fill convenience, not the authority check —
+ * the actual public-site gate (resolvePsychiatricStatePricing() in
+ * client/src/lib/cms-resolve.ts) independently validates the full
+ * collection, including governance flags, and is the only thing that
+ * decides whether CMS pricing actually goes live.
+ */
+function seedPricingDraft(rawPricing: unknown): PricingDraft {
+  const rows = Array.isArray(rawPricing) ? rawPricing : [];
+  const draft: PricingDraft = {};
+  for (const protectedRow of PROTECTED_PSYCHIATRIC_PRICING) {
+    const stored = rows.find((r) => r && typeof r === 'object' && (r as Record<string, unknown>).state === protectedRow.state) as
+      | Record<string, unknown>
+      | undefined;
+    const storedInitial = stored?.initialFee;
+    const storedFollowUp = stored?.followUpFee;
+    draft[protectedRow.state] = {
+      initialFee: String(
+        typeof storedInitial === 'number' && Number.isFinite(storedInitial) && storedInitial > 0
+          ? storedInitial
+          : protectedRow.initialFee
+      ),
+      followUpFee: String(
+        typeof storedFollowUp === 'number' && Number.isFinite(storedFollowUp) && storedFollowUp > 0
+          ? storedFollowUp
+          : protectedRow.followUpFee
+      ),
+    };
+  }
+  return draft;
+}
+
+/** Phase 15: a single field is valid only if it parses to a finite number > 0 — matches the public resolver's own fee validity rule exactly, so nothing an owner is blocked from saving here could ever be rejected by the public site for the same reason. */
+function isValidFeeInput(value: string): boolean {
+  if (!value.trim()) return false;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0;
 }
 
 export function FeesCopy() {
@@ -31,20 +77,29 @@ export function FeesCopy() {
   const [selfPayHeading, setSelfPayHeading] = useState('');
   const [selfPayBody, setSelfPayBody] = useState('');
   const [insuranceDisclaimer, setInsuranceDisclaimer] = useState('');
-  // Phase 13: the raw, unmodified CMS record for the self_pay section, kept
-  // only so an unrelated copy save can pass it through byte-for-byte via
-  // the spread in saveSection() below — including any historical/stale
-  // psychiatricStatePricing value it may still contain. Nothing in this
-  // component ever reads, edits, or reconstructs that field: Phase 12A
-  // already made it inert (client/src/lib/cms-resolve.ts's mapFees() never
-  // reads it), so touching it further here would either invent a value
-  // this component has no authority over, or — worse — silently erase the
-  // existing stored value on the next unrelated save (site_sections.content
-  // is replaced wholesale per PATCH, not merged field-by-field).
+  // The raw, unmodified CMS record for the self_pay section, kept so the
+  // marketing-copy save below can pass any *other* stored key through
+  // byte-for-byte via the spread in saveSection() — including whatever
+  // psychiatricStatePricing value already exists. The marketing-copy save
+  // action never reads, edits, or reconstructs that field itself (see its
+  // own comment below); site_sections.content is replaced wholesale per
+  // PATCH, not merged field-by-field, so leaving it untouched here is what
+  // preserves it rather than silently erasing it.
   const [selfPayContent, setSelfPayContent] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Phase 15 (Restore Governed CMS Pricing Authority with Protected
+  // Fallback): a deliberately separate save action/payload from the
+  // marketing-copy form above — pricing is only ever included in a PATCH
+  // when this specific action fires, never as a side effect of saving
+  // ordinary copy.
+  const [pricingDraft, setPricingDraft] = useState<PricingDraft>(() => seedPricingDraft(null));
+  const [pricingErrors, setPricingErrors] = useState<Record<string, string>>({});
+  const [pricingSaving, setPricingSaving] = useState(false);
+  const [pricingError, setPricingError] = useState<string | null>(null);
+  const [pricingMessage, setPricingMessage] = useState<string | null>(null);
 
   async function load() {
     const res = await api<SectionRow[]>('/api/admin/sections');
@@ -73,6 +128,7 @@ export function FeesCopy() {
       setSelfPayContent(c);
       setSelfPayHeading(String(c.heading || ''));
       setSelfPayBody(bodyText(c.body));
+      setPricingDraft(seedPricingDraft(c.psychiatricStatePricing));
     }
     if (insurance) {
       const c = asRecord(insurance.content);
@@ -98,11 +154,13 @@ export function FeesCopy() {
     try {
       const results = await Promise.allSettled([
         saveSection(introId, 'intro', 'Fees intro', { heading: introHeading, body: introBody }),
-        // Phase 13: deliberately no `psychiatricStatePricing` key set here —
-        // whatever value already exists in the spread `...selfPayContent`
-        // (loaded verbatim from the CMS row, never edited by this
-        // component) passes through completely unchanged. See the
-        // selfPayContent comment above for why.
+        // This marketing-copy save deliberately never sets a
+        // `psychiatricStatePricing` key — whatever value already exists in
+        // the spread `...selfPayContent` (loaded verbatim from the CMS
+        // row, never edited by this action) passes through completely
+        // unchanged. Pricing is only ever written by the separate "Save
+        // pricing" action below (onSavePricing), with its own explicit
+        // payload — never as a side effect of saving ordinary copy.
         saveSection(selfPayId, 'self_pay', 'Self-pay', {
           ...selfPayContent,
           heading: selfPayHeading,
@@ -152,6 +210,64 @@ export function FeesCopy() {
     }
   }
 
+  /**
+   * Phase 15: the ONLY code path in this component that ever includes
+   * `psychiatricStatePricing` in a save payload. Validates every field
+   * first (finite, > 0) and refuses to call the API at all if anything is
+   * invalid — this mirrors the public resolver's own validity rule
+   * exactly, so a save that passes this check is guaranteed to also pass
+   * the public site's own governance check and go live, and a save that
+   * fails this check is never sent. Governance flags (`selfPayOnly`/
+   * `slidingScaleAvailable`) are always taken from the protected constant,
+   * never from user input — there is no control that can alter them.
+   */
+  async function onSavePricing() {
+    const nextErrors: Record<string, string> = {};
+    for (const state of PROTECTED_PSYCHIATRIC_PRICING) {
+      const draft = pricingDraft[state.state];
+      if (!draft || !isValidFeeInput(draft.initialFee)) {
+        nextErrors[`${state.state}-initial`] = 'Enter a whole dollar amount greater than $0.';
+      }
+      if (!draft || !isValidFeeInput(draft.followUpFee)) {
+        nextErrors[`${state.state}-followup`] = 'Enter a whole dollar amount greater than $0.';
+      }
+    }
+    setPricingErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      setPricingError('Fix the highlighted fields before saving.');
+      setPricingMessage(null);
+      return;
+    }
+
+    setPricingSaving(true);
+    setPricingError(null);
+    setPricingMessage(null);
+    try {
+      const payload = PROTECTED_PSYCHIATRIC_PRICING.map((state) => ({
+        state: state.state,
+        selfPayOnly: state.selfPayOnly,
+        slidingScaleAvailable: state.slidingScaleAvailable,
+        initialFee: Number(pricingDraft[state.state].initialFee),
+        followUpFee: Number(pricingDraft[state.state].followUpFee),
+      }));
+      const res = await saveSection(selfPayId, 'self_pay', 'Self-pay', {
+        ...selfPayContent,
+        psychiatricStatePricing: payload,
+      });
+      if (!res.success) {
+        setPricingError(res.message || 'Save failed');
+        return;
+      }
+      await load();
+      setPricingMessage('Pricing saved. This now controls the public website. Refresh /fees-insurance to see it.');
+    } catch (saveError) {
+      const message = saveError instanceof Error ? saveError.message : 'Unexpected save error';
+      setPricingError(`Save failed: ${message}`);
+    } finally {
+      setPricingSaving(false);
+    }
+  }
+
   return (
     <form className="card card-pad" onSubmit={onSubmit} style={{ marginBottom: '1.25rem' }}>
       <h2>Fees page text</h2>
@@ -164,30 +280,67 @@ export function FeesCopy() {
         <label htmlFor="fees-intro-heading">Intro heading</label>
         <input id="fees-intro-heading" value={introHeading} onChange={(e) => setIntroHeading(e.target.value)} />
       </div>
-      <h3>Protected Psychiatric Pricing</h3>
+      <h3>Psychiatric Self-Pay Pricing</h3>
       <p className="muted">
-        Psychiatric self-pay pricing is managed in protected site configuration to keep pricing consistent across the
-        website. Changes to these amounts require a code-level pricing update and deployment — they cannot be edited
-        here.
+        Psychiatric self-pay pricing entered here controls the public website after it is saved. If CMS pricing is
+        missing or invalid, the website uses protected fallback pricing.
       </p>
-      <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '1rem' }}>
-        {PROTECTED_PSYCHIATRIC_PRICING.map((pricing) => (
-          <div key={pricing.state} className="card card-pad" style={{ margin: 0 }}>
-            <strong>{pricing.state}</strong>
-            {pricing.selfPayOnly ? (
-              <div>
-                <span className="badge warn">Self-Pay Only</span>
+      {pricingError ? <div className="error-banner">{pricingError}</div> : null}
+      {pricingMessage ? <div className="ok-banner">{pricingMessage}</div> : null}
+      <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '0.75rem' }}>
+        {PROTECTED_PSYCHIATRIC_PRICING.map((state) => {
+          const draft = pricingDraft[state.state] ?? { initialFee: '', followUpFee: '' };
+          const initialError = pricingErrors[`${state.state}-initial`];
+          const followUpError = pricingErrors[`${state.state}-followup`];
+          return (
+            <div key={state.state} className="card card-pad" style={{ margin: 0 }}>
+              <strong>{state.state}</strong>
+              {state.selfPayOnly ? (
+                <div>
+                  <span className="badge warn">Self-Pay Only</span>
+                </div>
+              ) : null}
+              <div className="field" style={{ marginTop: '0.5rem' }}>
+                <label htmlFor={`pricing-${state.state}-initial`}>Initial psychiatric evaluation ($)</label>
+                <input
+                  id={`pricing-${state.state}-initial`}
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={draft.initialFee}
+                  onChange={(e) =>
+                    setPricingDraft((current) => ({
+                      ...current,
+                      [state.state]: { ...current[state.state], initialFee: e.target.value },
+                    }))
+                  }
+                />
+                {initialError ? <p className="field-error">{initialError}</p> : null}
               </div>
-            ) : null}
-            <p className="muted" style={{ margin: '0.5rem 0 0' }}>
-              Initial psychiatric evaluation — ${pricing.initialFee}
-            </p>
-            <p className="muted" style={{ margin: 0 }}>
-              Medication management follow-up — ${pricing.followUpFee}
-            </p>
-          </div>
-        ))}
+              <div className="field">
+                <label htmlFor={`pricing-${state.state}-followup`}>Follow-up medication management ($)</label>
+                <input
+                  id={`pricing-${state.state}-followup`}
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={draft.followUpFee}
+                  onChange={(e) =>
+                    setPricingDraft((current) => ({
+                      ...current,
+                      [state.state]: { ...current[state.state], followUpFee: e.target.value },
+                    }))
+                  }
+                />
+                {followUpError ? <p className="field-error">{followUpError}</p> : null}
+              </div>
+            </div>
+          );
+        })}
       </div>
+      <button type="button" className="btn btn-primary" onClick={() => void onSavePricing()} disabled={pricingSaving} style={{ marginBottom: '1.25rem' }}>
+        {pricingSaving ? 'Saving pricing…' : 'Save pricing'}
+      </button>
       <div className="field">
         <label htmlFor="fees-intro-body">Intro body</label>
         <textarea id="fees-intro-body" rows={4} value={introBody} onChange={(e) => setIntroBody(e.target.value)} />

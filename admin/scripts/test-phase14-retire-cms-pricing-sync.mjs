@@ -171,10 +171,15 @@ test('13. unrelated copy saves preserve hostile stored pricing values byte-for-b
 // 14: Sections raw JSON warning stays targeted only to fees/self_pay
 // ---------------------------------------------------------------------------
 
-test('14. the Sections raw JSON warning remains targeted only to fees/self_pay', () => {
+test('14 (superseded by Phase 15). the Sections raw JSON warning remains targeted only to fees/self_pay', () => {
   const contentFieldBlock = sectionsPageSource.slice(sectionsPageSource.indexOf("key: 'content'"));
   assert.match(contentFieldBlock, /form\.page_key === 'fees' && form\.section_key === 'self_pay'/);
-  assert.match(contentFieldBlock, /no longer control public pricing/);
+  // Phase 15 (Restore Governed CMS Pricing Authority with Protected
+  // Fallback) rewrote this hint's wording from "no longer control public
+  // pricing" (Phase 12A/14's unconditional-static framing) to describe the
+  // new conditional authority/fallback model instead — see
+  // test-phase15-governed-cms-pricing-authority.mjs for the full check.
+  assert.match(contentFieldBlock, /controls public pricing/);
   const noWarningBlock = sectionsPageSource.slice(
     sectionsPageSource.indexOf("key: 'content'"),
     sectionsPageSource.indexOf("key: 'published'")
@@ -183,12 +188,21 @@ test('14. the Sections raw JSON warning remains targeted only to fees/self_pay',
 });
 
 // ---------------------------------------------------------------------------
-// 15: Phase 12A's unconditional static-source authority marker is intact
+// 15 (superseded by Phase 15 — Restore Governed CMS Pricing Authority with
+// Protected Fallback): Phase 12A's unconditional "CMS pricing is always
+// ignored" rule was explicitly superseded by the owner. The client
+// resolver now uses CMS pricing when it is complete and fully valid,
+// falling back to the static dataset otherwise — see
+// resolvePsychiatricStatePricing() and
+// client/scripts/test-phase15-governed-cms-pricing-authority.mjs for the
+// full contract. This test is kept as a pointer/regression guard that the
+// *conditional* marker (not the old unconditional one) is present.
 // ---------------------------------------------------------------------------
 
-test('15. Phase 12A\'s unconditional static-source authority marker remains intact in client/src/lib/cms-resolve.ts', () => {
+test('15 (superseded by Phase 15). the client resolver now uses a conditional authority/fallback marker, not the old unconditional static-only one', () => {
   const cmsResolveSource = readFileSync(join(__dirname, '../../client/src/lib/cms-resolve.ts'), 'utf8');
-  assert.match(cmsResolveSource, /psychiatricStatePricing: staticPsychiatricStatePricing,/);
+  assert.doesNotMatch(cmsResolveSource, /psychiatricStatePricing: staticPsychiatricStatePricing,/);
+  assert.match(cmsResolveSource, /psychiatricStatePricing: resolvePsychiatricStatePricing\(selfPay\.psychiatricStatePricing\),/);
 });
 
 // ---------------------------------------------------------------------------

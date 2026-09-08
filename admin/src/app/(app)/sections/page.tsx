@@ -26,15 +26,20 @@ export default function Page() {
             label: 'Content JSON',
             type: 'json',
             full: true,
-            // Phase 13: the only row this generic JSON editor needs a
-            // targeted warning for — page_key:'fees'/section_key:'self_pay'
-            // is the one CMS row that still carries a psychiatricStatePricing
-            // value from before Phase 12A locked pricing to protected site
-            // configuration. Editing it here no longer changes what
-            // visitors see.
+            // Phase 15 (Restore Governed CMS Pricing Authority with
+            // Protected Fallback): the only row this generic JSON editor
+            // needs a targeted warning for — page_key:'fees'/
+            // section_key:'self_pay' is the CMS row that carries
+            // psychiatricStatePricing. A complete, fully valid value here
+            // does control public pricing; anything incomplete or invalid
+            // (missing a state, wrong governance flags, bad numbers, etc.)
+            // makes the site fall back to protected code-level pricing
+            // instead. The structured pricing editor on Admin → Insurance
+            // validates every field before it can be saved — this raw
+            // editor does not, so a mistake here is easy to make silently.
             hint: (_value, form) =>
               form.page_key === 'fees' && form.section_key === 'self_pay'
-                ? 'Any psychiatricStatePricing values in this JSON no longer control public pricing — those figures are protected in site configuration. Edit ordinary Fees copy from Admin → Insurance instead.'
+                ? 'A complete, valid psychiatricStatePricing value here controls public pricing; anything incomplete or invalid makes the site fall back to protected pricing instead. Use the structured pricing editor on Admin → Insurance — it validates every field before saving.'
                 : null,
           },
           { key: 'published', label: 'Published', type: 'checkbox' },

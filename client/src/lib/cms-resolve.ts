@@ -939,6 +939,73 @@ export function mapStats(cms: PublicCmsPayload | null): Stat[] {
   return items;
 }
 
+/**
+ * Phase 15 (Restore Governed CMS Pricing Authority with Protected Fallback):
+ * the CMS `psychiatricStatePricing` collection is authoritative ONLY when it
+ * is complete and fully valid — otherwise the entire protected static
+ * dataset (client/src/data/pricing.ts) is used instead. Never a partial
+ * merge: either every figure comes from a validated CMS collection, or
+ * every figure comes from the static fallback. This supersedes Phase 12A's
+ * unconditional "always static, CMS never read" rule per explicit owner
+ * authorization — see admin/scripts/test-phase15-governed-cms-pricing-authority.mjs
+ * and client/scripts/test-phase15-governed-cms-pricing-authority.mjs.
+ *
+ * A collection is valid only if ALL of the following hold:
+ *  - it is an array of exactly 3 entries;
+ *  - each entry is a plain object with a `state` that is exactly one of
+ *    Florida/Massachusetts/Arizona, with no duplicates and no other state;
+ *  - `initialFee`/`followUpFee` are each a finite `number` > 0 (a numeric
+ *    string like "300" is rejected, not coerced — no established precedent
+ *    exists for string-typed pricing in this field, so nothing here
+ *    invents permissive coercion for it);
+ *  - `selfPayOnly` and `slidingScaleAvailable` are booleans that exactly
+ *    match the protected governance value for that state (Florida
+ *    selfPayOnly=false; Massachusetts/Arizona selfPayOnly=true; all three
+ *    slidingScaleAvailable=true) — these are fixed governance facts, not
+ *    freely CMS-editable values, matching the Admin editor's own
+ *    non-editable governance labels.
+ *
+ * Any single failure anywhere rejects the WHOLE collection. The returned
+ * array is always in canonical Florida/Massachusetts/Arizona order,
+ * regardless of the order CMS rows happen to be in.
+ */
+const PSYCHIATRIC_PRICING_GOVERNANCE: Record<string, { selfPayOnly: boolean; slidingScaleAvailable: boolean }> = {
+  Florida: { selfPayOnly: false, slidingScaleAvailable: true },
+  Massachusetts: { selfPayOnly: true, slidingScaleAvailable: true },
+  Arizona: { selfPayOnly: true, slidingScaleAvailable: true },
+};
+const PSYCHIATRIC_PRICING_STATE_ORDER = ['Florida', 'Massachusetts', 'Arizona'] as const;
+
+function isValidPricingFee(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+export function resolvePsychiatricStatePricing(raw: unknown): typeof staticPsychiatricStatePricing {
+  if (!Array.isArray(raw) || raw.length !== PSYCHIATRIC_PRICING_STATE_ORDER.length) {
+    return staticPsychiatricStatePricing;
+  }
+  const byState = new Map<string, (typeof staticPsychiatricStatePricing)[number]>();
+  for (const item of raw) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return staticPsychiatricStatePricing;
+    const row = item as Record<string, unknown>;
+    const state = row.state;
+    const governance = typeof state === 'string' ? PSYCHIATRIC_PRICING_GOVERNANCE[state] : undefined;
+    if (!governance || byState.has(state as string)) return staticPsychiatricStatePricing;
+    if (!isValidPricingFee(row.initialFee) || !isValidPricingFee(row.followUpFee)) return staticPsychiatricStatePricing;
+    if (row.selfPayOnly !== governance.selfPayOnly) return staticPsychiatricStatePricing;
+    if (row.slidingScaleAvailable !== governance.slidingScaleAvailable) return staticPsychiatricStatePricing;
+    byState.set(state as string, {
+      state: state as string,
+      selfPayOnly: governance.selfPayOnly,
+      slidingScaleAvailable: governance.slidingScaleAvailable,
+      initialFee: row.initialFee,
+      followUpFee: row.followUpFee,
+    });
+  }
+  if (byState.size !== PSYCHIATRIC_PRICING_STATE_ORDER.length) return staticPsychiatricStatePricing;
+  return PSYCHIATRIC_PRICING_STATE_ORDER.map((state) => byState.get(state)!);
+}
+
 export function mapFees(cms: PublicCmsPayload | null) {
   const intro = sectionContent(cms, 'fees', 'intro') ?? {};
   const selfPay = sectionContent(cms, 'fees', 'self_pay') ?? {};
@@ -967,21 +1034,19 @@ export function mapFees(cms: PublicCmsPayload | null) {
         ? insurance.disclaimer
         : 'Insurance coverage and network participation vary by plan. Please contact us to verify your benefits and eligibility before scheduling.',
     /**
-     * Phase 12A (Pricing Authority Hardening): psychiatric self-pay pricing
-     * (per-state initial/follow-up fee and self-pay-only status) is a
-     * protected business fact, not marketing copy — this now matches the
-     * precedent already established for telehealth state pages
-     * (mapTelehealthStates() above never reads its equivalent
-     * selfPayInitialFee/selfPayFollowUpFee fields from CMS at all). Always
-     * the static source; a `selfPay.psychiatricStatePricing` CMS value —
-     * however it's shaped, however wrong, or entirely absent — is never
-     * read here and so can have zero effect on these six approved dollar
-     * figures or either state's self-pay-only status. `selfPay.heading`/
-     * `selfPay.body` above remain fully CMS-editable, as does every other
-     * field returned by this function — only this one fact-carrying field
-     * lost CMS authority.
+     * Phase 15 (Restore Governed CMS Pricing Authority with Protected
+     * Fallback): supersedes Phase 12A's unconditional static-only rule per
+     * explicit owner authorization. A CMS `selfPay.psychiatricStatePricing`
+     * value is authoritative when — and only when — it passes every check
+     * in resolvePsychiatricStatePricing() above (complete, well-formed,
+     * correct governance flags for all three states). Anything short of
+     * that — missing, malformed, incomplete, duplicated, wrong state,
+     * invalid numbers, or wrong governance — falls back to the complete
+     * protected static dataset, never a partial mix of the two.
+     * `selfPay.heading`/`selfPay.body` above remain fully CMS-editable
+     * regardless, as does every other field returned by this function.
      */
-    psychiatricStatePricing: staticPsychiatricStatePricing,
+    psychiatricStatePricing: resolvePsychiatricStatePricing(selfPay.psychiatricStatePricing),
   };
 }
 export const getResolvedContent = cache(async (): Promise<ResolvedContent> => {

@@ -2,15 +2,23 @@
  * Phase 12A (Pricing Authority Hardening) regression tests.
  *
  * Uses the actual mapFees() implementation (client/src/lib/cms-resolve.ts),
- * not a reimplementation — same pattern as test-stats-mapper.mjs. Proves
- * that /fees-insurance's approved psychiatric self-pay pricing (per-state
- * initial/follow-up fee, MA/AZ self-pay-only status) now comes from
- * client/src/data/pricing.ts only, exactly matching the precedent already
- * established for telehealth state pages (mapTelehealthStates() never
- * reads its equivalent selfPayInitialFee/selfPayFollowUpFee fields from
- * CMS either) — a CMS `psychiatricStatePricing` value, however wrong or
- * however shaped, can no longer affect these six approved dollar figures
- * or either state's self-pay-only status.
+ * not a reimplementation — same pattern as test-stats-mapper.mjs.
+ *
+ * UPDATE (Phase 15 — Restore Governed CMS Pricing Authority with Protected
+ * Fallback): Phase 12A's original premise here was "a CMS
+ * `psychiatricStatePricing` value, however wrong or however shaped, can
+ * never affect these figures" — Phase 15 superseded that per explicit
+ * owner authorization: a CMS value is now authoritative when it is
+ * complete and fully valid (see resolvePsychiatricStatePricing() in
+ * cms-resolve.ts), falling back to this file's static figures only when
+ * it is not. The specific hostile fixture below (HOSTILE_CMS) happens to
+ * fail the new validity check too (wrong selfPayOnly/slidingScaleAvailable
+ * governance per state, alongside its absurd dollar amounts), so every
+ * assertion in this file remains true and is kept as a regression guard —
+ * but the reason it's rejected is now "this specific value is invalid,"
+ * not "no CMS value is ever read." The full authority/fallback contract
+ * (including proof that a *valid* CMS override IS honored) is exhaustively
+ * tested in test-phase15-governed-cms-pricing-authority.mjs.
  *
  * No network calls, no CMS, no Production data.
  *
@@ -78,7 +86,12 @@ test('8. Arizona remains Self-Pay Only with no CMS row', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 9-16: a hostile/wrong CMS row is completely ignored for every protected fact
+// 9-16: an invalid CMS row (wrong governance flags AND absurd dollar
+// amounts) is rejected in full — falls back to the protected static figures
+// for every protected fact. (Under Phase 15's conditional model, a CMS
+// value with correct governance and sane amounts WOULD be honored — see
+// test-phase15-governed-cms-pricing-authority.mjs for that proof. This
+// fixture is invalid on both counts, so it still falls back here too.)
 // ---------------------------------------------------------------------------
 
 const HOSTILE_CMS = cmsWithFeesSelfPay({
@@ -91,48 +104,48 @@ const HOSTILE_CMS = cmsWithFeesSelfPay({
   ],
 });
 
-test('9. CMS override attempting Florida initial = $1 is ignored', () => {
+test('9. an invalid CMS override attempting Florida initial = $1 falls back to $300', () => {
   const result = mapFees(HOSTILE_CMS);
   assert.equal(findState(result.psychiatricStatePricing, 'Florida').initialFee, 300);
 });
 
-test('10. CMS override attempting Florida follow-up = $999 is ignored', () => {
+test('10. an invalid CMS override attempting Florida follow-up = $999 falls back to $150', () => {
   const result = mapFees(HOSTILE_CMS);
   assert.equal(findState(result.psychiatricStatePricing, 'Florida').followUpFee, 150);
 });
 
-test('11. CMS override attempting MA initial = $1 is ignored', () => {
+test('11. an invalid CMS override attempting MA initial = $1 falls back to $300', () => {
   const result = mapFees(HOSTILE_CMS);
   assert.equal(findState(result.psychiatricStatePricing, 'Massachusetts').initialFee, 300);
 });
 
-test('12. CMS override attempting MA follow-up = $999 is ignored', () => {
+test('12. an invalid CMS override attempting MA follow-up = $999 falls back to $175', () => {
   const result = mapFees(HOSTILE_CMS);
   assert.equal(findState(result.psychiatricStatePricing, 'Massachusetts').followUpFee, 175);
 });
 
-test('13. CMS override attempting AZ initial = $1 is ignored', () => {
+test('13. an invalid CMS override attempting AZ initial = $1 falls back to $325', () => {
   const result = mapFees(HOSTILE_CMS);
   assert.equal(findState(result.psychiatricStatePricing, 'Arizona').initialFee, 325);
 });
 
-test('14. CMS override attempting AZ follow-up = $999 is ignored', () => {
+test('14. an invalid CMS override attempting AZ follow-up = $999 falls back to $175', () => {
   const result = mapFees(HOSTILE_CMS);
   assert.equal(findState(result.psychiatricStatePricing, 'Arizona').followUpFee, 175);
 });
 
-test('15. CMS override attempting to change MA self-pay-only status (false) is ignored', () => {
+test('15. an invalid CMS override attempting to change MA self-pay-only status (false) falls back to true', () => {
   const result = mapFees(HOSTILE_CMS);
   assert.equal(findState(result.psychiatricStatePricing, 'Massachusetts').selfPayOnly, true);
 });
 
-test('16. CMS override attempting to change AZ self-pay-only status (false) is ignored', () => {
+test('16. an invalid CMS override attempting to change AZ self-pay-only status (false) falls back to true', () => {
   const result = mapFees(HOSTILE_CMS);
   assert.equal(findState(result.psychiatricStatePricing, 'Arizona').selfPayOnly, true);
 });
 
 // ---------------------------------------------------------------------------
-// Additional hostile shapes: null/blank/malformed/missing-entirely
+// Additional invalid shapes: null/blank/malformed/missing-entirely all fall back
 // ---------------------------------------------------------------------------
 
 test('a null psychiatricStatePricing CMS value has zero effect', () => {
