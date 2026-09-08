@@ -239,8 +239,16 @@ export function mapTestimonials(cms: PublicCmsPayload | null, live: boolean): Te
   return mapped.length ? mapped : staticTestimonials;
 }
 
-function mapInsurance(cms: PublicCmsPayload | null, live: boolean): InsuranceCarrier[] {
-  const rows = (cms?.insurance ?? []) as {
+export function mapInsurance(cms: PublicCmsPayload | null, live: boolean): InsuranceCarrier[] {
+  const rawInsurance = cms?.insurance;
+  // Admin can only ever produce a real array for this field (including an
+  // empty one, by unpublishing every row) — undefined/null/non-array means
+  // the response is malformed, not a deliberate empty state, so it always
+  // falls back below regardless of `live`. A genuinely empty array keeps
+  // the existing live/fallback contract this shares with mapFaqs: once CMS
+  // is confirmed live, an intentional empty collection is authoritative.
+  const isValidCollection = Array.isArray(rawInsurance);
+  const rows = (isValidCollection ? rawInsurance : []) as {
     name?: string;
     logo_url?: string | null;
   }[];
@@ -252,7 +260,7 @@ function mapInsurance(cms: PublicCmsPayload | null, live: boolean): InsuranceCar
       width: 160,
       height: 64,
     }));
-  if (live) return mapped;
+  if (live && isValidCollection) return mapped;
   return mapped.length ? mapped : staticInsurance;
 }
 
