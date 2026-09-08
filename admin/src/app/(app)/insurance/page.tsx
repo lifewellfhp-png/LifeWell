@@ -22,6 +22,7 @@ const approvedInsurance = [
   'Medicare',
   'UHC Medicare Advantage',
   'Optum',
+  'Curative',
 ] as const;
 
 const approvedDisclaimer =
