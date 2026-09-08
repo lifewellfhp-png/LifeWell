@@ -114,6 +114,17 @@ function LogoCarousel({ carriers }: { carriers: InsuranceCarrier[] }) {
     return () => window.clearTimeout(timeout);
   }, [index, count]);
 
+  // A resize can change `visible` independently of `index`. Since the track's
+  // offset is `index` steps of `100/visible`%, a drop in `visible` while
+  // `index` is already advanced can push the offset past the duplicated
+  // strip's own width, translating every logo out of view. Snap back to the
+  // start whenever the breakpoint changes so the offset is always recomputed
+  // against the current `visible`.
+  useEffect(() => {
+    setInstant(true);
+    setIndex(0);
+  }, [visible]);
+
   useEffect(() => {
     if (!instant) return;
     const id = requestAnimationFrame(() => {
@@ -122,7 +133,10 @@ function LogoCarousel({ carriers }: { carriers: InsuranceCarrier[] }) {
     return () => cancelAnimationFrame(id);
   }, [instant]);
 
-  const slide = Math.min(index, count);
+  // Belt-and-suspenders: never let the offset scroll past the last item of
+  // the duplicated strip, regardless of how `index` and `visible` interact.
+  const maxSlide = Math.max(0, loop.length - visible);
+  const slide = Math.min(index, count, maxSlide);
 
   return (
     <div
