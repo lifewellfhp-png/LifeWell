@@ -54,7 +54,7 @@ function PhaseA1Sync() {
   const [message, setMessage] = useState<string | null>(null);
 
   async function sync() {
-    if (!confirm('Apply the approved Florida insurance list, sliding-scale availability, and disclaimer?')) return;
+    if (!confirm('Apply the approved Florida insurance list and disclaimer?')) return;
     setBusy(true);
     setError(null);
     setMessage(null);
@@ -92,34 +92,20 @@ function PhaseA1Sync() {
         }
       }
 
+      // Phase 14 (Remove Legacy CMS Pricing Sync Authority): this tool used
+      // to also read/rewrite the fees/self_pay section's psychiatricStatePricing
+      // — Phase 12A already made that field inert (client/src/lib/
+      // cms-resolve.ts's mapFees() never reads it), and Phase 13 removed the
+      // matching editable inputs from FeesCopy.tsx, so "syncing" it here
+      // served no purpose and implied a CMS pricing authority that no
+      // longer exists. Only the insurance disclaimer (ordinary CMS
+      // marketing copy, still legitimately CMS-authoritative) is synced
+      // below now.
       const sectionsResponse = await api<SectionRow[]>('/api/admin/sections');
       if (!sectionsResponse.success) throw new Error(`Loading Fees sections failed: ${sectionsResponse.message || 'Request failed'}`);
       const sections = sectionsResponse.data || [];
-      const selfPay = sections.find((row) => row.page_key === 'fees' && row.section_key === 'self_pay');
       const insurance = sections.find((row) => row.page_key === 'fees' && row.section_key === 'insurance');
-      if (!selfPay?.id || !insurance?.id) throw new Error('Required Fees CMS sections were not found.');
-
-      const selfPayContent = asRecord(selfPay.content);
-      const currentPricing = selfPayContent.psychiatricStatePricing;
-      if (!Array.isArray(currentPricing)) throw new Error('Psychiatric pricing data is missing.');
-      const expectedPricing = [
-        { state: 'Florida', initialFee: 300, followUpFee: 150, selfPayOnly: false, slidingScaleAvailable: true },
-        { state: 'Massachusetts', initialFee: 300, followUpFee: 175, selfPayOnly: true, slidingScaleAvailable: true },
-        { state: 'Arizona', initialFee: 325, followUpFee: 175, selfPayOnly: true, slidingScaleAvailable: true },
-      ];
-      const pricing = expectedPricing.map((expected) => {
-        const current = currentPricing.find(
-          (item) => asRecord(item).state === expected.state
-        );
-        if (!current) throw new Error(`Pricing for ${expected.state} is missing.`);
-        return { ...asRecord(current), ...expected };
-      });
-
-      const selfPayUpdate = await api(`/api/admin/sections/${selfPay.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ content: { ...selfPayContent, psychiatricStatePricing: pricing } }),
-      });
-      if (!selfPayUpdate.success) throw new Error(`Updating Fees pricing failed: ${selfPayUpdate.message || 'Request failed'}`);
+      if (!insurance?.id) throw new Error('Required Fees CMS section was not found.');
 
       const insuranceContent = asRecord(insurance.content);
       const insuranceUpdate = await api(`/api/admin/sections/${insurance.id}`, {
@@ -138,16 +124,11 @@ function PhaseA1Sync() {
       if (published.length !== approvedInsurance.length || approvedInsurance.some((name, index) => names[index] !== name)) {
         throw new Error('Post-save verification failed: published insurance list does not match the approved order.');
       }
-      const verifiedSelfPay = (verifiedSections.data || []).find((row) => row.page_key === 'fees' && row.section_key === 'self_pay');
       const verifiedInsuranceSection = (verifiedSections.data || []).find((row) => row.page_key === 'fees' && row.section_key === 'insurance');
-      const verifiedPricing = asRecord(verifiedSelfPay?.content).psychiatricStatePricing;
-      if (!Array.isArray(verifiedPricing) || JSON.stringify(verifiedPricing) !== JSON.stringify(pricing)) {
-        throw new Error('Post-save verification failed: psychiatric pricing does not match.');
-      }
       if (asRecord(verifiedInsuranceSection?.content).disclaimer !== approvedDisclaimer) {
         throw new Error('Post-save verification failed: insurance disclaimer does not match.');
       }
-      setMessage('Phase A1 CMS sync completed and verified.');
+      setMessage('Insurance list and disclaimer sync completed and verified.');
     } catch (syncError) {
       setError(syncError instanceof Error ? syncError.message : 'CMS sync failed.');
     } finally {
@@ -157,8 +138,11 @@ function PhaseA1Sync() {
 
   return (
     <div className="card card-pad" style={{ marginBottom: '1.25rem' }}>
-      <h2>Phase A1 CMS sync</h2>
-      <p className="muted">Synchronizes the approved Florida insurance list, sliding-scale availability, and insurance disclaimer. Existing psychiatric fees are preserved.</p>
+      <h2>Insurance list sync</h2>
+      <p className="muted">
+        Synchronizes the approved Florida insurance list and insurance disclaimer. Psychiatric self-pay pricing is
+        managed in protected site configuration (see below) and is not affected by this action.
+      </p>
       {error ? <div className="error-banner">{error}</div> : null}
       {message ? <div className="ok-banner">{message}</div> : null}
       <button type="button" className="btn btn-primary" onClick={() => void sync()} disabled={busy}>
