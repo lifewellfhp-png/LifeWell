@@ -146,8 +146,6 @@ export const insuranceSection = {
 
 export const insuranceCarriers: InsuranceCarrier[] = [
   { name: 'AVMED Florida Exchange', logo: '/images/insurance/badges/avmed-florida-exchange.svg', width: 220, height: 100 },
-  { name: 'BH Complete Commercial', logo: '/images/insurance/badges/bh-complete-commercial.svg', width: 220, height: 100 },
-  { name: 'FL DSNP', logo: '/images/insurance/badges/fl-dsnp.svg', width: 220, height: 100 },
   { name: 'Florida Exchange', logo: '/images/insurance/badges/florida-exchange.svg', width: 220, height: 100 },
   { name: 'Oscar Health Plan', logo: '/images/insurance/badges/oscar-health-plan.svg', width: 220, height: 100 },
   { name: 'UBH General', logo: '/images/insurance/badges/ubh-general.svg', width: 220, height: 100 },

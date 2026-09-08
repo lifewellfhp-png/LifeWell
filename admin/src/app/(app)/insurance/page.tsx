@@ -10,8 +10,6 @@ import { useState } from 'react';
 
 const approvedInsurance = [
   'AVMED Florida Exchange',
-  'BH Complete Commercial',
-  'FL DSNP',
   'Florida Exchange',
   'Oscar Health Plan',
   'UBH General',
