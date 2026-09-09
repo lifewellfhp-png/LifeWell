@@ -9,7 +9,7 @@ function WelcomeHeading({ heading }: { heading: string }) {
     return (
       <h2
         id="welcome-heading"
-        className="font-heading text-[28px] font-normal leading-[1.2] tracking-normal sm:text-[38px] min-[1181px]:text-[56px]"
+        className="font-heading text-[28px] font-normal leading-[1.2] tracking-normal sm:max-desktop:text-[38px] desktop:text-[56px]"
       >
         <span className="whitespace-nowrap">
           <span className="text-[var(--lw-accent)] not-italic">Welcome to </span>
@@ -27,7 +27,7 @@ function WelcomeHeading({ heading }: { heading: string }) {
   return (
     <h2
       id="welcome-heading"
-      className="font-heading text-[28px] font-normal italic leading-[1.2] tracking-normal text-[var(--lw-primary)] sm:text-[38px] min-[1181px]:text-[56px]"
+      className="font-heading text-[28px] font-normal italic leading-[1.2] tracking-normal text-[var(--lw-primary)] sm:max-desktop:text-[38px] desktop:text-[56px]"
     >
       {heading}
     </h2>
@@ -61,7 +61,7 @@ export function WelcomeSection({ welcome = staticWelcome }: { welcome?: typeof s
               {welcome.body.map((paragraph) => (
                 <p
                   key={paragraph.slice(0, 40)}
-                  className="text-[14px] font-normal leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]"
+                  className="text-[14px] font-normal leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]"
                 >
                   {paragraph}
                 </p>

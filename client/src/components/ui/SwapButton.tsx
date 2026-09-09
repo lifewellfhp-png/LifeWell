@@ -47,7 +47,7 @@ export function SwapButton({
     'inline-flex min-w-0 max-w-[calc(100%-44px)] items-center justify-center rounded-[30px] bg-[var(--lw-primary)] font-semibold leading-[1.3] text-white no-underline transition-colors duration-300 group-hover:bg-[var(--lw-accent)] sm:max-w-none',
     compact
       ? 'min-h-[40px] px-5 py-2 text-[14px]'
-      : 'min-h-[51px] px-[30px] py-[14px] text-[16px] min-[1181px]:text-[18px]'
+      : 'min-h-[51px] px-[30px] py-[14px] text-[16px] desktop:text-[18px]'
   );
 
   const chip = cn(
@@ -123,7 +123,7 @@ export function OutlineButton({
       href={href}
       prefetch
       className={cn(
-        'inline-flex min-h-[51px] items-center justify-center gap-2 whitespace-nowrap rounded-[30px] border px-[30px] py-[14px] text-[16px] font-semibold leading-[1.3] no-underline transition-colors duration-300 min-[1181px]:text-[18px]',
+        'inline-flex min-h-[51px] items-center justify-center gap-2 whitespace-nowrap rounded-[30px] border px-[30px] py-[14px] text-[16px] font-semibold leading-[1.3] no-underline transition-colors duration-300 desktop:text-[18px]',
         variantClasses[variant],
         className
       )}

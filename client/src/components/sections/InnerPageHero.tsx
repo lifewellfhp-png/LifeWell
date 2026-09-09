@@ -27,10 +27,10 @@ export function InnerPageHero({
   children?: ReactNode;
 }) {
   const heading = (
-    <h1 className="font-heading text-[35px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+    <h1 className="font-heading text-[35px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
       {accentFirst ? (
         <>
-          <span className="italic tracking-normal text-[var(--lw-primary)] sm:text-[50px] sm:leading-[1.05] min-[1181px]:text-[60px]">
+          <span className="italic tracking-normal text-[var(--lw-primary)] sm:max-desktop:text-[50px] sm:leading-[1.05] desktop:text-[60px]">
             {title}
             {accent ? ' ' : ''}
           </span>
@@ -43,7 +43,7 @@ export function InnerPageHero({
             {accent ? ' ' : ''}
           </span>
           {accent && (
-            <span className="italic tracking-normal text-[var(--lw-primary)] sm:text-[50px] sm:leading-[1.05] min-[1181px]:text-[60px]">
+            <span className="italic tracking-normal text-[var(--lw-primary)] sm:max-desktop:text-[50px] sm:leading-[1.05] desktop:text-[60px]">
               {accent}
             </span>
           )}
@@ -64,8 +64,8 @@ export function InnerPageHero({
         <p
           className={
             leadSize === 'subhead'
-              ? 'font-body text-[18px] font-normal leading-[1.35] text-[#374151] sm:text-[20px] min-[1181px]:text-[22px]'
-              : 'text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]'
+              ? 'font-body text-[18px] font-normal leading-[1.35] text-[#374151] sm:max-desktop:text-[20px] desktop:text-[22px]'
+              : 'text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]'
           }
         >
           {lead}

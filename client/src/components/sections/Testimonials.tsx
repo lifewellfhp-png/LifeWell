@@ -44,12 +44,12 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
         <div className="mx-auto max-w-[46rem] text-center">
           <h2
             id={headingId}
-            className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]"
+            className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]"
           >
             <span className="text-[var(--lw-accent)]">What Patients </span>
             <span className="italic text-[var(--lw-primary)]">Are Saying</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-[52ch] text-[16px] leading-[1.45] text-text-secondary min-[1181px]:text-[18px]">
+          <p className="mx-auto mt-5 max-w-[52ch] text-[16px] leading-[1.45] text-text-secondary desktop:text-[18px]">
             {testimonialsSection.body}
           </p>
         </div>
@@ -63,7 +63,7 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
             onBlurCapture={() => setPaused(false)}
           >
             <blockquote>
-              <p className="font-heading text-[20px] font-normal leading-[1.55] text-[var(--lw-accent)] sm:text-[24px] min-[1181px]:text-[28px]">
+              <p className="font-heading text-[20px] font-normal leading-[1.55] text-[var(--lw-accent)] sm:max-desktop:text-[24px] desktop:text-[28px]">
                 {current.quote}
               </p>
             </blockquote>

@@ -68,7 +68,7 @@ export function FAQAccordion({
                 >
                   <span
                     className={cn(
-                      'font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] transition-colors duration-300 sm:text-[24px] min-[1181px]:text-[30px]',
+                      'font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] transition-colors duration-300 sm:max-desktop:text-[24px] desktop:text-[30px]',
                       'group-hover:text-white',
                       expanded && 'text-white'
                     )}
@@ -94,7 +94,7 @@ export function FAQAccordion({
                 hidden={!expanded}
                 className="mt-5"
               >
-                <p className="text-[16px] leading-[1.45] text-white min-[1181px]:text-[18px]">
+                <p className="text-[16px] leading-[1.45] text-white desktop:text-[18px]">
                   {faq.answer}
                 </p>
               </div>

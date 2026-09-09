@@ -71,7 +71,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
       <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto grid max-w-[1840px] items-start gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16 min-[1601px]:grid-cols-[minmax(0,1fr)_24rem] min-[1601px]:gap-20">
           <article className="min-w-0">
-            <h2 className="font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:text-[36px] min-[1181px]:text-[42px]">
+            <h2 className="font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[36px] desktop:text-[42px]">
               {lead || title}
             </h2>
 
@@ -80,7 +80,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
                 {bodyParagraphs.map((paragraph) => (
                   <p
                     key={paragraph.slice(0, 40)}
-                    className="text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]"
+                    className="text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]"
                   >
                     {paragraph}
                   </p>
@@ -94,13 +94,13 @@ export async function ServicePageContent({ slug }: { slug: string }) {
 
             {service?.cta && (
               <div className="mt-14 rounded-[20px] bg-[#EEF3F7] px-6 py-8 sm:px-8 sm:py-10">
-                <h2 className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:text-[28px] min-[1181px]:text-[32px]">
+                <h2 className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[28px] desktop:text-[32px]">
                   {service.cta.heading}
                 </h2>
                 {service.cta.body.map((paragraph) => (
                   <p
                     key={paragraph.slice(0, 40)}
-                    className="mt-4 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]"
+                    className="mt-4 text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]"
                   >
                     {paragraph}
                   </p>
@@ -180,7 +180,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
       {related.length > 0 && (
         <section className="px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
           <div className="mx-auto max-w-[1840px]">
-            <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:text-[48px] min-[1181px]:text-[56px]">
+            <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:max-desktop:text-[48px] desktop:text-[56px]">
               <span className="text-[var(--lw-accent)]">Related </span>
               <span className="italic text-[var(--lw-primary)]">Services</span>
             </h2>

@@ -25,12 +25,12 @@ export function BookingCalendar({ src = site.booking.url }: { src?: string }) {
           </p>
           <h2
             id="booking-calendar-heading"
-            className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:text-[48px] min-[1181px]:text-[56px]"
+            className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:max-desktop:text-[48px] desktop:text-[56px]"
           >
             <span className="text-[var(--lw-accent)]">Choose a time </span>
             <span className="italic tracking-normal text-[var(--lw-primary)]">that works for you</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-[46ch] text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+          <p className="mx-auto mt-5 max-w-[46ch] text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
             Book a secure telehealth visit in the same CharmHealth calendar used on the previous LifeWell site.
           </p>
         </div>

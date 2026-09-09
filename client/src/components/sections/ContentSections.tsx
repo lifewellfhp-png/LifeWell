@@ -29,7 +29,7 @@ export function ContentSections({
           <Heading
             className={
               live
-                ? 'font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:text-[28px] min-[1181px]:text-[32px]'
+                ? 'font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[28px] desktop:text-[32px]'
                 : headingLevel === 2
                   ? 'text-h3'
                   : 'text-h4'
@@ -47,7 +47,7 @@ export function ContentSections({
                       key={j}
                       className={
                         live
-                          ? 'flex gap-3 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]'
+                          ? 'flex gap-3 text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]'
                           : 'flex gap-3 text-md leading-relaxed text-text-secondary'
                       }
                     >
@@ -61,7 +61,7 @@ export function ContentSections({
                   key={i}
                   className={
                     live
-                      ? 'text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]'
+                      ? 'text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]'
                       : 'text-md leading-relaxed text-text-secondary'
                   }
                 >

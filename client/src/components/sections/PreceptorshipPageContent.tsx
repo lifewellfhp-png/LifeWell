@@ -57,7 +57,7 @@ export function PreceptorshipPageContent() {
         lead="Build your clinical experience through structured mentorship and guided learning with experienced advanced practice clinicians."
         leadSize="subhead"
       >
-        <p className="text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+        <p className="text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
           Opportunities are based on preceptor availability, student qualifications, academic requirements,
           and completion of required school or affiliation agreements.
         </p>
@@ -173,11 +173,11 @@ export function PreceptorshipPageContent() {
           <div className="text-center">
             <h2
               id="preceptorship-final-cta-heading"
-              className="mx-auto max-w-[22ch] text-[30px] font-normal leading-[1.15] tracking-normal text-text-inverse sm:text-[48px] min-[1181px]:text-[56px]"
+              className="mx-auto max-w-[22ch] text-[30px] font-normal leading-[1.15] tracking-normal text-text-inverse sm:max-desktop:text-[48px] desktop:text-[56px]"
             >
               Request Preceptorship Information
             </h2>
-            <p className="mx-auto mt-6 max-w-[56ch] text-[16px] leading-[1.45] text-text-inverse/85 min-[1181px]:text-[18px]">
+            <p className="mx-auto mt-6 max-w-[56ch] text-[16px] leading-[1.45] text-text-inverse/85 desktop:text-[18px]">
               Reach out to learn more about timing, qualifications, and next steps for the program.
             </p>
             <div className="mt-9 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:flex-wrap sm:items-center">

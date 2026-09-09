@@ -27,12 +27,12 @@ export function JourneyCta({
 }) {
   const copy = (
     <div>
-      <h2 className="max-w-[16ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+      <h2 className="max-w-[16ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
         <span className="text-[var(--lw-accent)]">{title} </span>
         <span className="italic tracking-normal text-[var(--lw-primary)]">{accent}</span>
         {after ? <span className="text-[var(--lw-accent)]"> {after}</span> : null}
       </h2>
-      <p className="mt-5 max-w-[42ch] text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+      <p className="mt-5 max-w-[42ch] text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
         {body}
       </p>
       <div className="mt-8">

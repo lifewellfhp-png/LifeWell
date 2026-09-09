@@ -70,14 +70,14 @@ export function TelehealthStatePageContent({
           {bodyParagraphs.map((paragraph) => (
             <p
               key={paragraph.slice(0, 40)}
-              className="mt-5 text-[16px] leading-[1.45] text-text-primary min-[1181px]:text-[18px]"
+              className="mt-5 text-[16px] leading-[1.45] text-text-primary desktop:text-[18px]"
             >
               {paragraph}
             </p>
           ))}
 
           <div className="mt-8 rounded-[20px] bg-surface-muted px-6 py-7 sm:px-8">
-            <p className="text-[16px] leading-[1.5] text-text-primary min-[1181px]:text-[18px]">
+            <p className="text-[16px] leading-[1.5] text-text-primary desktop:text-[18px]">
               {state.careMode}
             </p>
             {!inPersonAvailable && (
@@ -91,17 +91,17 @@ export function TelehealthStatePageContent({
               <div className="mt-4">
                 {state.selfPayInitialFee && state.selfPayFollowUpFee ? (
                   <>
-                    <p className="text-[16px] font-semibold leading-[1.5] text-[var(--lw-primary)] min-[1181px]:text-[18px]">
+                    <p className="text-[16px] font-semibold leading-[1.5] text-[var(--lw-primary)] desktop:text-[18px]">
                       Self-Pay Only
                     </p>
-                    <p className="mt-2 text-[15px] leading-[1.6] text-text-primary min-[1181px]:text-[16px]">
+                    <p className="mt-2 text-[15px] leading-[1.6] text-text-primary desktop:text-[16px]">
                       Initial psychiatric evaluation: {formatFee(state.selfPayInitialFee, null)}
                       <br />
                       Follow-up medication management: {formatFee(state.selfPayFollowUpFee, null)}
                     </p>
                   </>
                 ) : (
-                  <p className="text-[16px] font-semibold leading-[1.5] text-[var(--lw-primary)] min-[1181px]:text-[18px]">
+                  <p className="text-[16px] font-semibold leading-[1.5] text-[var(--lw-primary)] desktop:text-[18px]">
                     {state.selfPayFee
                       ? formatFee(state.selfPayFee, state.selfPayFeeLabel)
                       : state.pricingNote || DEFAULT_PRICING_NOTE}
@@ -151,11 +151,11 @@ export function TelehealthStatePageContent({
 
       <section className="bg-[#F7FAFC] px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
-          <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
             <span className="text-[var(--lw-accent)]">Services Available in </span>
             <span className="italic text-[var(--lw-primary)]">{state.name}</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-[46rem] text-center text-[16px] leading-[1.45] text-text-primary min-[1181px]:text-[18px]">
+          <p className="mx-auto mt-5 max-w-[46rem] text-center text-[16px] leading-[1.45] text-text-primary desktop:text-[18px]">
             {inPersonAvailable
               ? `Every service below is available to ${state.name} residents by secure telehealth.`
               : `Psychiatric services available to ${state.name} patients by telehealth.`}
@@ -168,7 +168,7 @@ export function TelehealthStatePageContent({
 
       <section className="px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[920px]">
-          <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
             <span className="text-[var(--lw-accent)]">{state.name} </span>
             <span className="italic text-[var(--lw-primary)]">FAQs</span>
           </h2>

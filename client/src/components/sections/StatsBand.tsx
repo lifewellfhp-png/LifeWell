@@ -54,7 +54,7 @@ export function StatsBand({
             <div className="max-w-[38rem]">
               <h2
                 id="stats-heading"
-                className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[42px] min-[1181px]:text-[52px]"
+                className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[42px] desktop:text-[52px]"
               >
                 {heading ? (
                   <span className="text-[var(--lw-primary)]">{heading}</span>
@@ -90,7 +90,7 @@ export function StatsBand({
                   <Counter value={stat.value} suffix={stat.suffix} />
                   <span
                     aria-hidden="true"
-                    className="mt-2 block font-body text-[13px] font-normal leading-snug text-text-primary sm:text-[14px] min-[1181px]:text-[15px]"
+                    className="mt-2 block font-body text-[13px] font-normal leading-snug text-text-primary sm:max-desktop:text-[14px] desktop:text-[15px]"
                   >
                     {stat.label}
                   </span>
@@ -148,7 +148,7 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
   return (
     <span
       ref={ref}
-      className="block font-heading text-[42px] font-normal leading-none text-[var(--lw-primary)] sm:text-[52px] min-[1181px]:text-[56px]"
+      className="block font-heading text-[42px] font-normal leading-none text-[var(--lw-primary)] sm:max-desktop:text-[52px] desktop:text-[56px]"
     >
       {formatCount(display)}
       {suffix}

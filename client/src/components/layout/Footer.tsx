@@ -30,7 +30,7 @@ export async function Footer() {
       <div className="footer-band rounded-t-[30px] bg-[var(--lw-primary)] text-white sm:rounded-t-[40px]">
         <Container>
           <div className="flex flex-col gap-5 border-b border-white/30 py-10 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:py-12 lg:py-14">
-            <h2 className="max-w-[16ch] font-heading text-[28px] font-normal leading-[1.2] text-white sm:text-[34px] lg:max-w-[18ch] min-[1181px]:text-[42px]">
+            <h2 className="max-w-[16ch] font-heading text-[28px] font-normal leading-[1.2] text-white sm:max-desktop:text-[34px] lg:max-w-[18ch] desktop:text-[42px]">
               {newsletter.heading}
             </h2>
             <FooterNewsletter />
@@ -151,7 +151,7 @@ export async function Footer() {
 function FooterNav({ heading, links, className }: { heading: string; links: NavLink[]; className?: string }) {
   return (
     <nav aria-label={heading} className={cn('min-w-0', className)}>
-      <h3 className="font-heading text-[20px] font-normal leading-[1.3] text-white sm:text-[22px] min-[1181px]:text-[24px]">
+      <h3 className="font-heading text-[20px] font-normal leading-[1.3] text-white sm:max-desktop:text-[22px] desktop:text-[24px]">
         {heading}
       </h3>
       <ul className="mt-5 flex flex-col gap-3 sm:gap-3.5">

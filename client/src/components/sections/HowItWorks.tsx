@@ -38,12 +38,12 @@ export function HowItWorks({
     >
       <Container>
         <div className="flex flex-col items-center text-center">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:text-[12px] min-[1181px]:text-[13px]">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]">
             {eyebrow}
           </p>
           <h2
             id="how-it-works-heading"
-            className="max-w-[16ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-w-[22ch] sm:text-[48px] min-[1181px]:max-w-none min-[1181px]:text-[56px]"
+            className="max-w-[16ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:max-w-[22ch] sm:max-desktop:text-[48px] desktop:max-w-none desktop:text-[56px]"
           >
             {accent ? (
               <>
@@ -54,12 +54,12 @@ export function HowItWorks({
               <span className="font-heading">{heading}</span>
             )}
           </h2>
-          <p className="mt-6 max-w-[46ch] font-body text-[16px] leading-[1.45] text-text-primary sm:max-w-none sm:text-[18px] min-[1181px]:text-[22px] min-[1181px]:leading-[1.35]">
+          <p className="mt-6 max-w-[46ch] font-body text-[16px] leading-[1.45] text-text-primary sm:max-w-none sm:max-desktop:text-[18px] desktop:text-[22px] desktop:leading-[1.35]">
             {body}
           </p>
         </div>
 
-        <div className="mt-10 grid items-center gap-8 lg:mt-16 lg:grid-cols-2 lg:gap-x-[60px] min-[1181px]:gap-x-20">
+        <div className="mt-10 grid items-center gap-8 lg:mt-16 lg:grid-cols-2 lg:max-desktop:gap-x-[60px] desktop:gap-x-20">
           <div className="relative h-[280px] overflow-hidden rounded-[30px] sm:h-auto">
             <Image
               src={howItWorks.image.src}
@@ -91,12 +91,12 @@ export function HowItWorks({
                 <article className="flex items-start gap-5 rounded-[20px] bg-white px-5 py-5 shadow-[0_4px_24px_rgb(62_127_177_/_0.08)] sm:items-center sm:gap-6 sm:px-7 sm:py-7">
                   <span
                     aria-hidden="true"
-                    className="w-10 shrink-0 text-center font-heading text-[36px] font-normal leading-none text-[var(--lw-accent)] sm:w-12 sm:text-[42px] min-[1181px]:text-[48px]"
+                    className="w-10 shrink-0 text-center font-heading text-[36px] font-normal leading-none text-[var(--lw-accent)] sm:w-12 sm:max-desktop:text-[42px] desktop:text-[48px]"
                   >
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    <h3 className="flex flex-wrap items-center gap-2 font-heading text-[20px] font-normal leading-snug tracking-[-1px] text-[var(--lw-primary)] sm:text-[24px] min-[1181px]:text-[26px]">
+                    <h3 className="flex flex-wrap items-center gap-2 font-heading text-[20px] font-normal leading-snug tracking-[-1px] text-[var(--lw-primary)] sm:max-desktop:text-[24px] desktop:text-[26px]">
                       <span className="sr-only">Step {i + 1}: </span>
                       {step.title}
                       <LongArrow />
@@ -112,7 +112,7 @@ export function HowItWorks({
         </div>
 
         {showCta && (
-          <div className="mt-10 flex justify-center min-[1181px]:mt-16">
+          <div className="mt-10 flex justify-center desktop:mt-16">
             <SwapButton href={bookHref} trackAs="booking_click">{howItWorks.cta.label}</SwapButton>
           </div>
         )}

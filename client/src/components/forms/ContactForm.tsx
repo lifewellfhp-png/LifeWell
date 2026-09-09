@@ -238,7 +238,7 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex min-h-[51px] items-center justify-center rounded-[30px] bg-[var(--lw-primary)] px-[30px] py-[14px] text-[16px] font-semibold text-white transition-colors duration-300 hover:bg-[var(--lw-accent)] disabled:cursor-not-allowed disabled:opacity-60 min-[1181px]:text-[18px]"
+          className="inline-flex min-h-[51px] items-center justify-center rounded-[30px] bg-[var(--lw-primary)] px-[30px] py-[14px] text-[16px] font-semibold text-white transition-colors duration-300 hover:bg-[var(--lw-accent)] disabled:cursor-not-allowed disabled:opacity-60 desktop:text-[18px]"
         >
           {busy ? 'Sending…' : 'Send Message'}
         </button>

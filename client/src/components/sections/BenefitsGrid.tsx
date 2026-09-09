@@ -33,14 +33,14 @@ export function BenefitsGrid({
           align="center"
         />
 
-        <ul className="mt-8 flex list-none flex-col gap-2 min-[1181px]:mt-16">
+        <ul className="mt-8 flex list-none flex-col gap-2 desktop:mt-16">
           {items.map((benefit, i) => (
             <li key={benefit.title}>
               <article className="group flex min-h-[120px] items-center gap-[15px] overflow-hidden rounded-[30px] bg-[#EEF3F7] px-5 py-4 transition-colors duration-500 hover:bg-[var(--lw-accent)] max-[767px]:flex-col max-[767px]:items-start sm:px-[30px] sm:py-[24px]">
                 <div className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center sm:h-[88px] sm:w-[88px]">
                   <span
                     aria-hidden="true"
-                    className="font-heading text-[22px] font-normal leading-none tracking-[-1px] text-[#4A8F55] transition-opacity duration-500 group-hover:opacity-0 sm:text-[24px] min-[1181px]:text-[30px]"
+                    className="font-heading text-[22px] font-normal leading-none tracking-[-1px] text-[#4A8F55] transition-opacity duration-500 group-hover:opacity-0 sm:max-desktop:text-[24px] desktop:text-[30px]"
                   >
                     {i + 1}
                   </span>
@@ -56,10 +56,10 @@ export function BenefitsGrid({
                 </div>
 
                 <div className="flex min-w-0 flex-1 flex-col gap-2 transition-transform duration-500 ease-out group-hover:translate-x-2 sm:flex-row sm:items-center sm:gap-8">
-                  <h3 className="w-full shrink-0 font-body text-[18px] font-semibold leading-snug tracking-normal text-[var(--lw-primary)] transition-colors duration-500 group-hover:text-white sm:w-[240px] sm:text-[20px] min-[1181px]:w-[280px] min-[1181px]:text-[22px]">
+                  <h3 className="w-full shrink-0 font-body text-[18px] font-semibold leading-snug tracking-normal text-[var(--lw-primary)] transition-colors duration-500 group-hover:text-white sm:max-desktop:w-[240px] sm:max-desktop:text-[20px] desktop:w-[280px] desktop:text-[22px]">
                     {benefit.title}
                   </h3>
-                  <p className="min-w-0 flex-1 text-[14px] leading-[1.45] text-[#374151] transition-colors duration-500 group-hover:text-white sm:text-[16px] min-[1181px]:text-[18px]">
+                  <p className="min-w-0 flex-1 text-[14px] leading-[1.45] text-[#374151] transition-colors duration-500 group-hover:text-white sm:max-desktop:text-[16px] desktop:text-[18px]">
                     {benefit.description}
                   </p>
                 </div>

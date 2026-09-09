@@ -62,10 +62,10 @@ export function BioPageContent({
         <Container>
           <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,32%)_minmax(0,68%)] lg:gap-[100px]">
             <aside className="text-center lg:px-10 lg:py-10">
-              <h2 className="font-heading text-[22px] font-medium italic leading-[1.3] tracking-[-1px] text-[var(--lw-accent)] sm:text-[24px] min-[1181px]:text-[26px]">
+              <h2 className="font-heading text-[22px] font-medium italic leading-[1.3] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[24px] desktop:text-[26px]">
                 {providerPage.consultation.heading}
               </h2>
-              <p className="mt-5 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+              <p className="mt-5 text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                 {providerPage.consultation.body}
               </p>
               <div className="mt-8 flex justify-center">
@@ -79,18 +79,18 @@ export function BioPageContent({
             </aside>
 
             <div className="min-w-0">
-              <h2 className="font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:text-[36px] min-[1181px]:text-[42px]">
+              <h2 className="font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[36px] desktop:text-[42px]">
                 Short Biography
               </h2>
               <div className="mt-6 space-y-5">
                 {display.bio.map((paragraph) => (
-                  <p key={paragraph.slice(0, 40)} className="text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+                  <p key={paragraph.slice(0, 40)} className="text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                     {paragraph}
                   </p>
                 ))}
               </div>
 
-              <h3 className="mt-12 font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:text-[36px] min-[1181px]:text-[42px]">
+              <h3 className="mt-12 font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[36px] desktop:text-[42px]">
                 Credentials
               </h3>
 
@@ -101,7 +101,7 @@ export function BioPageContent({
                 <CredentialRow title="Years of practice" body={providerPage.yearsBlurb} last />
               </dl>
 
-              <h3 className="mt-10 font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:text-[36px] min-[1181px]:text-[42px]">
+              <h3 className="mt-10 font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[36px] desktop:text-[42px]">
                 Working Shifts
               </h3>
               <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -140,18 +140,18 @@ export function BioPageContent({
               />
             </div>
             <div className="min-w-0 lg:pr-0 min-[1601px]:pr-[100px]">
-              <p className="text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+              <p className="text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                 {provider.approachIntro}
               </p>
-              <p className="mt-6 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+              <p className="mt-6 text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                 My focus includes:
               </p>
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                 {provider.approach.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-              <p className="mt-6 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+              <p className="mt-6 text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                 {provider.approachOutcome}
               </p>
             </div>
@@ -169,13 +169,13 @@ export function BioPageContent({
         />
         <Container className="relative">
           <div className="mx-auto max-w-[40rem] text-center">
-            <p className="mx-auto w-fit rounded-[7px] bg-[#EEF3F7] px-4 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:text-[12px] min-[1181px]:text-[13px]">
+            <p className="mx-auto w-fit rounded-[7px] bg-[#EEF3F7] px-4 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]">
               Testimonials
             </p>
             <h2 id="bio-testimonials-heading" className="sr-only">
               Testimonials
             </h2>
-            <p className="mt-5 text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+            <p className="mt-5 text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
               Honest feedback from patients who found support, understanding, and lasting care.
             </p>
           </div>
@@ -186,7 +186,7 @@ export function BioPageContent({
                 key={item.author ?? item.quote.slice(0, 24)}
                 className="rounded-[15px] bg-white p-7 sm:p-8"
               >
-                <p className="text-center text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+                <p className="text-center text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                   {item.quote}
                 </p>
                 {item.author && (
@@ -223,10 +223,10 @@ function BioHero({
     <section className="px-5 pb-16 pt-4 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
       <div className="mx-auto flex max-w-[1840px] flex-col-reverse overflow-hidden rounded-[20px] sm:rounded-[30px] lg:min-h-[570px] lg:flex-row">
         <div className="flex flex-col justify-center gap-8 bg-[#EEF3F7] px-5 py-10 sm:gap-10 sm:px-[60px] sm:py-[60px] lg:w-1/2 lg:px-20 lg:py-5 min-[1601px]:px-[100px]">
-          <p className="w-fit rounded-[7px] bg-[var(--lw-accent)] px-4 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-white sm:text-[12px] min-[1181px]:text-[13px]">
+          <p className="w-fit rounded-[7px] bg-[var(--lw-accent)] px-4 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-white sm:max-desktop:text-[12px] desktop:text-[13px]">
             About Me
           </p>
-          <h1 className="max-w-[16ch] font-heading text-[32px] font-normal leading-[1.1] tracking-[-3px] text-[var(--lw-accent)] sm:text-[44px] min-[1181px]:text-[56px] min-[1601px]:text-[62px]">
+          <h1 className="max-w-[16ch] font-heading text-[32px] font-normal leading-[1.1] tracking-[-3px] text-[var(--lw-accent)] sm:max-desktop:text-[44px] desktop:text-[56px] min-[1601px]:text-[62px]">
             {overlay.name}, {overlay.credentials}
           </h1>
 
@@ -234,18 +234,18 @@ function BioHero({
             <li className="border-b border-[#ddd] py-[15px]">
               <a
                 href={phoneHref}
-                className="text-[16px] leading-[1.45] text-[#374151] no-underline hover:text-[var(--lw-primary)] min-[1181px]:text-[18px]"
+                className="text-[16px] leading-[1.45] text-[#374151] no-underline hover:text-[var(--lw-primary)] desktop:text-[18px]"
               >
                 Phone: {displayPhone}
               </a>
             </li>
-            <li className="border-b border-[#ddd] py-[15px] text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+            <li className="border-b border-[#ddd] py-[15px] text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
               Fax: {site.contact.fax}
             </li>
             <li className="py-[15px]">
               <a
                 href={`mailto:${displayEmail}`}
-                className="text-[16px] leading-[1.45] text-[#374151] no-underline hover:text-[var(--lw-primary)] min-[1181px]:text-[18px]"
+                className="text-[16px] leading-[1.45] text-[#374151] no-underline hover:text-[var(--lw-primary)] desktop:text-[18px]"
               >
                 Email: {displayEmail}
               </a>
@@ -270,7 +270,7 @@ function BioHero({
             ))}
           </ul>
 
-          <p className="max-w-[42ch] text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+          <p className="max-w-[42ch] text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
             Personalized, compassionate psychiatric care and professional{' '}
             <strong className="font-semibold">PMHNP telehealth services</strong> designed to support
             your emotional wellness and long-term stability.
@@ -314,10 +314,10 @@ function CredentialRow({
           : 'grid gap-4 border-b border-[#E1E8EE] py-7 sm:grid-cols-[minmax(0,40%)_minmax(0,60%)] sm:gap-10 lg:gap-[100px]'
       }
     >
-      <dt className="font-heading text-[20px] font-medium italic leading-[1.3] tracking-[-1px] text-[var(--lw-accent)] sm:text-[24px] min-[1181px]:text-[26px]">
+      <dt className="font-heading text-[20px] font-medium italic leading-[1.3] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[24px] desktop:text-[26px]">
         {title}
       </dt>
-      <dd className="text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">{body}</dd>
+      <dd className="text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">{body}</dd>
     </div>
   );
 }

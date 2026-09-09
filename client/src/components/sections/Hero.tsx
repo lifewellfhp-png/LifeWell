@@ -44,7 +44,7 @@ export function Hero({
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative isolate flex min-h-[100svh] max-h-none items-center overflow-hidden md:min-h-[850px] min-[1181px]:min-h-[950px]"
+      className="relative isolate flex min-h-[100svh] max-h-none items-center overflow-hidden md:max-desktop:min-h-[850px] desktop:min-h-[950px]"
     >
       <HeroMedia image={data.image} hasCmsImage={data.hasCmsImage} />
 
@@ -54,16 +54,16 @@ export function Hero({
       />
 
       <div className="relative w-full px-4 pb-14 pt-[calc(88px+env(safe-area-inset-top))] sm:px-[30px] sm:pb-20 sm:pt-[calc(120px+env(safe-area-inset-top))] lg:px-[70px] lg:py-[100px] min-[1601px]:px-10 min-[1601px]:pb-[100px] min-[1601px]:pt-[200px]">
-        <div className="w-full max-w-[420px] md:w-1/2 md:max-w-none min-[1181px]:max-w-[760px]">
+        <div className="w-full max-w-[420px] md:w-1/2 md:max-desktop:max-w-none desktop:max-w-[760px]">
           <h1
             id="hero-heading"
-            className="font-heading text-[30px] font-normal italic leading-[1.2] tracking-normal [text-wrap:wrap] md:text-[42px] min-[1181px]:text-[46px]"
+            className="font-heading text-[30px] font-normal italic leading-[1.2] tracking-normal [text-wrap:wrap] md:max-desktop:text-[42px] desktop:text-[46px]"
           >
             <span className="text-[var(--color-brand-primary-on-dark)]">{primary}{accent ? ' ' : ''}</span>
             {accent ? <span className="text-[var(--color-brand-accent-on-dark)]">{accent}</span> : null}
           </h1>
 
-          <p className="mt-6 text-[14px] font-normal leading-[1.45] text-white sm:text-[16px] min-[1181px]:text-[18px]">
+          <p className="mt-6 text-[14px] font-normal leading-[1.45] text-white sm:max-desktop:text-[16px] desktop:text-[18px]">
             {data.subheading}
           </p>
 
@@ -92,7 +92,7 @@ export function Hero({
             </p>
           )}
 
-          <p className="mt-8 text-[12px] font-light leading-[1.45] text-white sm:mt-10 sm:text-[14px] min-[1181px]:text-[16px]">
+          <p className="mt-8 text-[12px] font-light leading-[1.45] text-white sm:mt-10 sm:max-desktop:text-[14px] desktop:text-[16px]">
             {data.badge}
           </p>
         </div>

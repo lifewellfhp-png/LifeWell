@@ -59,16 +59,16 @@ export default async function HomePage() {
             eyebrowVariant="badge"
             title={cms.servicesIntro.heading}
             description={cms.servicesIntro.body}
-            descriptionClassName="mt-6 max-w-[42ch] text-[18px] leading-[1.35] text-[#374151] sm:text-[20px] min-[1181px]:text-[22px]"
+            descriptionClassName="mt-6 max-w-[42ch] text-[18px] leading-[1.35] text-[#374151] sm:max-desktop:text-[20px] desktop:text-[22px]"
             id="services-heading"
             align="center"
           />
           <ServicesGrid
             services={cms.homeServices.slice(0, 4)}
             columns={4}
-            className="mt-10 md:mt-[60px] min-[1181px]:mt-20"
+            className="mt-10 md:max-desktop:mt-[60px] desktop:mt-20"
           />
-          <div className="mt-10 flex justify-center md:mt-[60px] min-[1181px]:mt-20">
+          <div className="mt-10 flex justify-center md:max-desktop:mt-[60px] desktop:mt-20">
             <SwapButton href="/our-services">{cms.servicesIntro.cta}</SwapButton>
           </div>
         </Container>

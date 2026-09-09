@@ -69,7 +69,7 @@ export function NewPatientsPageContent() {
           />
           <div className="mt-6 space-y-4">
             {whatToExpect.body.map((paragraph) => (
-              <p key={paragraph.slice(0, 32)} className="text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+              <p key={paragraph.slice(0, 32)} className="text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
                 {paragraph}
               </p>
             ))}
@@ -185,11 +185,11 @@ export function NewPatientsPageContent() {
           <div className="text-center">
             <h2
               id="new-patients-cta-heading"
-              className="mx-auto max-w-[22ch] text-[30px] font-normal leading-[1.15] tracking-normal text-text-inverse sm:text-[48px] min-[1181px]:text-[56px]"
+              className="mx-auto max-w-[22ch] text-[30px] font-normal leading-[1.15] tracking-normal text-text-inverse sm:max-desktop:text-[48px] desktop:text-[56px]"
             >
               Ready to Get Started?
             </h2>
-            <p className="mx-auto mt-6 max-w-[56ch] text-[16px] leading-[1.45] text-text-inverse/85 min-[1181px]:text-[18px]">
+            <p className="mx-auto mt-6 max-w-[56ch] text-[16px] leading-[1.45] text-text-inverse/85 desktop:text-[18px]">
               Book your first appointment online, or reach out if you have questions before scheduling.
             </p>
             <div className="mt-9 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:flex-wrap sm:items-center">

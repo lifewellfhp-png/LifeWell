@@ -100,7 +100,7 @@ export function Eyebrow({
     return (
       <p
         className={cn(
-          'mb-2.5 w-fit rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:text-[12px] min-[1181px]:text-[13px]',
+          'mb-2.5 w-fit rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]',
           className
         )}
       >
@@ -184,7 +184,7 @@ export function SectionHeading({
       <Tag
         id={id}
         className={cn(
-          'max-w-[36ch] text-[30px] font-normal leading-[1.15] tracking-[-3px] [text-wrap:wrap] sm:text-[48px] min-[1181px]:text-[56px]',
+          'max-w-[36ch] text-[30px] font-normal leading-[1.15] tracking-[-3px] [text-wrap:wrap] sm:max-desktop:text-[48px] desktop:text-[56px]',
           tone === 'inverse' && 'text-text-inverse'
         )}
       >
@@ -195,7 +195,7 @@ export function SectionHeading({
             </span>
             <span
               className={cn(
-                'italic tracking-normal sm:text-[38px] min-[1181px]:text-[56px]',
+                'italic tracking-normal sm:max-desktop:text-[38px] desktop:text-[56px]',
                 tone === 'inverse' ? 'text-white' : 'text-[var(--lw-primary)]'
               )}
             >
@@ -211,7 +211,7 @@ export function SectionHeading({
           className={
             descriptionClassName ??
             cn(
-              'mt-6 max-w-[62ch] text-[16px] leading-[1.45] min-[1181px]:text-[18px]',
+              'mt-6 max-w-[62ch] text-[16px] leading-[1.45] desktop:text-[18px]',
               tone === 'inverse' ? 'text-text-inverse/85' : 'text-text-secondary'
             )
           }

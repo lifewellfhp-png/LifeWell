@@ -27,12 +27,12 @@ export function CTASection({
         <div className="text-center">
           <h2
             id="cta-heading"
-            className="mx-auto max-w-[22ch] text-[30px] font-normal leading-[1.15] tracking-normal text-text-inverse sm:text-[48px] min-[1181px]:text-[56px]"
+            className="mx-auto max-w-[22ch] text-[30px] font-normal leading-[1.15] tracking-normal text-text-inverse sm:max-desktop:text-[48px] desktop:text-[56px]"
           >
             {heading}
           </h2>
           {body && (
-            <p className="mx-auto mt-6 max-w-[56ch] text-[16px] leading-[1.45] text-text-inverse/85 min-[1181px]:text-[18px]">
+            <p className="mx-auto mt-6 max-w-[56ch] text-[16px] leading-[1.45] text-text-inverse/85 desktop:text-[18px]">
               {body}
             </p>
           )}
@@ -79,7 +79,7 @@ export function ContactCTA({
             <div className="flex flex-col justify-center">
               <h2
                 id="contact-cta-heading"
-                className="font-heading text-[28px] font-normal leading-[1.2] tracking-normal sm:text-[40px] min-[1181px]:text-[48px]"
+                className="font-heading text-[28px] font-normal leading-[1.2] tracking-normal sm:max-desktop:text-[40px] desktop:text-[48px]"
               >
                 <span className="text-[var(--lw-accent)]">Reach Out and Take </span>
                 <span className="italic text-[var(--lw-primary)]">the First Step</span>

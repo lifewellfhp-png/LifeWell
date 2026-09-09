@@ -16,6 +16,31 @@
    ========================================================================== */
 
 @theme {
+  /* ---- Breakpoints ----
+     `desktop` (1181px) sits between `lg` (1024px) and `xl` (1280px), added
+     because the design has a distinct >=1181px layout that doesn't line up
+     with any default breakpoint.
+
+     IMPORTANT — this does NOT get sorted numerically alongside sm/md/lg/xl/2xl.
+     Tailwind v4 always emits custom `--breakpoint-*` variants (any name not
+     in its built-in sm/md/lg/xl/2xl set) as their own group, ahead of the
+     built-in breakpoint group, regardless of pixel value or where the key
+     is declared in this file (confirmed by explicitly redeclaring the whole
+     scale in ascending order here and diffing byte-identical output across
+     two clean-cache dev builds — no change). Concretely: a `.desktop:X`
+     rule always appears earlier in the generated stylesheet than any
+     `.sm:Y` / `.md:Y` / `.lg:Y` rule for the same property, so at any
+     viewport >=1181px, `sm:`/`md:`/`lg:` wins the cascade over `desktop:`
+     by source order even though `desktop:` is the "larger", intended
+     breakpoint.
+
+     Because of this, `desktop:` must NEVER be paired with a plain
+     `sm:`/`md:`/`lg:` utility for the same property — that pairing is
+     silently broken. Instead bound the smaller side so the two conditions
+     are never simultaneously true, e.g. `sm:max-desktop:text-[12px]
+     desktop:text-[13px]` instead of `sm:text-[12px] desktop:text-[13px]`. */
+  --breakpoint-desktop: 1181px;
+
   /* ---- Brand ----
      #3E7FB1 is the LifeWell primary and is kept for display headings, focus
      rings, icon fills and tinted surfaces (all >=3:1, which is the bar for

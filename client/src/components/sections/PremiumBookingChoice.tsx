@@ -53,10 +53,10 @@ export function BookingPageHeader({ profiles }: { profiles: BookingProfiles }) {
     <Section tone="transparent" spacing="sm">
       <Container size="narrow">
         <div className="text-center">
-          <h1 className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] text-[var(--lw-primary)] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h1 className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] text-[var(--lw-primary)] sm:max-desktop:text-[48px] desktop:text-[56px]">
             {profiles.pageCopy.heading}
           </h1>
-          <p className="mx-auto mt-4 max-w-[46ch] text-[16px] leading-[1.45] text-text-primary min-[1181px]:text-[18px]">
+          <p className="mx-auto mt-4 max-w-[46ch] text-[16px] leading-[1.45] text-text-primary desktop:text-[18px]">
             {profiles.pageCopy.subtitle}
           </p>
         </div>

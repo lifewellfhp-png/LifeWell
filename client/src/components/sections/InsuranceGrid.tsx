@@ -46,7 +46,7 @@ export function InsuranceGrid({
         <div className="mx-auto max-w-[48rem] text-center">
           <h2
             id="insurance-heading"
-            className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]"
+            className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]"
           >
             {title ? (
               <>
@@ -57,7 +57,7 @@ export function InsuranceGrid({
               heading
             )}
           </h2>
-          <p className="mx-auto mt-5 max-w-[46rem] text-[16px] leading-[1.45] text-[#374151] min-[1181px]:text-[18px]">
+          <p className="mx-auto mt-5 max-w-[46rem] text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
             {body}
           </p>
         </div>

@@ -52,13 +52,13 @@ export function FeesPageContent({
 
       <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
-          <h2 className="mx-auto max-w-[18ch] text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h2 className="mx-auto max-w-[18ch] text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
             <span className="text-[var(--lw-accent)]">Psychiatric </span>
             <span className="italic tracking-normal text-[var(--lw-primary)]">Self-Pay Pricing</span>
           </h2>
           <div className="mx-auto mt-6 max-w-[70ch] space-y-4 text-center">
             {selfPayBody.map((p) => (
-              <p key={p.slice(0, 32)} className="text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+              <p key={p.slice(0, 32)} className="text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
                 {p}
               </p>
             ))}
@@ -94,7 +94,7 @@ export function FeesPageContent({
               </li>
             ))}
           </ul>
-          <h2 className="mx-auto mt-20 max-w-[18ch] text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h2 className="mx-auto mt-20 max-w-[18ch] text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
             <span className="text-[var(--lw-accent)]">Other </span>
             <span className="italic tracking-normal text-[var(--lw-primary)]">Self-Pay Services</span>
           </h2>
@@ -102,28 +102,28 @@ export function FeesPageContent({
             {pricingTiers.map((tier) => (
               <li key={tier.name}>
                 <article className="flex h-full flex-col">
-                  <h3 className="font-body text-[12px] font-semibold uppercase tracking-[1px] text-[#374151] sm:text-[13px] min-[1181px]:text-[15px]">
+                  <h3 className="font-body text-[12px] font-semibold uppercase tracking-[1px] text-[#374151] sm:max-desktop:text-[13px] desktop:text-[15px]">
                     {tier.name}
                   </h3>
                   <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-                    <p className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-primary)] sm:text-[24px] min-[1181px]:text-[30px]">
+                    <p className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-primary)] sm:max-desktop:text-[24px] desktop:text-[30px]">
                       Initial: {formatPrice(tier.initialFee)}
                     </p>
-                    <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#374151] sm:text-[12px] min-[1181px]:text-[13px]">
+                    <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#374151] sm:max-desktop:text-[12px] desktop:text-[13px]">
                       {tier.initialDuration}
                     </p>
                   </div>
                   <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-                    <p className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-primary)] sm:text-[24px] min-[1181px]:text-[30px]">
+                    <p className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-primary)] sm:max-desktop:text-[24px] desktop:text-[30px]">
                       Follow-up: {formatPrice(tier.followUpFee)}
                     </p>
-                    <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#374151] sm:text-[12px] min-[1181px]:text-[13px]">
+                    <p className="text-[11px] font-semibold uppercase tracking-[1px] text-[#374151] sm:max-desktop:text-[12px] desktop:text-[13px]">
                       {tier.followUpDuration}
                     </p>
                   </div>
                   <ul className="mt-6 flex-1 space-y-2.5">
                     {tier.includes.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+                      <li key={item} className="flex items-start gap-3 text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
                         <CheckIcon />
                         <span>{item}</span>
                       </li>
@@ -142,18 +142,18 @@ export function FeesPageContent({
       <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
           <div className="mt-16 max-w-[70ch] lg:mt-[80px]">
-            <h2 className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:text-[24px] min-[1181px]:text-[30px]">
+            <h2 className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[24px] desktop:text-[30px]">
               {additionalInfo.heading}
             </h2>
-            <p className="mt-4 text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+            <p className="mt-4 text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
               {additionalInfo.body}
             </p>
-            <h3 className="mt-8 font-body text-[12px] font-semibold uppercase tracking-[1px] text-[#374151] sm:text-[13px] min-[1181px]:text-[15px]">
+            <h3 className="mt-8 font-body text-[12px] font-semibold uppercase tracking-[1px] text-[#374151] sm:max-desktop:text-[13px] desktop:text-[15px]">
               Note:
             </h3>
             <div className="mt-3 space-y-4">
               {additionalInfo.notes.map((note) => (
-                <p key={note.slice(0, 40)} className="text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+                <p key={note.slice(0, 40)} className="text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
                   {note}
                 </p>
               ))}
@@ -173,12 +173,12 @@ export function FeesPageContent({
 
       <section className="bg-white px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[100px] min-[1601px]:px-[80px]" aria-labelledby="fees-faq-heading">
         <Container>
-          <p className="mx-auto w-fit rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:text-[12px] min-[1181px]:text-[13px]">
+          <p className="mx-auto w-fit rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]">
             FAQ
           </p>
           <h2
             id="fees-faq-heading"
-            className="mt-5 text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]"
+            className="mt-5 text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]"
           >
             <span className="text-[var(--lw-accent)]">Your Questions </span>
             <span className="italic tracking-normal text-[var(--lw-primary)]">About Payment &amp; Insurance</span>
@@ -192,11 +192,11 @@ export function FeesPageContent({
       <section className="bg-white px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto grid max-w-[1840px] items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div>
-            <h2 className="max-w-[14ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+            <h2 className="max-w-[14ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
               <span className="italic tracking-normal text-[var(--lw-primary)]">{feesClosing.headingLead} </span>
               <span className="text-[var(--lw-accent)]">{feesClosing.headingAccent}</span>
             </h2>
-            <p className="mt-5 max-w-[42ch] text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+            <p className="mt-5 max-w-[42ch] text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
               {feesClosing.body}
             </p>
             <div className="mt-8">
@@ -236,14 +236,14 @@ function FeesHero({ heading, body }: { heading: string; body: string }) {
           />
         </div>
         <div className="flex flex-col justify-center gap-8 px-5 py-10 sm:gap-10 sm:px-[60px] sm:py-[100px] lg:w-[45%] lg:px-20 lg:py-5">
-          <h1 className="font-heading text-[35px] font-normal leading-[1.15] tracking-[-3px] sm:text-[48px] min-[1181px]:text-[56px]">
+          <h1 className="font-heading text-[35px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
             {isDefault ? (
               <>
-                <span className="italic tracking-normal text-[var(--lw-primary)] sm:text-[50px] sm:leading-[1.05] min-[1181px]:text-[60px]">
+                <span className="italic tracking-normal text-[var(--lw-primary)] sm:max-desktop:text-[50px] sm:leading-[1.05] desktop:text-[60px]">
                   Transparent{' '}
                 </span>
                 <span className="text-[var(--lw-accent)]">Mental Health Fees and Insurance </span>
-                <span className="italic tracking-normal text-[var(--lw-primary)] sm:text-[50px] sm:leading-[1.05] min-[1181px]:text-[60px]">
+                <span className="italic tracking-normal text-[var(--lw-primary)] sm:max-desktop:text-[50px] sm:leading-[1.05] desktop:text-[60px]">
                   Plans
                 </span>
               </>
@@ -251,7 +251,7 @@ function FeesHero({ heading, body }: { heading: string; body: string }) {
               <span className="text-[var(--lw-accent)]">{heading}</span>
             )}
           </h1>
-          <p className="text-[14px] leading-[1.45] text-[#374151] sm:text-[16px] min-[1181px]:text-[18px]">
+          <p className="text-[14px] leading-[1.45] text-[#374151] sm:max-desktop:text-[16px] desktop:text-[18px]">
             {body}
           </p>
         </div>
