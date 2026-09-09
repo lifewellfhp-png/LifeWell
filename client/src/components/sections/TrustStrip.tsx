@@ -27,28 +27,28 @@ export function TrustStrip({
           <li className="flex items-center gap-3 px-1 py-4 sm:px-5 lg:py-5">
             <TrustIcon type="provider" />
             <Link href="/bio" className="min-w-0 rounded-sm text-left no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lw-primary)]">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)]">Your provider</span>
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)] sm:text-[13px]">Your provider</span>
               <span className="mt-1 block truncate text-[14px] font-medium text-[var(--lw-primary)]">{providerName}, {credentialLabel}</span>
             </Link>
           </li>
           <li className="flex items-center gap-3 px-1 py-4 sm:px-5 lg:py-5">
             <TrustIcon type="telehealth" />
             <div className="min-w-0">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)]">Secure telehealth</span>
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)] sm:text-[13px]">Secure telehealth</span>
               <span className="mt-1 block text-[14px] font-medium text-[var(--lw-primary)]">Available in {stateCodes}</span>
             </div>
           </li>
           <li className="flex items-center gap-3 px-1 py-4 sm:px-5 lg:py-5">
             <TrustIcon type="location" />
             <div className="min-w-0">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)]">In-person care</span>
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)] sm:text-[13px]">In-person care</span>
               <span className="mt-1 block text-[14px] font-medium text-[var(--lw-primary)]">Available in {site.address.city}, {site.address.regionName}</span>
             </div>
           </li>
           <li className="flex items-center gap-3 px-1 py-4 sm:px-5 lg:py-5">
             <TrustIcon type="pricing" />
             <Link href="/fees-insurance" className="min-w-0 rounded-sm text-left no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lw-primary)]">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)]">Insurance &amp; pricing</span>
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)] sm:text-[13px]">Insurance &amp; pricing</span>
               <span className="mt-1 block text-[14px] font-medium text-[var(--lw-primary)]">Explore payment options</span>
             </Link>
           </li>

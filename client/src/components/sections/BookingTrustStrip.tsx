@@ -46,7 +46,7 @@ export function BookingTrustStrip({
           <li className="flex items-start gap-3 py-4 first:pt-0 sm:px-6 sm:py-0 sm:first:pl-0 sm:last:pr-0">
             <TrustStripIcon type="provider" />
             <div className="min-w-0">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)]">
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)] sm:text-[13px]">
                 Your provider
               </span>
               <span className="mt-1 block text-[14px] font-medium leading-snug text-[var(--lw-primary)]">
@@ -57,7 +57,7 @@ export function BookingTrustStrip({
           <li className="flex items-start gap-3 py-4 sm:px-6 sm:py-0">
             <TrustStripIcon type="telehealth" />
             <div className="min-w-0">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)]">
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)] sm:text-[13px]">
                 Telehealth
               </span>
               <span className="mt-1 block text-[14px] font-medium leading-snug text-[var(--lw-primary)]">
@@ -68,7 +68,7 @@ export function BookingTrustStrip({
           <li className="flex items-start gap-3 py-4 last:pb-0 sm:px-6 sm:py-0 sm:first:pl-0 sm:last:pr-0">
             <TrustStripIcon type="insurance" />
             <div className="min-w-0">
-              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)]">
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--lw-accent)] sm:text-[13px]">
                 Insurance &amp; self-pay
               </span>
               <span className="mt-1 block text-[14px] font-medium leading-snug text-[var(--lw-primary)]">

@@ -310,6 +310,13 @@ await page.setViewportSize({ width: 1280, height: 800 });
 await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.waitForTimeout(400);
 
+// SiteSearch's trigger button lives inside MobileMenu, whose own "Open
+// menu" trigger stays visible up to NavBar's 1440px desktop breakpoint —
+// by design, not a bug (see NavBar.tsx's compact/showCompact/min-[1440px]
+// pattern) — so at 1280px the panel has to be opened first, same as a
+// real visitor at this width would.
+await page.getByRole('button', { name: 'Open menu' }).click();
+await page.waitForTimeout(250);
 const searchTrigger = page.getByRole('button', { name: /search this site/i });
 await searchTrigger.click();
 const searchBox = page.getByRole('combobox');
@@ -348,6 +355,8 @@ if (!navigated) note('search', `Enter went to ${landedOn}, expected ${expectedHr
 
 await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.waitForTimeout(400);
+await page.getByRole('button', { name: 'Open menu' }).click();
+await page.waitForTimeout(250);
 await page.getByRole('button', { name: /search this site/i }).click();
 await page.getByRole('combobox').fill('zzzznotathing');
 await page.waitForTimeout(300);

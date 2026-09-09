@@ -160,7 +160,7 @@ function FooterNav({ heading, links, className }: { heading: string; links: NavL
             <Link
               href={link.href}
               prefetch
-              className="break-words font-body text-[15px] font-normal leading-snug text-white no-underline transition-opacity duration-300 hover:opacity-80 focus-visible:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-[16px]"
+              className="inline-block min-w-6 break-words py-1 font-body text-[15px] font-normal leading-snug text-white no-underline transition-opacity duration-300 hover:opacity-80 focus-visible:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-[16px]"
             >
               {link.label}
             </Link>

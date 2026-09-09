@@ -16,16 +16,22 @@ const BASE = process.env.SITE_BASE ?? 'http://localhost:3000';
 
 /** [path, expected status, must appear in the served HTML] */
 const CASES = [
-  ['/', 200, 'Compassionate Telehealth'],
+  ['/', 200, 'Compassionate mental health care you can trust'],
   ['/bio', 200, 'Lourdie Chachoute'],
   ['/our-services', 200, 'Comprehensive Online Mental Health Services'],
   ['/services/psychiatric-evaluations', 200, 'Psychiatric Evaluations'],
   ['/services/weight-management-telehealth', 200, 'Weight Management'],
   ['/services/lab-testing-coordination-telehealth', 200, 'Lab Testing'],
-  ['/fees-insurance', 200, 'Transparent Mental Health Fees'],
+  // Not 'Transparent Mental Health Fees' — the heading splits "Transparent"
+  // and "Mental Health Fees..." across two <span> elements (for two-tone
+  // styling) with an HTML comment between them for JSX whitespace control,
+  // so that exact phrase never appears as a contiguous raw-HTML substring
+  // even though it reads correctly to a human/screen reader. Match a
+  // substring that's fully inside one span instead.
+  ['/fees-insurance', 200, 'Mental Health Fees and Insurance'],
   ['/faqs', 200, 'Frequently Asked Questions'],
   ['/contact-telehealth-mental-health-provider', 200, 'Contact Telehealth Mental Health Provider'],
-  ['/book-telehealth-mental-health-appointment', 200, 'Book Telehealth Mental Health Appointment'],
+  ['/book-telehealth-mental-health-appointment', 200, 'Book an Appointment'],
   ['/telehealth-mental-health-testimonials', 200, 'Testimonials'],
   ['/blog', 200, 'Mental Health'],
   ['/managing-anxiety-in-everyday-life', 200, 'Managing Anxiety'],

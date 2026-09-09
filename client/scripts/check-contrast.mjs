@@ -16,11 +16,35 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const css = readFileSync(join(here, '..', 'src', 'styles', 'globals.css'), 'utf8');
 
-/** Pull `--color-*: #rrggbb;` declarations out of the @theme block. */
+/**
+ * Pull `--color-*: #rrggbb;` declarations out of the @theme block, resolving
+ * one level of `var(--other-name)` indirection against every custom
+ * property in the file (not just other --color-* ones — several tokens,
+ * e.g. --color-brand-primary, alias root-level --lw-primary/--lw-accent
+ * instead of repeating a literal hex, since the admin panel's Appearance
+ * settings override those root variables). A token whose value can't be
+ * resolved to a real hex color (missing, or itself an unresolved
+ * reference) is left out of the map entirely — callers already treat an
+ * absent key as MISSING rather than crashing on it.
+ */
 function readTokens(source) {
+  const allVars = {};
+  for (const m of source.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) {
+    allVars[m[1]] = m[2].toLowerCase();
+  }
+  const aliases = {};
+  for (const m of source.matchAll(/--([a-z0-9-]+):\s*var\(--([a-z0-9-]+)\)\s*;/g)) {
+    aliases[m[1]] = m[2];
+  }
+
   const tokens = {};
-  for (const m of source.matchAll(/--color-([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) {
-    tokens[m[1]] = m[2].toLowerCase();
+  for (const [name, value] of Object.entries(allVars)) {
+    if (name.startsWith('color-')) tokens[name.slice('color-'.length)] = value;
+  }
+  for (const [name, target] of Object.entries(aliases)) {
+    if (!name.startsWith('color-')) continue;
+    const resolved = allVars[target];
+    if (resolved) tokens[name.slice('color-'.length)] = resolved;
   }
   return tokens;
 }
@@ -108,6 +132,11 @@ for (const [label, fgKey, bgKey, min] of PAIRS) {
 const decorativeOnly = ['brand-accent'];
 console.log('\n   Decorative-only tokens (must never sit behind small text):');
 for (const key of decorativeOnly) {
+  if (!t[key]) {
+    missing++;
+    console.log(`     --color-${key}  MISSING — could not resolve to a hex value`);
+    continue;
+  }
   const r = contrast(WHITE, t[key]);
   console.log(`     --color-${key} ${t[key]}  white-on-fill ${r.toFixed(2)}:1  → fills/icons only`);
 }
