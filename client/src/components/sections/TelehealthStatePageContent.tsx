@@ -65,7 +65,7 @@ export function TelehealthStatePageContent({
         )}
       </InnerPageHero>
 
-      <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[840px]">
           {bodyParagraphs.map((paragraph) => (
             <p
@@ -149,7 +149,7 @@ export function TelehealthStatePageContent({
         </div>
       </section>
 
-      <section className="bg-[#F7FAFC] px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
+      <section className="bg-[#F7FAFC] px-5 py-16 sm:max-[1601px]:px-[30px] sm:py-24 lg:max-[1601px]:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
           <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
             <span className="text-[var(--lw-accent)]">Services Available in </span>
@@ -166,7 +166,7 @@ export function TelehealthStatePageContent({
         </div>
       </section>
 
-      <section className="px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
+      <section className="px-5 py-16 sm:max-[1601px]:px-[30px] sm:py-24 lg:max-[1601px]:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[920px]">
           <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
             <span className="text-[var(--lw-accent)]">{state.name} </span>
@@ -178,7 +178,7 @@ export function TelehealthStatePageContent({
         </div>
       </section>
 
-      <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[920px] rounded-[20px] border border-border-subtle px-6 py-8 sm:px-8">
           <p className="text-[15px] leading-[1.5] text-text-primary">
             Also serving:{' '}

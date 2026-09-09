@@ -50,7 +50,7 @@ export function FeesPageContent({
     <div className="bg-white">
       <FeesHero heading={introHeading} body={introBody} />
 
-      <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
           <h2 className="mx-auto max-w-[18ch] text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
             <span className="text-[var(--lw-accent)]">Psychiatric </span>
@@ -139,7 +139,7 @@ export function FeesPageContent({
         </div>
       </section>
 
-      <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
           <div className="mt-16 max-w-[70ch] lg:mt-[80px]">
             <h2 className="font-heading text-[22px] font-normal leading-[1.25] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[24px] desktop:text-[30px]">
@@ -171,7 +171,7 @@ export function FeesPageContent({
         carriers={carriers}
       />
 
-      <section className="bg-white px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[100px] min-[1601px]:px-[80px]" aria-labelledby="fees-faq-heading">
+      <section className="bg-white px-5 py-16 sm:max-[1601px]:px-[30px] sm:py-24 lg:max-[1601px]:px-10 lg:py-[100px] min-[1601px]:px-[80px]" aria-labelledby="fees-faq-heading">
         <Container>
           <p className="mx-auto w-fit rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]">
             FAQ
@@ -189,7 +189,7 @@ export function FeesPageContent({
         </Container>
       </section>
 
-      <section className="bg-white px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
+      <section className="bg-white px-5 py-16 sm:max-[1601px]:px-[30px] sm:py-24 lg:max-[1601px]:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto grid max-w-[1840px] items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div>
             <h2 className="max-w-[14ch] font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
@@ -223,7 +223,7 @@ export function FeesPageContent({
 function FeesHero({ heading, body }: { heading: string; body: string }) {
   const isDefault = heading === feesIntro.heading;
   return (
-    <section className="px-5 pb-16 pt-4 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+    <section className="px-5 pb-16 pt-4 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
       <div className="mx-auto flex max-w-[1840px] flex-col overflow-hidden rounded-[20px] bg-[#EEF3F7] sm:rounded-[30px] lg:min-h-[570px] lg:flex-row">
         <div className="relative min-h-[400px] sm:min-h-[500px] lg:min-h-[570px] lg:w-[55%]">
           <Image

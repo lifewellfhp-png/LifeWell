@@ -39,7 +39,7 @@ export function TestimonialsPageContent({
 
       <section
         aria-labelledby="patients-saying-heading"
-        className="relative overflow-hidden bg-white px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]"
+        className="relative overflow-hidden bg-white px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]"
       >
         <div className="relative mx-auto max-w-[1840px]">
           <div className="mx-auto max-w-[40rem] text-center">

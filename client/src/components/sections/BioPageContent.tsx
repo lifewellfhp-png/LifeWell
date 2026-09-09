@@ -128,7 +128,7 @@ export function BioPageContent({
 
       <section className="py-16 sm:py-24 lg:py-[150px]">
         <Container>
-          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,55%)_minmax(0,45%)] lg:gap-8 min-[1601px]:gap-x-10">
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,55%)_minmax(0,45%)] lg:max-[1601px]:gap-x-8 lg:gap-y-8 min-[1601px]:gap-x-10">
             <div className="relative min-h-[250px] overflow-hidden rounded-[20px] sm:min-h-[400px] lg:min-h-[580px] lg:rounded-[30px]">
               <Image
                 src={providerPage.philosophyImage.src}
@@ -139,7 +139,7 @@ export function BioPageContent({
                 className="object-cover"
               />
             </div>
-            <div className="min-w-0 lg:pr-0 min-[1601px]:pr-[100px]">
+            <div className="min-w-0 lg:max-[1601px]:pr-0 min-[1601px]:pr-[100px]">
               <p className="text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                 {provider.approachIntro}
               </p>
@@ -220,9 +220,9 @@ function BioHero({
   const digits = displayPhone.replace(/\D/g, '').replace(/^1/, '');
   const phoneHref = digits ? `tel:+1${digits}` : site.contact.phoneHref;
   return (
-    <section className="px-5 pb-16 pt-4 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+    <section className="px-5 pb-16 pt-4 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
       <div className="mx-auto flex max-w-[1840px] flex-col-reverse overflow-hidden rounded-[20px] sm:rounded-[30px] lg:min-h-[570px] lg:flex-row">
-        <div className="flex flex-col justify-center gap-8 bg-[#EEF3F7] px-5 py-10 sm:gap-10 sm:px-[60px] sm:py-[60px] lg:w-1/2 lg:px-20 lg:py-5 min-[1601px]:px-[100px]">
+        <div className="flex flex-col justify-center gap-8 bg-[#EEF3F7] px-5 py-10 sm:gap-10 sm:max-[1601px]:px-[60px] sm:py-[60px] lg:w-1/2 lg:max-[1601px]:px-20 lg:py-5 min-[1601px]:px-[100px]">
           <p className="w-fit rounded-[7px] bg-[var(--lw-accent)] px-4 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-white sm:max-desktop:text-[12px] desktop:text-[13px]">
             About Me
           </p>

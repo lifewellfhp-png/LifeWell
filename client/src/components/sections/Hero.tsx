@@ -53,7 +53,7 @@ export function Hero({
         className="absolute inset-0 -z-10 bg-gradient-to-r from-black/70 via-black/50 to-black/20"
       />
 
-      <div className="relative w-full px-4 pb-14 pt-[calc(88px+env(safe-area-inset-top))] sm:px-[30px] sm:pb-20 sm:pt-[calc(120px+env(safe-area-inset-top))] lg:px-[70px] lg:py-[100px] min-[1601px]:px-10 min-[1601px]:pb-[100px] min-[1601px]:pt-[200px]">
+      <div className="relative w-full px-4 pb-14 pt-[calc(88px+env(safe-area-inset-top))] sm:max-[1601px]:px-[30px] sm:max-[1601px]:pb-20 sm:max-[1601px]:pt-[calc(120px+env(safe-area-inset-top))] lg:max-[1601px]:px-[70px] lg:max-[1601px]:py-[100px] min-[1601px]:px-10 min-[1601px]:pb-[100px] min-[1601px]:pt-[200px]">
         <div className="w-full max-w-[420px] md:w-1/2 md:max-desktop:max-w-none desktop:max-w-[760px]">
           <h1
             id="hero-heading"

@@ -68,8 +68,8 @@ export async function ServicePageContent({ slug }: { slug: string }) {
         leadSize="subhead"
       />
 
-      <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
-        <div className="mx-auto grid max-w-[1840px] items-start gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16 min-[1601px]:grid-cols-[minmax(0,1fr)_24rem] min-[1601px]:gap-20">
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+        <div className="mx-auto grid max-w-[1840px] items-start gap-12 lg:max-[1601px]:grid-cols-[minmax(0,1fr)_20rem] lg:max-[1601px]:gap-16 min-[1601px]:grid-cols-[minmax(0,1fr)_24rem] min-[1601px]:gap-20">
           <article className="min-w-0">
             <h2 className="font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[36px] desktop:text-[42px]">
               {lead || title}
@@ -178,7 +178,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
       <BenefitsGrid heading={cms.benefitsHeading} items={cms.benefits} tone="base" />
 
       {related.length > 0 && (
-        <section className="px-5 py-16 sm:px-[30px] sm:py-24 lg:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
+        <section className="px-5 py-16 sm:max-[1601px]:px-[30px] sm:py-24 lg:max-[1601px]:px-10 lg:py-[150px] min-[1601px]:px-[80px]">
           <div className="mx-auto max-w-[1840px]">
             <h2 className="text-center font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] sm:max-desktop:text-[48px] desktop:text-[56px]">
               <span className="text-[var(--lw-accent)]">Related </span>

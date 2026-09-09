@@ -96,7 +96,7 @@ export function InnerPageHero({
   const imageFirst = imageSide === 'left';
 
   return (
-    <section className="px-5 pb-16 pt-4 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+    <section className="px-5 pb-16 pt-4 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
       <div
         className={cn(
           'mx-auto flex max-w-[1840px] overflow-hidden rounded-[20px] bg-[#EEF3F7] sm:rounded-[30px]',

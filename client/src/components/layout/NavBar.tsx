@@ -18,7 +18,7 @@ const SAFETY = 24;
 const CHEVRON_EXTRA = 19;
 
 const NAV_LINK =
-  'inline-flex min-h-[42px] shrink-0 items-center whitespace-nowrap rounded-[30px] px-3.5 py-[5px] text-[15px] font-semibold leading-none no-underline transition-colors duration-300 xl:px-[18px] min-[1601px]:px-[22px] min-[1601px]:text-[16px]';
+  'inline-flex min-h-[42px] shrink-0 items-center whitespace-nowrap rounded-[30px] px-3.5 py-[5px] text-[15px] font-semibold leading-none no-underline transition-colors duration-300 xl:max-[1601px]:px-[18px] min-[1601px]:px-[22px] min-[1601px]:text-[16px]';
 
 export function NavBar({
   items,
@@ -88,7 +88,7 @@ export function NavBar({
         className="pointer-events-none invisible fixed left-0 top-0 -z-10 flex w-max items-center gap-[3px] whitespace-nowrap text-[15px] font-semibold min-[1601px]:text-[16px]"
       >
         {items.map((item) => (
-          <li key={item.href} className="px-3.5 py-[5px] xl:px-[18px] min-[1601px]:px-[22px]">
+          <li key={item.href} className="px-3.5 py-[5px] xl:max-[1601px]:px-[18px] min-[1601px]:px-[22px]">
             {item.label}
             {item.groups || item.flat ? (
               <span aria-hidden className="inline-block" style={{ width: `${CHEVRON_EXTRA}px` }} />
@@ -140,7 +140,7 @@ export function NavBar({
         <div
           className={cn(
             compact === null
-              ? 'hidden sm:flex min-[1440px]:hidden'
+              ? 'hidden sm:max-[1440px]:flex min-[1440px]:hidden'
               : showCompact
                 ? 'hidden sm:flex'
                 : 'hidden'

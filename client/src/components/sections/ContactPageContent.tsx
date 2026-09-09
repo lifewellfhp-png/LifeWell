@@ -47,9 +47,9 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
         bookingUrl={bookingUrl}
       />
 
-      <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto grid max-w-[1280px] items-stretch gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-x-10">
-          <div className="lg:pr-10 min-[1601px]:pr-20">
+          <div className="lg:max-[1601px]:pr-10 min-[1601px]:pr-20">
             <h2 className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-3px] sm:max-desktop:text-[48px] desktop:text-[56px]">
               <span className="text-[var(--lw-accent)]">{contactPage.infoHeading} </span>
               <span className="italic tracking-normal text-[var(--lw-primary)]">{contactPage.infoAccent}</span>
@@ -103,7 +103,7 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
         </div>
       </section>
 
-      <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto grid max-w-[1280px] items-center gap-10 lg:grid-cols-2 lg:gap-x-12">
           <div>
             <Image

@@ -50,7 +50,7 @@ export function OurServicesPageContent({
         leadSize="subhead"
       />
 
-      <section className="px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto max-w-[1840px]">
           <p className="mx-auto -mt-2 mb-10 max-w-[52ch] text-center text-[15px] leading-[1.5] text-[#374151] sm:mb-12">
             Questions about cost or whether we serve your state?{' '}

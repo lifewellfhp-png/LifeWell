@@ -56,7 +56,7 @@ export function JourneyCta({
   );
 
   return (
-    <section className="bg-white px-5 pb-16 sm:px-[30px] sm:pb-24 lg:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+    <section className="bg-white px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
       <div className="mx-auto grid max-w-[1840px] items-center gap-10 lg:grid-cols-2 lg:gap-20">
         {imageSide === 'left' ? (
           <>
