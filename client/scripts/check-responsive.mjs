@@ -37,12 +37,18 @@ const PAGES = [
   '/our-services',
   '/services/psychiatric-evaluations',
   '/services/weight-management-telehealth',
+  '/services/medication-management',
   '/bio',
   '/fees-insurance',
+  '/new-patients',
   '/faqs',
   '/contact-telehealth-mental-health-provider',
   '/book-telehealth-mental-health-appointment',
+  '/telehealth/florida',
+  '/telehealth/massachusetts',
+  '/telehealth/arizona',
   '/telehealth-mental-health-testimonials',
+  '/preceptorship-program',
   '/blog',
   '/managing-anxiety-in-everyday-life',
   '/privacy-policy',
@@ -55,6 +61,55 @@ const note = (kind, detail) => problems.push({ kind, detail });
 const browser = await chromium.launch();
 const page = await browser.newPage();
 
+// Tracked across every navigation in the main loop below (cheapest place to
+// catch this — no extra page loads). `currentContext` is updated right
+// before each goto() so async listener callbacks can attribute failures to
+// the right route/viewport. Deduplicated by MESSAGE (not by
+// route+viewport): a single systemic failure — one bad endpoint, one
+// missing asset — legitimately recurs on every page that references it, and
+// listing each occurrence separately would bury genuinely distinct findings
+// under hundreds of near-identical lines (the deduplicate-global-components
+// principle applies here too, not just to repeated UI elements).
+const seenMessages = new Map(); // message -> { count, firstContext, kind }
+function recordOnce(kind, message) {
+  const entry = seenMessages.get(message);
+  if (entry) {
+    entry.count += 1;
+    return;
+  }
+  seenMessages.set(message, { count: 1, firstContext: currentContext, kind });
+}
+let currentContext = '';
+page.on('console', (msg) => {
+  if (msg.type() !== 'error') return;
+  // The browser's own generic 404 message for /does-not-exist is expected —
+  // that route is deliberately broken to assert the app returns a real 404.
+  if (currentContext.startsWith('/does-not-exist') && /status of 404/.test(msg.text())) return;
+  recordOnce('console-error', msg.text().slice(0, 160));
+});
+page.on('pageerror', (err) => {
+  recordOnce('console-error', err.message.split('\n')[0].slice(0, 160));
+});
+page.on('requestfailed', (req) => {
+  // net::ERR_ABORTED is the normal, expected outcome for a Next.js RSC
+  // prefetch (<Link prefetch>, the ?_rsc= query param) that was still
+  // in-flight when this test's own rapid page.goto() navigated away —
+  // browsers cancel pending requests on navigation. Not a real failure; a
+  // real user idling on a page for its natural prefetch window never
+  // triggers this.
+  if (req.failure()?.errorText === 'net::ERR_ABORTED') return;
+  recordOnce('failed-asset', `${req.url()} (${req.failure()?.errorText ?? 'failed'})`);
+});
+page.on('response', (res) => {
+  // 404s are expected for the intentional /does-not-exist route and for
+  // navigation responses already asserted separately below.
+  if (res.status() < 400) return;
+  const url = res.url();
+  if (url.startsWith(BASE + '/does-not-exist')) return;
+  if (res.request().resourceType() === 'document') return;
+  recordOnce('failed-asset', `${url} (${res.status()})`);
+});
+
 console.log(`\nResponsive audit — ${PAGES.length} pages x ${VIEWPORTS.length} viewports\n`);
 
 /* ------------------------------------------------- overflow + type size --- */
@@ -66,6 +121,7 @@ for (const path of PAGES) {
 
   for (const vp of VIEWPORTS) {
     await page.setViewportSize({ width: vp.w, height: vp.h });
+    currentContext = `${path} @ ${vp.w}px`;
     const res = await page.goto(BASE + path, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
     if (path === '/does-not-exist') {
@@ -305,72 +361,253 @@ if (!accordionOk) note('keyboard', 'accordion did not toggle');
 
 /* --------------------------------------------------------------- search --- */
 
-console.log('\nSite search @ 1280px');
-await page.setViewportSize({ width: 1280, height: 800 });
-await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 60000 });
-await page.waitForTimeout(400);
+/**
+ * Opens SiteSearch (nested inside MobileMenu, the only entry point) and
+ * exercises it end to end. Every wait targets an observable UI state
+ * (locator auto-waiting / explicit waitFor) rather than a fixed sleep, and
+ * every step is wrapped so a failure records a diagnostic instead of
+ * throwing — one broken assertion must not abort the remaining checks.
+ *
+ * Phase 20 finding: the menu/search trigger used to be CSS-hidden once the
+ * viewport was wide enough for the full desktop nav links to fit (NavBar's
+ * `showCompact` state), which left NO way to open search at all above that
+ * width — a genuine defect, not a test bug (fixed in NavBar.tsx: the
+ * trigger is now unconditionally visible). This suite runs once at a
+ * viewport where the compact nav is guaranteed (375px — the same width the
+ * mobile-menu test above already exercises) and once where the full
+ * desktop nav is guaranteed (1920px), rather than at 1280px, which sits in
+ * a content-dependent, non-deterministic transition zone (measured
+ * ~1110–1120px in this build, not the CSS fallback's assumed 1440px) —
+ * asserting an exact viewport for a content-fit boundary is inherently
+ * flaky and belongs in check-breakpoint-boundaries.mjs, not here.
+ */
+async function runSearchSuite(modeLabel, width, height) {
+  const fail = (step, detail) => {
+    console.log(`  [${modeLabel}] ${step.padEnd(48)}FAIL — ${detail}`);
+    note('search', `${modeLabel} @ ${width}px — ${step}: ${detail}`);
+  };
+  const ok = (step, extra = '') => {
+    console.log(`  [${modeLabel}] ${step.padEnd(48)}ok${extra ? `  ${extra}` : ''}`);
+  };
 
-// SiteSearch's trigger button lives inside MobileMenu, whose own "Open
-// menu" trigger stays visible up to NavBar's 1440px desktop breakpoint —
-// by design, not a bug (see NavBar.tsx's compact/showCompact/min-[1440px]
-// pattern) — so at 1280px the panel has to be opened first, same as a
-// real visitor at this width would.
-await page.getByRole('button', { name: 'Open menu' }).click();
-await page.waitForTimeout(250);
-const searchTrigger = page.getByRole('button', { name: /search this site/i });
-await searchTrigger.click();
-const searchBox = page.getByRole('combobox');
-const searchOpened = await searchBox.isVisible().catch(() => false);
-console.log(`  opens from header                                   ${searchOpened ? 'ok' : 'FAIL'}`);
-if (!searchOpened) note('search', 'did not open');
+  /**
+   * Clicks `trigger` and waits for `target` to become visible, retrying the
+   * click itself (not a blind sleep) a bounded number of times if the state
+   * change doesn't land. Reproducing this in isolation showed a real but
+   * elusive miss rate on the very first click against a freshly navigated
+   * page in rapid, repeated automation (Playwright's actionability checks
+   * pass — the click registers — but the resulting React state update
+   * occasionally doesn't; a `next start` warm-up / hydration-timing
+   * characteristic, not reproducible with a single deterministic cause).
+   * Each attempt still waits on the real observable target state, so a
+   * truly broken interaction still fails loudly after the retries.
+   */
+  async function clickAndAwait(trigger, target, { attempts = 3, timeout = 2000 } = {}) {
+    for (let i = 1; i <= attempts; i++) {
+      await trigger.click();
+      try {
+        await target.waitFor({ state: 'visible', timeout });
+        return { ok: true, attempts: i };
+      } catch {
+        if (i === attempts) return { ok: false, attempts: i };
+      }
+    }
+    return { ok: false, attempts };
+  }
 
-await searchBox.fill('weight');
-await page.waitForTimeout(300);
-const optionCount = await page.getByRole('option').count();
-console.log(`  returns results for a real term                     ${optionCount > 0 ? 'ok' : 'FAIL'} (${optionCount})`);
-if (optionCount === 0) note('search', 'no results for "weight"');
+  try {
+    await page.setViewportSize({ width, height });
+    await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-await page.keyboard.press('ArrowDown');
-const hasActive = await page.evaluate(() => {
-  const input = document.querySelector('[role="combobox"]');
-  const id = input?.getAttribute('aria-activedescendant');
-  return Boolean(id && document.getElementById(id));
-});
-console.log(`  arrow keys move the active option                   ${hasActive ? 'ok' : 'FAIL'}`);
-if (!hasActive) note('search', 'aria-activedescendant not tracking');
+    // Exactly one visible, enabled trigger — not a hidden duplicate.
+    const trigger = page.getByRole('button', { name: 'Open menu' });
+    const triggerCount = await trigger.count();
+    if (triggerCount !== 1) {
+      fail('menu trigger uniqueness', `expected 1 match, found ${triggerCount}`);
+      return;
+    }
+    try {
+      await trigger.waitFor({ state: 'visible', timeout: 5000 });
+    } catch {
+      fail('menu trigger visible', 'not visible within 5s — DOM: ' + (await trigger.evaluate((el) => el.outerHTML).catch(() => '(could not read)')));
+      return;
+    }
+    if (!(await trigger.isEnabled())) {
+      fail('menu trigger enabled', 'trigger is present but disabled');
+      return;
+    }
+    ok('menu trigger visible + enabled');
 
-// Capture the highlighted option's target, then assert Enter opens it.
-const expectedHref = await page.evaluate(() => {
-  const input = document.querySelector('[role="combobox"]');
-  const id = input?.getAttribute('aria-activedescendant');
-  const el = id ? document.getElementById(id) : null;
-  return el ? new URL(el.getAttribute('href'), location.origin).pathname : null;
-});
-await page.keyboard.press('Enter');
-await page.waitForTimeout(900);
-const landedOn = new URL(page.url()).pathname;
-const navigated = Boolean(expectedHref) && landedOn === expectedHref;
-console.log(`  Enter opens the highlighted result                  ${navigated ? 'ok' : 'FAIL'} ${landedOn}`);
-if (!navigated) note('search', `Enter went to ${landedOn}, expected ${expectedHref}`);
+    const dialog = page.locator('#mobile-menu');
+    const opened = await clickAndAwait(trigger, dialog);
+    if (!opened.ok) {
+      fail('menu dialog opens', `click did not open #mobile-menu after ${opened.attempts} attempt(s)`);
+      return;
+    }
+    const dialogAttrs = await dialog.evaluate((el) => ({
+      role: el.getAttribute('role'),
+      modal: el.getAttribute('aria-modal'),
+      label: el.getAttribute('aria-label'),
+    }));
+    if (dialogAttrs.role !== 'dialog' || dialogAttrs.modal !== 'true' || !dialogAttrs.label) {
+      fail('menu dialog accessible naming', JSON.stringify(dialogAttrs));
+    } else {
+      ok('menu dialog opens with accessible naming');
+    }
 
-await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 60000 });
-await page.waitForTimeout(400);
-await page.getByRole('button', { name: 'Open menu' }).click();
-await page.waitForTimeout(250);
-await page.getByRole('button', { name: /search this site/i }).click();
-await page.getByRole('combobox').fill('zzzznotathing');
-await page.waitForTimeout(300);
-const emptyState = await page.locator('text=/No results for/i').first().isVisible().catch(() => false);
-console.log(`  empty state for no matches                          ${emptyState ? 'ok' : 'FAIL'}`);
-if (!emptyState) note('search', 'no empty state');
+    // Target a visible search trigger specifically — SiteSearch loads via
+    // next/dynamic, so wait for it rather than assuming it's mounted yet.
+    const searchTrigger = page.getByRole('button', { name: /search this site/i });
+    try {
+      await searchTrigger.waitFor({ state: 'visible', timeout: 5000 });
+    } catch {
+      fail('search trigger visible', 'not visible within 5s of the menu opening (SiteSearch may not have mounted)');
+      return;
+    }
+    // Approximates ARIA accessible-name computation: aria-hidden descendants
+    // (decorative icons, the xl-only visible label duplicated for sighted
+    // users) don't contribute to it, only the sr-only text does.
+    const searchAccessibleName = await searchTrigger.evaluate((el) => {
+      const label = el.getAttribute('aria-label');
+      if (label) return label;
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('[aria-hidden="true"]').forEach((n) => n.remove());
+      return clone.textContent?.trim() || null;
+    });
+    if (!searchAccessibleName) {
+      fail('search trigger accessible naming', 'no aria-label or text content');
+    } else {
+      ok('search trigger accessible naming', `"${searchAccessibleName}"`);
+    }
 
-await page.keyboard.press('Escape');
-await page.waitForTimeout(250);
-const searchClosed = !(await page.getByRole('combobox').isVisible().catch(() => false));
-console.log(`  closes on Escape                                    ${searchClosed ? 'ok' : 'FAIL'}`);
-if (!searchClosed) note('search', 'Escape did not close');
+    // Keyboard access: the trigger must be a real button, reachable and
+    // activatable without a pointer.
+    await searchTrigger.focus();
+    const focusedIsTrigger = await page.evaluate(() => {
+      const el = document.activeElement;
+      return el ? /search this site/i.test(el.getAttribute('aria-label') || el.textContent || '') : false;
+    });
+    if (!focusedIsTrigger) {
+      fail('search trigger keyboard-focusable', 'programmatic focus() did not land on it');
+    } else {
+      ok('search trigger keyboard-focusable');
+    }
+    await page.keyboard.press('Enter');
+    // Scoped to the search dialog specifically: the homepage's compact
+    // contact form has a native <select> (the "Reason" field), which
+    // Chromium's accessibility tree assigns an *implicit* combobox role —
+    // no literal role="combobox" attribute, so it's invisible to a raw DOM
+    // query but still matches the unscoped page.getByRole('combobox'),
+    // making it ambiguous with SiteSearch's own (explicitly-roled) input
+    // the moment both exist in the DOM at once. Confirmed via
+    // getByRole('combobox').count() === 1 on '/' with the menu fully
+    // closed — the <select> alone already counts as one match.
+    const searchDialog = page.locator('[role="dialog"][aria-label="Search this site"]');
+    const searchBox = searchDialog.getByRole('combobox');
+    try {
+      await searchBox.waitFor({ state: 'visible', timeout: 5000 });
+      ok('search opens via keyboard (Enter)');
+    } catch {
+      // Fall back to a pointer click in case Enter isn't wired to this
+      // control, so the rest of the suite can still run and report.
+      fail('search opens via keyboard (Enter)', 'combobox not visible within 5s of Enter; falling back to click for remaining checks');
+      const openedByClick = await clickAndAwait(searchTrigger, searchBox);
+      if (!openedByClick.ok) {
+        fail('search opens at all', `combobox never became visible via keyboard or ${openedByClick.attempts} click attempt(s)`);
+        return;
+      }
+    }
+
+    await searchBox.fill('weight');
+    const options = searchDialog.getByRole('option');
+    try {
+      await options.first().waitFor({ state: 'visible', timeout: 5000 });
+      const optionCount = await options.count();
+      ok('returns results for a real term', `(${optionCount})`);
+    } catch {
+      fail('returns results for a real term', 'no options appeared within 5s for "weight"');
+    }
+
+    await page.keyboard.press('ArrowDown');
+    const hasActive = await page.evaluate(() => {
+      const input = document.querySelector('[role="combobox"]');
+      const id = input?.getAttribute('aria-activedescendant');
+      return Boolean(id && document.getElementById(id));
+    });
+    if (!hasActive) {
+      fail('arrow keys move the active option', 'aria-activedescendant not tracking');
+    } else {
+      ok('arrow keys move the active option');
+    }
+
+    // Capture the highlighted option's target, then assert Enter opens it.
+    const expectedHref = await page.evaluate(() => {
+      const input = document.querySelector('[role="combobox"]');
+      const id = input?.getAttribute('aria-activedescendant');
+      const el = id ? document.getElementById(id) : null;
+      return el ? new URL(el.getAttribute('href'), location.origin).pathname : null;
+    });
+    await page.keyboard.press('Enter');
+    try {
+      await page.waitForURL((url) => url.pathname === expectedHref, { timeout: 5000 });
+      ok('Enter opens the highlighted result', new URL(page.url()).pathname);
+    } catch {
+      fail(
+        'Enter opens the highlighted result',
+        `landed on ${new URL(page.url()).pathname}, expected ${expectedHref}`
+      );
+    }
+
+    // --- empty state + Escape, on a clean reload (cleanup between checks) ---
+    await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await trigger.waitFor({ state: 'visible', timeout: 5000 });
+    const reopened = await clickAndAwait(trigger, dialog);
+    if (!reopened.ok) {
+      fail('menu dialog reopens after reload', `did not reopen after ${reopened.attempts} attempt(s)`);
+      return;
+    }
+    await searchTrigger.waitFor({ state: 'visible', timeout: 5000 });
+    const searchReopened = await clickAndAwait(searchTrigger, searchBox);
+    if (!searchReopened.ok) {
+      fail('search reopens after reload', `did not reopen after ${searchReopened.attempts} attempt(s)`);
+      return;
+    }
+    await searchBox.fill('zzzznotathing');
+    try {
+      await page.locator('text=/No results for/i').first().waitFor({ state: 'visible', timeout: 5000 });
+      ok('empty state for no matches');
+    } catch {
+      fail('empty state for no matches', 'no "No results for" text appeared within 5s');
+    }
+
+    await page.keyboard.press('Escape');
+    try {
+      await searchBox.waitFor({ state: 'hidden', timeout: 5000 });
+      ok('closes on Escape');
+    } catch {
+      fail('closes on Escape', 'combobox still visible 5s after Escape');
+    }
+  } catch (err) {
+    // Last-resort net: an unanticipated failure still yields a diagnostic
+    // instead of an unhandled crash that skips every remaining check.
+    fail('unexpected error', err instanceof Error ? err.message.split('\n')[0] : String(err));
+  } finally {
+    // Cleanup so the next viewport/route starts from a known state.
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+  }
+}
+
+console.log('\nSite search');
+await runSearchSuite('compact nav', 375, 812);
+await runSearchSuite('desktop nav', 1920, 1080);
 
 /* --------------------------------------------------------------- report --- */
+
+for (const [message, { count, firstContext, kind }] of seenMessages) {
+  const occurrence = count > 1 ? ` (${count} occurrences, first: ${firstContext})` : ` (${firstContext})`;
+  note(kind, `${message}${occurrence}`);
+}
 
 await browser.close();
 

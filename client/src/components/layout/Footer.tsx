@@ -76,7 +76,7 @@ export async function Footer() {
 
                 <ul className="space-y-2.5">
                   <li className="flex items-baseline gap-x-2">
-                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:max-desktop:text-[12px] desktop:text-[13px]">
                       Phone
                     </span>
                     <a href={phoneHref} className="text-white no-underline hover:underline">
@@ -84,13 +84,13 @@ export async function Footer() {
                     </a>
                   </li>
                   <li className="flex items-baseline gap-x-2">
-                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:max-desktop:text-[12px] desktop:text-[13px]">
                       Fax
                     </span>
                     <span>{site.contact.fax}</span>
                   </li>
                   <li className="flex items-baseline gap-x-2">
-                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:text-[12px]">
+                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:max-desktop:text-[12px] desktop:text-[13px]">
                       Email
                     </span>
                     <a href={`mailto:${email}`} className="break-all text-white no-underline hover:underline">

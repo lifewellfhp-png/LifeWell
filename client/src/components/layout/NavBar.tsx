@@ -158,12 +158,12 @@ export function NavBar({
           aria-controls="mobile-menu"
           aria-label="Open menu"
           className={cn(
-            'relative z-10 min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center gap-2 rounded-sm border px-3 text-sm font-semibold transition-colors duration-quick sm:px-4',
-            compact === null
-              ? 'inline-flex min-[1440px]:hidden'
-              : showCompact
-                ? 'inline-flex'
-                : 'hidden',
+            // Always visible in every nav state (compact or full desktop):
+            // this is the only trigger for SiteSearch, nested inside the
+            // drawer it opens. Previously hidden once the desktop nav links
+            // fit (Phase 20 finding), which left no way to reach search at
+            // all on wide viewports.
+            'relative z-10 inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center gap-2 rounded-sm border px-3 text-sm font-semibold transition-colors duration-quick sm:px-4',
             overlay
               ? 'border-white/50 text-white hover:bg-white/10'
               : 'border-border-subtle text-text-primary hover:bg-surface-muted'

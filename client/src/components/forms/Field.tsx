@@ -46,7 +46,7 @@ function Wrapper({
         htmlFor={id}
         className={
           compact
-            ? 'mb-2.5 block text-[11px] font-bold uppercase tracking-[1.6px] text-[var(--lw-accent)]'
+            ? 'mb-2.5 block text-[11px] font-bold uppercase tracking-[1.6px] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]'
             : 'mb-2 block text-sm font-semibold text-text-primary'
         }
       >
