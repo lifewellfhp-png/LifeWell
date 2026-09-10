@@ -10,9 +10,14 @@ import { telehealthStates } from './telehealth-states';
  * credentials content are untouched; this only shortens what the header
  * bar displays. The source site's full title ("Psychiatric Mental Health
  * Nurse Practitioner") and "Contact Us" remain the real page content.
+ *
+ * Phase 22: no standalone "Home" entry — the logo (in the header and in the
+ * mobile drawer, both wrapped in a link to "/") already serves that role on
+ * every page, as is standard. Removing the redundant nav entry reclaims
+ * real width toward restoring full desktop navigation without overlap; no
+ * destination is lost, "/" remains reachable everywhere the logo appears.
  */
 export const headerNav: NavItem[] = [
-  { label: 'Home', href: '/' },
   {
     label: 'Services',
     href: '/our-services',

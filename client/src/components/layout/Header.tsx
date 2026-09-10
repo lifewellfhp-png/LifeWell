@@ -53,7 +53,7 @@ export function Header({
       )}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <div className="mx-auto flex min-h-[72px] w-full max-w-page min-w-0 items-center gap-3 px-4 py-3 sm:min-h-[90px] sm:max-[1601px]:gap-4 sm:max-[1601px]:px-[30px] sm:max-[1601px]:py-5 lg:min-h-[110px] lg:max-[1601px]:gap-5 lg:max-[1601px]:px-10 lg:max-[1601px]:py-[22px] min-[1601px]:gap-[30px] min-[1601px]:px-[70px] min-[1601px]:py-[30px]">
+      <div className="mx-auto flex min-h-[72px] w-full max-w-header min-w-0 items-center gap-3 px-4 py-3 sm:min-h-[90px] sm:max-[1601px]:gap-4 sm:max-[1601px]:px-[30px] sm:max-[1601px]:py-5 lg:min-h-[110px] lg:max-[1601px]:gap-5 lg:max-[1601px]:px-10 lg:max-[1601px]:py-[22px] min-[1601px]:gap-[30px] min-[1601px]:px-[70px] min-[1601px]:py-[30px]">
         <Link
           href="/"
           prefetch

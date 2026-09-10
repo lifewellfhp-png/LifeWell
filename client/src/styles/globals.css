@@ -147,6 +147,14 @@
   --container-page: 80rem; /* 1280 */
   --container-narrow: 60rem; /* 960 */
   --container-prose: 52rem; /* 832 */
+  /* Header only (Phase 22). Wider than --container-page: at --container-page's
+     1280px cap, the logo + full nav links + search/CTA controls genuinely
+     don't fit without overlap once real measured widths, container padding,
+     and gaps are all accounted for (see the Phase 21/22 reports) — confirmed
+     by direct measurement, not a rough estimate. Deliberately its own token
+     rather than raising --container-page itself, which would widen every
+     page's body content, not just the header row. */
+  --container-header: 87.5rem; /* 1400 */
 
   /* ---- Breakpoints ----
      sm/md/lg/xl/2xl keep Tailwind's defaults (640/768/1024/1280/1536).

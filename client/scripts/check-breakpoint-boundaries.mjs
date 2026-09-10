@@ -13,9 +13,11 @@
  *   npm run build && npm start          (in one terminal)
  *   node scripts/check-breakpoint-boundaries.mjs   (in another)
  *
- * Boundaries covered: 1181 (desktop:, Phase 18), 1440 and 1601
- * (min-[1440px]:/min-[1601px]:, Phase 19), each checked one pixel below,
- * at, and one pixel above.
+ * Boundaries covered: 1181 (desktop:, Phase 18), 1601 (min-[1601px]:,
+ * Phase 19), and 1280 (compact <-> desktop nav switch, now the built-in
+ * `xl:` breakpoint — Phase 22 replaced the JS ResizeObserver measurement
+ * that previously gated this with a deterministic CSS media query), each
+ * checked one pixel below, at, and one pixel above.
  */
 import { chromium } from 'playwright';
 import { readFileSync, existsSync } from 'node:fs';
@@ -69,31 +71,20 @@ console.log('\n1181px boundary — desktop: (Phase 18)\n');
   assertBoundary('/ #insurance-heading font-size', results, { fontSize: '48px' }, { fontSize: '56px' });
 }
 
-console.log('\n1440px boundary — min-[1440px]: (Phase 19)\n');
+console.log('\n1280px boundary — compact/desktop nav switch (Phase 22)\n');
 {
-  // NavBar's compact-nav CSS fallback (compact === null) is JS-overridden
-  // within a layout effect almost immediately after hydration, so its
-  // *runtime* DOM state is too timing-sensitive for a reliable Playwright
-  // assertion. Its correctness is instead verified directly against the
-  // compiled CSS below (non-overlapping media ranges), which is what
-  // actually determines the fallback shown before that effect runs.
+  // Phase 22 replaced the ResizeObserver-based compact/desktop switch
+  // (Phase 20/21 — genuinely unstable, a few px of margin that varied
+  // across page loads) with a plain `xl:` (1280px) CSS breakpoint: correct
+  // on first paint, no JS measurement, can't oscillate. This is now a real,
+  // deterministic assertion (not "informational" like the old JS-timing
+  // check it replaces) — display is a pure function of viewport width.
   const sel = 'nav[aria-label="Main"]';
   const results = [];
-  for (const w of [1439, 1440, 1441]) {
-    // Force the pre-hydration fallback path by reading the class list
-    // itself rather than post-hydration layout, since `compact` may
-    // already be resolved by the time evaluate() runs.
-    await page.setViewportSize({ width: w, height: 1000 });
-    await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 30000 });
-    const display = await page.evaluate((s) => {
-      const el = document.querySelector(s);
-      return el ? getComputedStyle(el).display : null;
-    }, sel);
-    results.push({ display });
+  for (const w of [1279, 1280, 1281]) {
+    results.push(await styleAt('/', w, sel, ['display']));
   }
-  console.log(`  / nav[aria-label="Main"] display (post-hydration, informational)   ${results.map((r) => JSON.stringify(r)).join(' | ')}`);
-  // Not asserted — this reflects showDesktop/showCompact JS measurement,
-  // not the min-[1440px]: CSS fallback. See CSS-source check below.
+  assertBoundary('/ nav[aria-label="Main"] display', results, { display: 'none' }, { display: 'flex' });
 }
 
 console.log('\n1601px boundary — min-[1601px]: (Phase 19)\n');
@@ -133,25 +124,34 @@ console.log('\n1601px boundary — min-[1601px]: (Phase 19)\n');
 
 /* --------------------------------------------- compiled-CSS source check --- */
 
-console.log('\n1440px boundary — NavBar compact-nav CSS fallback (source check)\n');
+console.log('\n1280px boundary — nav/CTA/trigger pairs use only the built-in xl breakpoint (source check)\n');
 {
-  // The pre-hydration fallback (`compact === null`) toggles the desktop
-  // nav / desktop CTA / compact CTA / mobile-menu trigger between
-  // `hidden sm:max-[1439px]:flex` and `min-[1440px]:hidden` pairs. This
-  // asserts those pairs compile to non-overlapping media ranges rather
-  // than depending on runtime JS timing (see note above).
+  // Confirms NavBar's compact <-> desktop switch (nav, full CTA, compact
+  // CTA, trigger label) uses only Tailwind's built-in `xl` breakpoint —
+  // not a custom one — so it can't hit the Tailwind v4 custom-breakpoint
+  // cascade-order issue fixed in Phases 18-19 (custom breakpoints sort
+  // ahead of the built-in sm/md/lg/xl/2xl group regardless of pixel value;
+  // built-in breakpoints don't have that problem against each other).
   const cssPath = process.env.BUILT_CSS_PATH;
   if (cssPath && existsSync(cssPath)) {
     const css = readFileSync(cssPath, 'utf-8');
     const checks = [
-      { sel: '.sm\\:max-\\[1440px\\]\\:flex', mustContain: 'width < 1440px' },
-      { sel: '.min-\\[1440px\\]\\:hidden', mustContain: 'width >= 1440px' },
+      { sel: '.xl\\:flex', mustContain: 'width >= 1280px' },
+      { sel: '.xl\\:hidden', mustContain: 'width >= 1280px' },
     ];
     for (const c of checks) {
       const idx = css.indexOf(c.sel);
       const found = idx !== -1;
       console.log(`  ${c.sel.padEnd(40)}${found ? 'present' : 'MISSING'}`);
       if (!found) note(`compiled CSS missing selector ${c.sel}`);
+    }
+    // No custom --breakpoint-* or arbitrary min-[Npx]:/max-[Npx]: variant
+    // should gate nav/CTA/trigger visibility anymore — only xl:.
+    const staleSelectors = ['min-\\[1440px\\]', 'min-\\[1439px\\]', 'max-\\[1439px\\]', 'max-\\[1440px\\]'];
+    for (const s of staleSelectors) {
+      if (css.includes(s.replace(/\\\\/g, '\\'))) {
+        note(`compiled CSS still contains a stale nav-switch selector fragment: ${s}`);
+      }
     }
   } else {
     console.log('  BUILT_CSS_PATH not set — skipped (pass the path to the compiled layout.css to enable)');

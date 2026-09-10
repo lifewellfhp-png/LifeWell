@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -10,35 +10,24 @@ import { HeaderCta } from './HeaderCta';
 import { MobileMenu } from './MobileMenu';
 
 /**
- * Extra room for the CTA control, the menu/search trigger (permanently
- * visible since Phase 20 — previously hidden in desktop mode, so it never
- * needed reserving here, now icon-only with no "Menu" label in desktop mode
- * to keep its footprint down), and the flex gaps around both.
+ * Compact ↔ full desktop navigation switches on Tailwind's built-in `xl`
+ * breakpoint (1280px) — a plain CSS media query, not a client-side
+ * ResizeObserver measurement (Phase 20/21 used one; both phases found it
+ * genuinely unstable — a few px of margin that varied across page loads
+ * from component-order/hydration timing, not a deterministic function of
+ * viewport). A fixed breakpoint has none of that: it's correct on first
+ * paint (no hydration flash, no JS needed before the right state renders),
+ * can't oscillate, and needs no measurement machinery to maintain.
  *
- * Phase 21 finding: with the trigger now permanently reserved, the true
- * required width (nav links + this reserve) exceeds max-w-page's 1280px
- * content cap at every tested viewport once header padding is correctly
- * subtracted (Header.tsx's row padding grows from 16px to 70px across
- * breakpoints and was never subtracted from the old fit check — the root
- * cause of the overlap this fixes). The true margin at the most favorable
- * width (1280px) is only a few px either way, and empirically unstable
- * across page loads (component-order/hydration timing, not a deterministic
- * function of viewport alone — see the Phase 20 report's compact-nav
- * findings) — not safe to thread precisely. This value is set generously
- * conservative, which means desktop nav (full links visible) no longer
- * activates at any tested width; compact/hamburger nav — fully functional,
- * search-accessible per Phase 20 — is now the effective default. Resolving
- * the underlying tension (nav item count, CTA size, logo size, or
- * max-w-page itself) is a design decision beyond this constant; see the
- * Phase 21 report.
+ * This is only safe because Phase 22 also removed the redundant "Home" nav
+ * entry (data/navigation.ts — the logo already serves as home) and gave the
+ * header its own, wider container (--container-header in globals.css,
+ * decoupled from the sitewide --container-page) — verified by direct
+ * measurement to leave a comfortable, non-razor-thin margin at 1280px and
+ * every wider breakpoint up to 3840px; see the Phase 22 report. `xl` is a
+ * built-in Tailwind breakpoint, not a custom one, so it can't hit the
+ * Tailwind v4 custom-breakpoint cascade-order issue fixed in Phases 18-19.
  */
-const CTA_RESERVE = 300;
-const ROW_GAP = 20;
-/** Buffer so late font/image loads can never push links over the logo. */
-const SAFETY = 24;
-/** Chevron icon + gap rendered next to items that open a mega menu. */
-const CHEVRON_EXTRA = 19;
-
 const NAV_LINK =
   'inline-flex min-h-[42px] shrink-0 items-center whitespace-nowrap rounded-[30px] px-3.5 py-[5px] text-[15px] font-semibold leading-none no-underline transition-colors duration-300 xl:max-[1601px]:px-[18px] min-[1601px]:px-[22px] min-[1601px]:text-[16px]';
 
@@ -55,89 +44,15 @@ export function NavBar({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [compact, setCompact] = useState<boolean | null>(null);
-  const hostRef = useRef<HTMLDivElement>(null);
-  const measureRef = useRef<HTMLUListElement>(null);
 
   // Close the drawer whenever the route changes.
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Use the hamburger whenever logo + links + CTA would overflow the bar.
-  useLayoutEffect(() => {
-    const host = hostRef.current;
-    const measure = measureRef.current;
-    if (!host || !measure) return;
-
-    const update = () => {
-      const row = host.parentElement;
-      if (!row) return;
-      const logo = row.firstElementChild as HTMLElement | null;
-      const logoW = logo?.getBoundingClientRect().width ?? 0;
-      // row.clientWidth includes row's own horizontal padding (per the
-      // clientWidth spec: content + padding), but that padding isn't space
-      // available to lay out row's flex children (logo + this nav) in — it's
-      // consumed before they're placed. row's padding is also responsive
-      // (16px up to 70px across breakpoints, see Header.tsx), so a fixed
-      // ROW_GAP-only estimate that omits padding drifts from a few px of
-      // slack at narrow paddings to real, visible overlap at wide ones.
-      // Reading the live computed padding/gap keeps this accurate as those
-      // values change, instead of hardcoding an approximation of either.
-      const rowStyle = getComputedStyle(row);
-      const paddingX = parseFloat(rowStyle.paddingLeft || '0') + parseFloat(rowStyle.paddingRight || '0');
-      const rowGap = parseFloat(rowStyle.columnGap || rowStyle.gap || '0') || ROW_GAP;
-      const available = row.clientWidth - paddingX - logoW - rowGap;
-      const fits = measure.scrollWidth + CTA_RESERVE + SAFETY <= available;
-      setCompact(!fits);
-      if (fits) setMobileOpen(false);
-    };
-
-    update();
-    const row = host.parentElement;
-    const logo = row?.firstElementChild as HTMLElement | null;
-    const ro = new ResizeObserver(update);
-    if (row) ro.observe(row);
-    // Web fonts and the logo image load after first paint and change widths;
-    // observing these re-runs the fit check so links never overlap the logo.
-    ro.observe(measure);
-    if (logo) ro.observe(logo);
-    window.addEventListener('resize', update);
-    const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
-    fonts?.ready.then(update).catch(() => {});
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', update);
-    };
-  }, [items]);
-
-  const showDesktop = compact === false;
-  const showCompact = compact !== false;
-
   return (
-    <div ref={hostRef} className="flex min-w-0 flex-1 items-center gap-3 lg:gap-5">
-      <ul
-        ref={measureRef}
-        aria-hidden
-        className="pointer-events-none invisible fixed left-0 top-0 -z-10 flex w-max items-center gap-[3px] whitespace-nowrap text-[15px] font-semibold min-[1601px]:text-[16px]"
-      >
-        {items.map((item) => (
-          <li key={item.href} className="px-3.5 py-[5px] xl:max-[1601px]:px-[18px] min-[1601px]:px-[22px]">
-            {item.label}
-            {item.groups || item.flat ? (
-              <span aria-hidden className="inline-block" style={{ width: `${CHEVRON_EXTRA}px` }} />
-            ) : null}
-          </li>
-        ))}
-      </ul>
-
-      <nav
-        aria-label="Main"
-        className={cn(
-          'min-w-0 flex-1 overflow-x-clip',
-          compact === null ? 'hidden min-[1440px]:flex' : showDesktop ? 'flex' : 'hidden'
-        )}
-      >
+    <div className="flex min-w-0 flex-1 items-center gap-3 lg:gap-5">
+      <nav aria-label="Main" className="hidden min-w-0 flex-1 overflow-x-clip xl:flex">
         <ul className="flex w-full items-center justify-center gap-[3px]">
           {items.map((item) =>
             item.groups ? (
@@ -155,31 +70,17 @@ export function NavBar({
         </ul>
       </nav>
 
-      <div
-        className={cn(
-          'flex shrink-0 items-center gap-2 sm:gap-3',
-          compact === null ? 'ml-auto min-[1440px]:ml-0' : showCompact && 'ml-auto'
-        )}
-      >
-        <div
-          className={cn(
-            compact === null ? 'hidden min-[1440px]:flex' : showDesktop ? 'flex' : 'hidden'
-          )}
-        >
+      {/* max-xl:ml-auto: below xl, <nav> above is display:none and
+          contributes no flex-grow to push this group right, so it needs its
+          own margin; at xl+ <nav>'s flex-1 already does that job. */}
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3 max-xl:ml-auto">
+        <div className="hidden xl:flex">
           <HeaderCta href={cta.href} overlay={overlay} trackAs="booking_click">
             {cta.label}
           </HeaderCta>
         </div>
 
-        <div
-          className={cn(
-            compact === null
-              ? 'hidden sm:max-[1440px]:flex min-[1440px]:hidden'
-              : showCompact
-                ? 'hidden sm:flex'
-                : 'hidden'
-          )}
-        >
+        <div className="hidden sm:flex xl:hidden">
           <HeaderCta href={cta.href} size="sm" overlay={overlay} trackAs="booking_click">
             {cta.label}
           </HeaderCta>
@@ -194,9 +95,8 @@ export function NavBar({
           className={cn(
             // Always visible in every nav state (compact or full desktop):
             // this is the only trigger for SiteSearch, nested inside the
-            // drawer it opens. Previously hidden once the desktop nav links
-            // fit (Phase 20 finding), which left no way to reach search at
-            // all on wide viewports.
+            // drawer it opens. Search must stay reachable even once the
+            // real nav links are shown at xl+ (Phase 20 finding).
             'relative z-10 inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center gap-2 rounded-sm border px-3 text-sm font-semibold transition-colors duration-quick sm:px-4',
             overlay
               ? 'border-white/50 text-white hover:bg-white/10'
@@ -204,12 +104,12 @@ export function NavBar({
           )}
         >
           <BurgerIcon />
-          {/* Text label only in compact mode — in desktop mode this control
-              exists purely to reach search (the desktop nav already shows
-              the real links), so the extra label width isn't earning its
-              keep against the header's tight content budget. aria-label
-              above carries the accessible name regardless. */}
-          <span className={cn('hidden sm:inline', showDesktop && 'sm:hidden')}>Menu</span>
+          {/* Text label only below xl — at xl+ this control exists purely to
+              reach search (the real nav links are already visible), so the
+              label isn't earning its keep against the header's width
+              budget. aria-label above carries the accessible name either
+              way. */}
+          <span className="hidden sm:inline xl:hidden">Menu</span>
         </button>
       </div>
 
@@ -388,7 +288,17 @@ function MegaMenuItem({ item, pathname, overlay }: { item: NavItem; pathname: st
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((v) => !v)}
+        // Always opens — never toggles. A real mouse click fires
+        // mouseenter (opening via onMouseEnter below) immediately before
+        // the click event; a toggle here would then close what hover just
+        // opened, so every pointer click appeared to do nothing. Matches
+        // this component's own "opens on hover... and on click" docstring:
+        // closing is onMouseLeave, outside-click, or Escape's job, not
+        // click's. (Phase 22 finding — pre-existing, not introduced by
+        // that phase, but only now exercised: desktop nav was in permanent
+        // compact mode through Phases 20-21, so this trigger was never
+        // reachable by a real pointer click in that window.)
+        onClick={() => setOpen(true)}
         className={cn(
           NAV_LINK,
           'gap-[7px]',
@@ -535,7 +445,17 @@ function FlatDropdownItem({
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((v) => !v)}
+        // Always opens — never toggles. A real mouse click fires
+        // mouseenter (opening via onMouseEnter below) immediately before
+        // the click event; a toggle here would then close what hover just
+        // opened, so every pointer click appeared to do nothing. Matches
+        // this component's own "opens on hover... and on click" docstring:
+        // closing is onMouseLeave, outside-click, or Escape's job, not
+        // click's. (Phase 22 finding — pre-existing, not introduced by
+        // that phase, but only now exercised: desktop nav was in permanent
+        // compact mode through Phases 20-21, so this trigger was never
+        // reachable by a real pointer click in that window.)
+        onClick={() => setOpen(true)}
         className={cn(
           NAV_LINK,
           'gap-[7px]',

@@ -112,13 +112,17 @@ export function MobileMenu({ id, open, onClose, items, cta, pathname, phone }: M
         className="absolute inset-y-0 right-0 flex h-full w-full max-w-[min(24rem,100%)] flex-col bg-surface-raised shadow-lg pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
       >
         <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
-          <Image
-            src="/images/brand/logo-v2.avif"
-            alt={site.name}
-            width={945}
-            height={191}
-            className="h-8 w-auto max-w-[min(12rem,55vw)] object-contain object-left"
-          />
+          {/* No standalone "Home" nav entry (Phase 22) — this logo link is
+              the drawer's route to "/", matching the header's own logo. */}
+          <Link href="/" prefetch className="shrink-0 no-underline" aria-label={`${site.name} — home`}>
+            <Image
+              src="/images/brand/logo-v2.avif"
+              alt={site.name}
+              width={945}
+              height={191}
+              className="h-8 w-auto max-w-[min(12rem,55vw)] object-contain object-left"
+            />
+          </Link>
           <button
             type="button"
             onClick={onClose}
