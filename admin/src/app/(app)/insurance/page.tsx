@@ -23,6 +23,7 @@ const approvedInsurance = [
   'UHC Medicare Advantage',
   'Optum',
   'Curative',
+  'TRICARE',
 ] as const;
 
 const APPROVED_INSURANCE_SET = new Set<string>(approvedInsurance);

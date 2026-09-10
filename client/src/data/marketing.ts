@@ -164,6 +164,7 @@ export const insuranceCarriers: InsuranceCarrier[] = [
   { name: 'UHC Medicare Advantage', logo: '/images/insurance/badges/uhc-medicare-advantage.svg', width: 220, height: 100 },
   { name: 'Optum', logo: '/images/insurance/badges/optum.svg', width: 220, height: 100 },
   { name: 'Curative', logo: '/images/insurance/badges/curative.svg', width: 220, height: 100 },
+  { name: 'TRICARE', logo: '/images/insurance/badges/tricare.webp', width: 220, height: 100 },
 ];
 
 /* -------------------------------------------------------------- stats --- */

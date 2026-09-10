@@ -2,20 +2,22 @@
  * Insurance approved-list reconciliation regression tests.
  *
  * The owner removed "BH Complete Commercial" and "FL DSNP" as accepted
- * Florida payers, and separately confirmed Curative is accepted for
- * eligible Florida patients. This locks the two authoritative sources —
+ * Florida payers, separately confirmed Curative is accepted for eligible
+ * Florida patients, and (Phase: TRICARE add) confirmed TRICARE as a newly
+ * accepted Florida payer. This locks the two authoritative sources —
  * PhaseA1Sync's `approvedInsurance` (admin/src/app/(app)/insurance/page.tsx)
  * and the client static fallback (client/src/data/marketing.ts's
- * `insuranceCarriers`) — in sync with both decisions, so a future
+ * `insuranceCarriers`) — in sync with all three decisions, so a future
  * "Apply Approved Florida Insurance Setup" sync run reproduces exactly the
- * intended 14-payer set: the 13 pre-existing approved payers, plus
- * Curative, minus the two removed payers.
+ * intended 15-payer set: the 13 original approved payers, plus Curative and
+ * TRICARE, minus the two removed payers.
  *
- * Curative is asserted present exactly once in both lists, using the
- * local logo path — not the Production CMS row's presence, which is a
- * separate, out-of-band fact this test can't see. The corresponding
- * Production `logo_url` field still needs a manual Admin update; see the
- * handoff note in the commit this test ships with.
+ * Curative and TRICARE are each asserted present exactly once in both
+ * lists, using their local logo paths — not the Production CMS row's
+ * presence, which is a separate, out-of-band fact this test can't see. The
+ * corresponding Production `logo_url`/`self_pay`/`published` fields still
+ * need a manual Admin row creation for TRICARE; see the handoff note in the
+ * commit this test ships with (no Production write access from here).
  *
  * No network calls, no CMS, no Production data, no React rendering — mirrors
  * this repo's established pattern (see test-phase14-retire-cms-pricing-sync.mjs)
@@ -25,7 +27,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -36,6 +38,7 @@ const badgesDir = join(__dirname, '../../client/public/images/insurance/badges')
 
 const REMOVED_PAYERS = ['BH Complete Commercial', 'FL DSNP'];
 const CURATIVE_LOGO = '/images/insurance/badges/curative.svg';
+const TRICARE_LOGO = '/images/insurance/badges/tricare.webp';
 
 function extractApprovedInsurance(source) {
   const match = source.match(/const approvedInsurance = \[([\s\S]*?)\] as const;/);
@@ -53,14 +56,14 @@ const approved = extractApprovedInsurance(insurancePageSource);
 const carrierEntries = extractInsuranceCarriers(marketingSource);
 const carriers = carrierEntries.map((c) => c.name);
 
-test('admin approvedInsurance contains exactly 14 unique payer names', () => {
-  assert.equal(approved.length, 14);
-  assert.equal(new Set(approved).size, 14);
+test('admin approvedInsurance contains exactly 15 unique payer names', () => {
+  assert.equal(approved.length, 15);
+  assert.equal(new Set(approved).size, 15);
 });
 
-test('client insuranceCarriers contains exactly 14 unique payer names', () => {
-  assert.equal(carriers.length, 14);
-  assert.equal(new Set(carriers).size, 14);
+test('client insuranceCarriers contains exactly 15 unique payer names', () => {
+  assert.equal(carriers.length, 15);
+  assert.equal(new Set(carriers).size, 15);
 });
 
 test('admin and client approved-list names match exactly (same set, same order)', () => {
@@ -96,6 +99,23 @@ test('curative.svg exists locally, is not a hotlink, and is not the shared place
   assert.ok(hrefMatch, 'curative.svg must have an href/src on its <image> element');
   assert.match(hrefMatch[1], /^data:image\//, 'curative.svg must embed its artwork as a data URI, not reference an external (hotlinked) URL');
   assert.doesNotMatch(svg, /Insurance Plan|insurance-placeholder/, 'curative.svg must not be the generic placeholder');
+});
+
+test('TRICARE appears exactly once in admin approvedInsurance', () => {
+  assert.equal(approved.filter((name) => name === 'TRICARE').length, 1);
+});
+
+test('TRICARE appears exactly once in client insuranceCarriers, using the local logo path', () => {
+  const matches = carrierEntries.filter((c) => c.name === 'TRICARE');
+  assert.equal(matches.length, 1);
+  assert.equal(matches[0].logo, TRICARE_LOGO);
+});
+
+test('tricare.webp exists locally (not a hotlink), is not empty, and is not the shared placeholder path', () => {
+  const path = join(badgesDir, 'tricare.webp');
+  assert.ok(existsSync(path), 'tricare.webp must exist in client/public/images/insurance/badges');
+  assert.ok(statSync(path).size > 1000, 'tricare.webp must not be an empty/near-empty placeholder file');
+  assert.notEqual(TRICARE_LOGO, '/images/insurance/insurance-placeholder.svg');
 });
 
 test('PhaseA1Sync still unpublishes any Production row not present in approvedInsurance', () => {

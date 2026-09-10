@@ -430,6 +430,7 @@ const APPROVED_INSURANCE_NAMES = new Set([
   'UHC Medicare Advantage',
   'Optum',
   'Curative',
+  'TRICARE',
 ]);
 
 export function normalizeInsuranceName(value: string): string {

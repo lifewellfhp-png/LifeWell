@@ -83,14 +83,18 @@ test('server APPROVED_INSURANCE_NAMES exactly matches admin approvedInsurance (n
   assert.deepEqual(extractServerApprovedInsurance(), extractAdminApprovedInsurance());
 });
 
-test('server approved set contains exactly 14 unique names', () => {
+test('server approved set contains exactly 15 unique names', () => {
   const names = extractServerApprovedInsurance();
-  assert.equal(names.length, 14);
-  assert.equal(new Set(names).size, 14);
+  assert.equal(names.length, 15);
+  assert.equal(new Set(names).size, 15);
 });
 
 test('Curative is approved', () => {
   assert.ok(extractServerApprovedInsurance().includes('Curative'));
+});
+
+test('TRICARE is approved', () => {
+  assert.ok(extractServerApprovedInsurance().includes('TRICARE'));
 });
 
 test('BH Complete Commercial, FL DSNP, and Magellan (Health) are absent from the approved set', () => {
