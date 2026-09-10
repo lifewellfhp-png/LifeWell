@@ -1,17 +1,19 @@
 /**
- * Internal-link and deep-link validation.
+ * Internal-link and deep-link validation. This is `npm run check:links`
+ * (Phase 23) — page structure/metadata/JSON-LD now live separately in
+ * check-page-structure.mjs (`npm run check:structure`), see that file.
  *
- * Replaces check-links.mjs's approach (reads .next/server/app/*.html —
+ * Replaced check-links.mjs's approach (read .next/server/app/*.html —
  * structurally broken for this app, since most routes are ƒ Dynamic and
  * never produce prerendered HTML files; confirmed failing identically on a
- * clean baseline before this app had any of Phase 18-21's changes) and
- * check-deeplinks.mjs's hardcoded expected-copy assertions (fragile —
- * breaks on any copy change, unrelated to link health) with a real crawl:
- * discovers links from RENDERED pages (including the mobile menu, which
- * only exists in the DOM once opened, and any client/CMS-rendered content),
- * normalizes and deduplicates them, then verifies every unique internal
- * destination actually resolves — without submitting forms, creating
- * bookings, or sending analytics.
+ * clean baseline before this app had any of Phase 18-21's changes, and
+ * removed in Phase 23) and check-deeplinks.mjs's hardcoded expected-copy
+ * assertions (fragile — breaks on any copy change, unrelated to link
+ * health) with a real crawl: discovers links from RENDERED pages
+ * (including the mobile menu, which only exists in the DOM once opened,
+ * and any client/CMS-rendered content), normalizes and deduplicates them,
+ * then verifies every unique internal destination actually resolves —
+ * without submitting forms, creating bookings, or sending analytics.
  *
  *   npm run build && npm start          (in one terminal)
  *   node scripts/check-internal-links.mjs   (in another)
@@ -156,6 +158,23 @@ for (const route of SEED_ROUTES) {
   discovered.set(route, links);
   console.log(`  ${route.padEnd(52)}${links.length} link(s)`);
   await sleep(REQUEST_DELAY_MS);
+}
+
+/**
+ * A run that crawls nothing must fail loudly, not report a vacuous "ALL
+ * PASS" — the exact failure mode this script replaced check-links.mjs to
+ * fix (0/30 static pages found, silently misreported as a build problem).
+ * Every seed route failing to load means the server isn't reachable at
+ * BASE, not that the site has zero links.
+ */
+if (discovered.size === 0) {
+  console.error(
+    `\nAll ${SEED_ROUTES.length} seed route(s) failed to load from ${BASE} — nothing was crawled.\n` +
+      `Is the server running? Run \`npm run build && npm start\` in one terminal, ` +
+      `then this script in another (or set SITE_BASE to point elsewhere).\n`
+  );
+  await browser.close();
+  process.exit(1);
 }
 
 /* --------------------------------------------------------- classify --- */

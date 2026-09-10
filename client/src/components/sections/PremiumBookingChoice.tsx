@@ -86,7 +86,7 @@ export function BookingChoiceGrid({
         </h2>
         <div className={zocdocUrl ? 'grid gap-6 lg:grid-cols-2 lg:gap-8' : 'mx-auto max-w-[560px]'}>
           <div className={cardClass}>
-            <span className="inline-flex w-fit rounded-[7px] bg-[var(--lw-accent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-white">
+            <span className="inline-flex w-fit rounded-[7px] bg-[var(--lw-accent)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-white sm:max-desktop:text-[12px] desktop:text-[13px]">
               Recommended
             </span>
             <h3 className="mt-5 font-heading text-[24px] font-normal leading-[1.2] text-[var(--lw-primary)] sm:text-[28px]">

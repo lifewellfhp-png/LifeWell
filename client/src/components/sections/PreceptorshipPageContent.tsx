@@ -81,7 +81,7 @@ export function PreceptorshipPageContent() {
 
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-[18px] border border-[#dfeaf3] bg-[#f6f9fb] p-5">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--lw-accent)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]">
                 PMHNP
               </p>
               <h3 className="mt-3 text-[24px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-primary)]">
