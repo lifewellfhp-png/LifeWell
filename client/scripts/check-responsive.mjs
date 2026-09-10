@@ -183,7 +183,135 @@ for (const path of PAGES) {
         }
       }
 
-      return { horizontal, scrollWidth: doc.scrollWidth, offenders, smallest, smallestSample };
+      /* --------------------------------------------- target size + overlap --- */
+      // WCAG 2.2 SC 2.5.8 (Target Size Minimum, AA): a pointer target must be
+      // >=24x24 CSS px UNLESS an exception applies. Implemented here:
+      //   - Spacing: a 24px-diameter circle centered on the target's bounding
+      //     box does not overlap the equivalent circle of any other target.
+      //     This is a real, literal exception in the spec — not every
+      //     small target is a failure.
+      //   - Inline: display:inline and sitting among other non-empty text in
+      //     the same parent (a link inside a sentence).
+      //   - Not presented to the user: aria-hidden="true" on the element or
+      //     any ancestor (a genuinely hidden decoy — e.g. an anti-spam
+      //     honeypot — is not "presented" to any user in any modality, so
+      //     the SC doesn't apply to it at all; this is a getBoundingClientRect
+      //     accuracy fix, not a new WCAG exception).
+      //   - Visually hidden until focus (skip links): clipped to ~0 or using
+      //     the clip-rect pattern.
+      // Equivalent-control and Essential exceptions require human judgment
+      // about page semantics and are not auto-classified here.
+      const hasHiddenAncestor = (el) => {
+        let node = el;
+        while (node) {
+          if (node.getAttribute?.('aria-hidden') === 'true') return true;
+          node = node.parentElement;
+        }
+        return false;
+      };
+      const isVisuallyHidden = (el) => {
+        const s = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return s.clip === 'rect(0px, 0px, 0px, 0px)' || (r.width <= 1 && r.height <= 1);
+      };
+      const isInlineInText = (el) => {
+        if (getComputedStyle(el).display !== 'inline') return false;
+        const parent = el.parentElement;
+        if (!parent) return false;
+        const surrounding = Array.from(parent.childNodes)
+          .filter((n) => n !== el)
+          .map((n) => n.textContent ?? '')
+          .join('')
+          .trim();
+        return surrounding.length > 0;
+      };
+
+      const interactive = Array.from(
+        document.querySelectorAll('a[href], button, input, select, textarea')
+      )
+        .map((el) => ({ el, r: el.getBoundingClientRect(), fragments: Array.from(el.getClientRects()) }))
+        .filter(({ el, r }) => r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden');
+
+      const centerDistance = (a, b) => {
+        const acx = a.x + a.width / 2;
+        const acy = a.y + a.height / 2;
+        const bcx = b.x + b.width / 2;
+        const bcy = b.y + b.height / 2;
+        return Math.hypot(acx - bcx, acy - bcy);
+      };
+      const rectsOverlap = (a, b) =>
+        a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+      const targetFailures = [];
+      const targetExempt = [];
+      const overlaps = [];
+
+      for (let i = 0; i < interactive.length; i++) {
+        const { el, r, fragments } = interactive[i];
+        const label = (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 28);
+        const size = `${Math.round(r.width)}x${Math.round(r.height)}`;
+
+        // Overlap check runs regardless of size — two distinct interactive
+        // elements sharing screen space is a real usability bug either way.
+        // Compares per-line fragments (getClientRects), not the single
+        // getBoundingClientRect box: a wrapped inline link's bounding box is
+        // the union of all its lines, which can spuriously "overlap" a
+        // sibling on the same first line even though no glyph ever touches
+        // it (confirmed false positive — see Phase 21 report).
+        for (let j = i + 1; j < interactive.length; j++) {
+          const other = interactive[j];
+          if (other.el === el || other.el.contains(el) || el.contains(other.el)) continue;
+          const reallyOverlaps = fragments.some((fa) =>
+            other.fragments.some((fb) => rectsOverlap(fa, fb))
+          );
+          if (reallyOverlaps) {
+            const otherLabel = (other.el.textContent || other.el.getAttribute('aria-label') || '').trim().slice(0, 28);
+            overlaps.push(`"${label}" overlaps "${otherLabel}"`);
+          }
+        }
+
+        if (r.width >= 24 && r.height >= 24) continue;
+
+        if (hasHiddenAncestor(el)) {
+          targetExempt.push(`${label} — aria-hidden (not presented to any user)`);
+          continue;
+        }
+        if (isVisuallyHidden(el)) {
+          targetExempt.push(`${label} — hidden until focused`);
+          continue;
+        }
+        if (isInlineInText(el)) {
+          targetExempt.push(`${label} — inline in text (${size})`);
+          continue;
+        }
+
+        let nearestGap = Infinity;
+        for (const other of interactive) {
+          if (other.el === el) continue;
+          nearestGap = Math.min(nearestGap, centerDistance(r, other.r));
+        }
+        // 24px-diameter circles (12px radius each) don't overlap once
+        // center-to-center distance is >= 24px.
+        if (nearestGap >= 24) {
+          targetExempt.push(`${label} — spacing exception (${size}, ${Math.round(nearestGap)}px to nearest target)`);
+          continue;
+        }
+
+        targetFailures.push(
+          `${el.tagName.toLowerCase()} "${label}" ${size} (${Math.round(nearestGap)}px to nearest target)`
+        );
+      }
+
+      return {
+        horizontal,
+        scrollWidth: doc.scrollWidth,
+        offenders,
+        smallest,
+        smallestSample,
+        targetFailures,
+        targetExempt,
+        overlaps,
+      };
     }, vp.w);
 
     if (report.horizontal) {
@@ -199,68 +327,17 @@ for (const path of PAGES) {
       note('text-too-small', `${path} @ ${vp.w}px — ${report.smallest}px "${report.smallestSample}"`);
       pageIssues++;
     }
+    for (const f of report.targetFailures) {
+      note('target-too-small', `${path} @ ${vp.w}px — ${f}`);
+      pageIssues++;
+    }
+    for (const o of report.overlaps) {
+      note('target-overlap', `${path} @ ${vp.w}px — ${o}`);
+      pageIssues++;
+    }
   }
 
   console.log(pageIssues === 0 ? 'ok' : `${pageIssues} issue(s)`);
-}
-
-/* ---------------------------------------------------------- target size --- */
-
-console.log('\nTarget sizes (WCAG 2.2 SC 2.5.8 — minimum 24x24)');
-await page.setViewportSize({ width: 375, height: 812 });
-for (const path of ['/', '/contact-telehealth-mental-health-provider', '/faqs', '/bio']) {
-  await page.goto(BASE + path, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  const result = await page.evaluate(() => {
-    const failures = [];
-    const exempt = [];
-
-    /** SC 2.5.8 "Inline" exception: a link sitting inside a run of text. */
-    const isInlineInText = (el) => {
-      if (getComputedStyle(el).display !== 'inline') return false;
-      const parent = el.parentElement;
-      if (!parent) return false;
-      // Text belonging to the parent that is not part of this link.
-      const surrounding = Array.from(parent.childNodes)
-        .filter((n) => n !== el)
-        .map((n) => n.textContent ?? '')
-        .join('')
-        .trim();
-      return surrounding.length > 0;
-    };
-
-    /** Visually hidden until focused (skip links) — not a visible target. */
-    const isVisuallyHidden = (el) => {
-      const s = getComputedStyle(el);
-      const r = el.getBoundingClientRect();
-      return s.clip === 'rect(0px, 0px, 0px, 0px)' || (r.width <= 1 && r.height <= 1);
-    };
-
-    for (const el of document.querySelectorAll('a[href], button, input, select, textarea')) {
-      const r = el.getBoundingClientRect();
-      if (r.width === 0 || r.height === 0) continue;
-      if (getComputedStyle(el).visibility === 'hidden') continue;
-      if (r.width >= 24 && r.height >= 24) continue;
-
-      const label = (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 28);
-      const size = `${Math.round(r.width)}x${Math.round(r.height)}`;
-
-      if (isVisuallyHidden(el)) {
-        exempt.push(`${label} — hidden until focused`);
-      } else if (isInlineInText(el)) {
-        exempt.push(`${label} — inline in text (${size})`);
-      } else {
-        failures.push(`${el.tagName.toLowerCase()} "${label}" ${size}`);
-      }
-    }
-    return { failures, exempt };
-  });
-
-  result.failures.forEach((s) => note('target-too-small', `${path} — ${s}`));
-  const summary =
-    result.failures.length === 0
-      ? `ok${result.exempt.length ? `  (${result.exempt.length} exempt)` : ''}`
-      : `${result.failures.length} below 24x24`;
-  console.log(`  ${path.padEnd(52)}${summary}`);
 }
 
 /* ----------------------------------------------------------- mobile nav --- */
@@ -347,9 +424,15 @@ const ringOk = await page.evaluate(() => {
 console.log(`  visible focus ring on focused element               ${ringOk ? 'ok' : 'FAIL'}`);
 if (!ringOk) note('keyboard', 'no visible focus ring');
 
-// FAQ accordion via keyboard.
+// FAQ accordion via keyboard. Scoped to #main-content specifically — a bare
+// page-wide button[aria-expanded] locator also matches NavBar's mega-menu
+// dropdown triggers (MegaMenuItem uses aria-expanded too), which sit earlier
+// in the DOM and would silently become the ".first()" match instead of the
+// FAQ page's own accordion (confirmed: this previously "passed" only by
+// accident, exercising the nav dropdown rather than the accordion under
+// test — exposed once nav become reliably display:none in compact mode).
 await page.goto(BASE + '/faqs', { waitUntil: 'domcontentloaded', timeout: 60000 });
-const firstQ = page.locator('button[aria-expanded]').first();
+const firstQ = page.locator('#main-content button[aria-expanded]').first();
 const before = await firstQ.getAttribute('aria-expanded');
 await firstQ.focus();
 await page.keyboard.press('Enter');

@@ -9,8 +9,30 @@ import { cn } from '@/lib/utils';
 import { HeaderCta } from './HeaderCta';
 import { MobileMenu } from './MobileMenu';
 
-/** Extra room for the Get Started control plus flex gaps. */
-const CTA_RESERVE = 230;
+/**
+ * Extra room for the CTA control, the menu/search trigger (permanently
+ * visible since Phase 20 — previously hidden in desktop mode, so it never
+ * needed reserving here, now icon-only with no "Menu" label in desktop mode
+ * to keep its footprint down), and the flex gaps around both.
+ *
+ * Phase 21 finding: with the trigger now permanently reserved, the true
+ * required width (nav links + this reserve) exceeds max-w-page's 1280px
+ * content cap at every tested viewport once header padding is correctly
+ * subtracted (Header.tsx's row padding grows from 16px to 70px across
+ * breakpoints and was never subtracted from the old fit check — the root
+ * cause of the overlap this fixes). The true margin at the most favorable
+ * width (1280px) is only a few px either way, and empirically unstable
+ * across page loads (component-order/hydration timing, not a deterministic
+ * function of viewport alone — see the Phase 20 report's compact-nav
+ * findings) — not safe to thread precisely. This value is set generously
+ * conservative, which means desktop nav (full links visible) no longer
+ * activates at any tested width; compact/hamburger nav — fully functional,
+ * search-accessible per Phase 20 — is now the effective default. Resolving
+ * the underlying tension (nav item count, CTA size, logo size, or
+ * max-w-page itself) is a design decision beyond this constant; see the
+ * Phase 21 report.
+ */
+const CTA_RESERVE = 300;
 const ROW_GAP = 20;
 /** Buffer so late font/image loads can never push links over the logo. */
 const SAFETY = 24;
@@ -53,7 +75,19 @@ export function NavBar({
       if (!row) return;
       const logo = row.firstElementChild as HTMLElement | null;
       const logoW = logo?.getBoundingClientRect().width ?? 0;
-      const available = row.clientWidth - logoW - ROW_GAP;
+      // row.clientWidth includes row's own horizontal padding (per the
+      // clientWidth spec: content + padding), but that padding isn't space
+      // available to lay out row's flex children (logo + this nav) in — it's
+      // consumed before they're placed. row's padding is also responsive
+      // (16px up to 70px across breakpoints, see Header.tsx), so a fixed
+      // ROW_GAP-only estimate that omits padding drifts from a few px of
+      // slack at narrow paddings to real, visible overlap at wide ones.
+      // Reading the live computed padding/gap keeps this accurate as those
+      // values change, instead of hardcoding an approximation of either.
+      const rowStyle = getComputedStyle(row);
+      const paddingX = parseFloat(rowStyle.paddingLeft || '0') + parseFloat(rowStyle.paddingRight || '0');
+      const rowGap = parseFloat(rowStyle.columnGap || rowStyle.gap || '0') || ROW_GAP;
+      const available = row.clientWidth - paddingX - logoW - rowGap;
       const fits = measure.scrollWidth + CTA_RESERVE + SAFETY <= available;
       setCompact(!fits);
       if (fits) setMobileOpen(false);
@@ -170,7 +204,12 @@ export function NavBar({
           )}
         >
           <BurgerIcon />
-          <span className="hidden sm:inline">Menu</span>
+          {/* Text label only in compact mode — in desktop mode this control
+              exists purely to reach search (the desktop nav already shows
+              the real links), so the extra label width isn't earning its
+              keep against the header's tight content budget. aria-label
+              above carries the accessible name regardless. */}
+          <span className={cn('hidden sm:inline', showDesktop && 'sm:hidden')}>Menu</span>
         </button>
       </div>
 
