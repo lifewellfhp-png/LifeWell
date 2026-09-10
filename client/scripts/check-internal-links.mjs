@@ -132,6 +132,19 @@ async function extractLinks(route) {
   const trigger = page.getByRole('button', { name: 'Open menu' });
   if (await trigger.count()) {
     try {
+      // Wait for the trigger to be visible, then settle 300ms before
+      // clicking — Playwright's visible-state check fires at first paint,
+      // which can race React hydration attaching the click handler (same
+      // mechanism search-reliability-trials.mjs measured and fixed: the
+      // click registers but nothing opens if it lands before hydration).
+      // 300ms is below typical human reaction time and was confirmed
+      // there to give 100% first-attempt reliability; this crawler was
+      // still using a flat post-navigation delay with no such margin,
+      // which is what produced its intermittent "could not open mobile
+      // menu" warnings (a different route each run — a timing race, not a
+      // route-specific defect).
+      await trigger.first().waitFor({ state: 'visible', timeout: 10000 });
+      await page.waitForTimeout(300);
       await trigger.first().click({ timeout: 5000 });
       await page.locator('#mobile-menu').waitFor({ state: 'visible', timeout: 5000 });
       await grab('mobile-menu');

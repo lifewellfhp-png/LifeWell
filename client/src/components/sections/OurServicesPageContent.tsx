@@ -50,8 +50,20 @@ export function OurServicesPageContent({
         leadSize="subhead"
       />
 
-      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
+      <section
+        aria-labelledby="our-services-heading"
+        className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]"
+      >
         <div className="mx-auto max-w-[1840px]">
+          {/* sr-only: the hero above renders the page's <h1>, and each
+              ServicesGrid card renders an <h3> — this closes the h1->h3
+              gap with no visual change (ServicesGrid is shared across
+              other pages that already have their own h2 before it, so
+              the fix is scoped to this page rather than to that
+              component). */}
+          <h2 id="our-services-heading" className="sr-only">
+            Our Services
+          </h2>
           <p className="mx-auto -mt-2 mb-10 max-w-[52ch] text-center text-[15px] leading-[1.5] text-[#374151] sm:mb-12">
             Questions about cost or whether we serve your state?{' '}
             <Link

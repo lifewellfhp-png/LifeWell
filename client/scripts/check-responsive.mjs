@@ -59,12 +59,18 @@ const problems = [];
 const note = (kind, detail) => problems.push({ kind, detail });
 
 const browser = await chromium.launch();
-const page = await browser.newPage();
+// One shared context for the whole run (cache/cookies persist across
+// navigations, matching real browsing and keeping font-loading timing
+// consistent — see the fresh-page loop below, which still gets isolated
+// PAGES from this context, just not fully isolated CONTEXTS).
+const context = await browser.newContext();
+const page = await context.newPage();
 
-// Tracked across every navigation in the main loop below (cheapest place to
-// catch this — no extra page loads). `currentContext` is updated right
-// before each goto() so async listener callbacks can attribute failures to
-// the right route/viewport. Deduplicated by MESSAGE (not by
+// Tracked across every navigation (both the fresh-page loop below and the
+// shared `page` used by the later sections) — cheapest place to catch this,
+// no extra page loads for those later sections. `currentContext` is updated
+// right before each goto() so async listener callbacks can attribute
+// failures to the right route/viewport. Deduplicated by MESSAGE (not by
 // route+viewport): a single systemic failure — one bad endpoint, one
 // missing asset — legitimately recurs on every page that references it, and
 // listing each occurrence separately would bury genuinely distinct findings
@@ -80,49 +86,80 @@ function recordOnce(kind, message) {
   seenMessages.set(message, { count: 1, firstContext: currentContext, kind });
 }
 let currentContext = '';
-page.on('console', (msg) => {
-  if (msg.type() !== 'error') return;
-  // The browser's own generic 404 message for /does-not-exist is expected —
-  // that route is deliberately broken to assert the app returns a real 404.
-  if (currentContext.startsWith('/does-not-exist') && /status of 404/.test(msg.text())) return;
-  recordOnce('console-error', msg.text().slice(0, 160));
-});
-page.on('pageerror', (err) => {
-  recordOnce('console-error', err.message.split('\n')[0].slice(0, 160));
-});
-page.on('requestfailed', (req) => {
-  // net::ERR_ABORTED is the normal, expected outcome for a Next.js RSC
-  // prefetch (<Link prefetch>, the ?_rsc= query param) that was still
-  // in-flight when this test's own rapid page.goto() navigated away —
-  // browsers cancel pending requests on navigation. Not a real failure; a
-  // real user idling on a page for its natural prefetch window never
-  // triggers this.
-  if (req.failure()?.errorText === 'net::ERR_ABORTED') return;
-  recordOnce('failed-asset', `${req.url()} (${req.failure()?.errorText ?? 'failed'})`);
-});
-page.on('response', (res) => {
-  // 404s are expected for the intentional /does-not-exist route and for
-  // navigation responses already asserted separately below.
-  if (res.status() < 400) return;
-  const url = res.url();
-  if (url.startsWith(BASE + '/does-not-exist')) return;
-  if (res.request().resourceType() === 'document') return;
-  recordOnce('failed-asset', `${url} (${res.status()})`);
-});
+
+/**
+ * Wires the same error-capturing listeners onto any page. Extracted so the
+ * main per-viewport loop below can attach them to a fresh page per
+ * navigation instead of the one shared `page` (see that loop for why).
+ */
+function attachListeners(p) {
+  p.on('console', (msg) => {
+    if (msg.type() !== 'error') return;
+    // The browser's own generic 404 message for /does-not-exist is expected —
+    // that route is deliberately broken to assert the app returns a real 404.
+    if (currentContext.startsWith('/does-not-exist') && /status of 404/.test(msg.text())) return;
+    recordOnce('console-error', msg.text().slice(0, 160));
+  });
+  p.on('pageerror', (err) => {
+    recordOnce('console-error', err.message.split('\n')[0].slice(0, 160));
+  });
+  p.on('requestfailed', (req) => {
+    // net::ERR_ABORTED is the normal, expected outcome for a Next.js RSC
+    // prefetch (<Link prefetch>, the ?_rsc= query param) that was still
+    // in-flight when this test's own rapid page.goto() navigated away —
+    // browsers cancel pending requests on navigation. Not a real failure; a
+    // real user idling on a page for its natural prefetch window never
+    // triggers this.
+    if (req.failure()?.errorText === 'net::ERR_ABORTED') return;
+    recordOnce('failed-asset', `${req.url()} (${req.failure()?.errorText ?? 'failed'})`);
+  });
+  p.on('response', (res) => {
+    // 404s are expected for the intentional /does-not-exist route and for
+    // navigation responses already asserted separately below.
+    if (res.status() < 400) return;
+    const url = res.url();
+    if (url.startsWith(BASE + '/does-not-exist')) return;
+    if (res.request().resourceType() === 'document') return;
+    recordOnce('failed-asset', `${url} (${res.status()})`);
+  });
+}
+
+attachListeners(page);
 
 console.log(`\nResponsive audit — ${PAGES.length} pages x ${VIEWPORTS.length} viewports\n`);
 
 /* ------------------------------------------------- overflow + type size --- */
 
+/**
+ * Phase 24 finding: reusing one page/tab across this loop's ~220 rapid
+ * back-to-back full navigations (no natural pause between them — a pattern
+ * no real user ever produces) intermittently triggered a React hydration
+ * mismatch (minified error #418) on a random, unrelated page each time.
+ * Reproduced and instrumented: 0/30 isolated single-page loads ever
+ * triggered it; two different real readiness waits (networkidle,
+ * document.fonts.ready + 300ms settle) on the shared page did NOT
+ * eliminate it (ruling out "just needed to wait longer" — this is not a
+ * hydration-timing race the way the mobile-menu click race was); but 0/3
+ * full 220-navigation crawls triggered it once each navigation got its own
+ * fresh page instead of reusing one tab (vs. consistent per-run hits on the
+ * shared-page version across every sample taken). That isolates the cause
+ * to same-tab rapid navigation reuse itself — an artifact of this script's
+ * own crawling technique, not a defect a real visitor could ever encounter
+ * (matches the same reasoning already applied to net::ERR_ABORTED above:
+ * an artifact of this test's own rapid navigation, not a real failure).
+ * Each navigation here therefore gets its own page.
+ */
 for (const path of PAGES) {
   const label = path === '/does-not-exist' ? `${path} (404)` : path;
   process.stdout.write(`  ${label.padEnd(52)}`);
   let pageIssues = 0;
 
   for (const vp of VIEWPORTS) {
-    await page.setViewportSize({ width: vp.w, height: vp.h });
+    const navPage = await context.newPage();
+    attachListeners(navPage);
+    await navPage.setViewportSize({ width: vp.w, height: vp.h });
     currentContext = `${path} @ ${vp.w}px`;
-    const res = await page.goto(BASE + path, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const res = await navPage.goto(BASE + path, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
     if (path === '/does-not-exist') {
       if (res?.status() !== 404) {
@@ -131,8 +168,18 @@ for (const path of PAGES) {
       }
     }
 
-    await page.waitForTimeout(120);
-    const report = await page.evaluate((viewportWidth) => {
+    // Readiness wait, not an arbitrary delay: the smallest-font-size
+    // measurement below reads computed font sizes, which are wrong until
+    // any web fonts actually finish loading and applying (a flat
+    // post-navigation delay is a guess at that; document.fonts.ready is
+    // the real signal). Phase 24 finding: a fresh page per navigation
+    // (needed to eliminate the React #418 race above) has different
+    // paint/font timing than a long-reused, already-warmed-up tab, which
+    // turned the previously rock-stable text-too-small count (169 on
+    // every prior run) into a run-to-run spread (165-169) under the old
+    // flat 120ms wait.
+    await navPage.evaluate(() => document.fonts.ready).catch(() => {});
+    const report = await navPage.evaluate((viewportWidth) => {
       const doc = document.documentElement;
       const horizontal = doc.scrollWidth > viewportWidth + 1;
 
@@ -335,6 +382,7 @@ for (const path of PAGES) {
       note('target-overlap', `${path} @ ${vp.w}px — ${o}`);
       pageIssues++;
     }
+    await navPage.close();
   }
 
   console.log(pageIssues === 0 ? 'ok' : `${pageIssues} issue(s)`);
