@@ -80,8 +80,8 @@ export function organizationNode() {
     logo: {
       '@type': 'ImageObject',
       url: abs('/images/brand/logo-v2.avif'),
-      width: 354,
-      height: 63,
+      width: 945,
+      height: 191,
     },
     image: abs(DEFAULT_OG_IMAGE.url),
     priceRange: '$$',

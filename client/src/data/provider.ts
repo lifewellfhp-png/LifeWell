@@ -72,8 +72,8 @@ export const provider: Provider = {
 
   image: {
     src: '/images/team/Lourdie-Chachoute.jpeg',
-    width: 728,
-    height: 900,
+    width: 364,
+    height: 450,
     alt: 'Lourdie Chachoute, FNP-C, PMHNP-BC — Psychiatric-Mental Health Nurse Practitioner',
   },
 };
