@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { FAQAccordion } from '@/components/sections/FAQAccordion';
 import { ServicesGrid } from '@/components/sections/ServicesGrid';
+import { ArticleDisclaimer } from '@/components/sections/ArticleDisclaimer';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { telehealthStates, type TelehealthState } from '@/data/telehealth-states';
 import type { ServiceSummary } from '@/types/content';
@@ -175,6 +176,7 @@ export function TelehealthStatePageContent({
           <div className="mt-12">
             <FAQAccordion faqs={state.faqs} variant="toggles" />
           </div>
+          <ArticleDisclaimer />
         </div>
       </section>
 

@@ -131,8 +131,11 @@ test('10. P7-2 state pricing (telehealth state pages) is unaffected by this chan
   assert.equal(az.selfPayFollowUpFee, 175);
   assert.deepEqual(ma.pricingCta, { label: 'View Fees & Insurance', href: '/fees-insurance' });
   assert.deepEqual(az.pricingCta, { label: 'View Fees & Insurance', href: '/fees-insurance' });
+  // Arizona's secondaryCta was deliberately changed by Phase 26 (internal-link
+  // differentiation from Massachusetts); this test only cares that pricing
+  // itself wasn't touched, so it just confirms both are still real routes.
   assert.deepEqual(ma.secondaryCta, { label: 'Meet Your Provider', href: '/bio' });
-  assert.deepEqual(az.secondaryCta, { label: 'Meet Your Provider', href: '/bio' });
+  assert.equal(az.secondaryCta.href, '/new-patients');
   assert.equal(fl.selfPayInitialFee, null);
   assert.equal(telehealthStates.length, 3);
 });

@@ -47,13 +47,17 @@ test('3. no invented facts (hours, guarantees, eligibility) were introduced by t
   assert.doesNotMatch(entry.answer, /same[- ]day/i);
 });
 
-test('4. Massachusetts and Arizona FAQ answers remain correctly telehealth-only (not touched by this fix, still accurate)', () => {
+test('4. Massachusetts and Arizona FAQ answers remain correctly telehealth-only (Phase 26 reworded the exact phrasing; the underlying fact is unchanged)', () => {
   const ma = telehealthStates.find((s) => s.slug === 'massachusetts');
   const az = telehealthStates.find((s) => s.slug === 'arizona');
-  const maFaq = ma.faqs.find((f) => /office in massachusetts/i.test(f.question));
-  const azFaq = az.faqs.find((f) => /office in arizona/i.test(f.question));
-  assert.match(maFaq.answer, /entirely by telehealth/i);
-  assert.match(azFaq.answer, /entirely by telehealth/i);
+  const maFaq = ma.faqs.find((f) => /office.*massachusetts|massachusetts.*office/i.test(f.question));
+  const azFaq = az.faqs.find((f) => /office.*arizona|arizona.*office/i.test(f.question));
+  assert.ok(maFaq, 'expected an MA FAQ addressing the physical-office question');
+  assert.ok(azFaq, 'expected an AZ FAQ addressing the physical-office question');
+  assert.match(maFaq.answer, /video|telehealth/i);
+  assert.match(azFaq.answer, /video visit|telehealth/i);
+  assert.match(maFaq.answer, /physical office is in Orlando, Florida/i);
+  assert.match(azFaq.answer, /physical office is in Orlando, Florida/i);
 });
 
 test('5. the stale "instructions for your telehealth session" phrase does not appear anywhere else in client/src', () => {

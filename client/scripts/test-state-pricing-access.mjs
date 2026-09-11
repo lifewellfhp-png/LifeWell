@@ -72,9 +72,14 @@ test('5. MA/AZ state pages expose a route to /fees-insurance', () => {
 
 /* -------------------------------------------------- 6, 7. CTAs preserved --- */
 
-test('6. "Meet Your Provider" remains available for MA/AZ, unchanged', () => {
+test('6. MA/AZ secondaryCta each resolve to a real, distinct route (Phase 26 differentiation)', () => {
+  // Massachusetts unchanged; Arizona deliberately points elsewhere (/new-patients)
+  // as part of Phase 26's internal-link-context differentiation — both must
+  // still be real, valid routes, and must not be identical to each other
+  // (that sameness was exactly the "near-duplicate" problem Phase 26 fixed).
   assert.deepEqual(ma.secondaryCta, { label: 'Meet Your Provider', href: '/bio' });
-  assert.deepEqual(az.secondaryCta, { label: 'Meet Your Provider', href: '/bio' });
+  assert.equal(az.secondaryCta.href, '/new-patients');
+  assert.notDeepEqual(ma.secondaryCta, az.secondaryCta);
 });
 
 test('7. "Book an Appointment" remains available for all three states, unchanged', () => {
@@ -115,13 +120,17 @@ test('9. no Massachusetts or Arizona physical-office implication is introduced',
   for (const state of [ma, az]) {
     assert.doesNotMatch(state.careMode, /office/i);
   }
-  // The existing explicit "no office" subheading and FAQ answer must be untouched.
-  assert.match(ma.subheading, /no physical office in Massachusetts/i);
-  assert.match(az.subheading, /no physical office in Arizona/i);
-  const officeFaqMa = ma.faqs.find((f) => /office in massachusetts/i.test(f.question));
-  const officeFaqAz = az.faqs.find((f) => /office in arizona/i.test(f.question));
-  assert.match(officeFaqMa.answer, /Our only physical office is in Orlando, Florida/);
-  assert.match(officeFaqAz.answer, /Our only physical office is in Orlando, Florida/);
+  // Phase 26 rewrote both subheadings in genuinely different language, so this
+  // checks for the underlying fact (no physical office in the state) rather
+  // than one exact historical phrase — still explicitly present in both.
+  assert.match(ma.subheading, /don't have a physical office in the state|no physical office in Massachusetts/i);
+  assert.match(az.subheading, /don't have an in-state office|no physical office in Arizona/i);
+  const officeFaqMa = ma.faqs.find((f) => /office.*massachusetts|massachusetts.*office/i.test(f.question));
+  const officeFaqAz = az.faqs.find((f) => /office.*arizona|arizona.*office/i.test(f.question));
+  assert.ok(officeFaqMa, 'expected an MA FAQ addressing the physical-office question');
+  assert.ok(officeFaqAz, 'expected an AZ FAQ addressing the physical-office question');
+  assert.match(officeFaqMa.answer, /physical office is in Orlando, Florida/i);
+  assert.match(officeFaqAz.answer, /physical office is in Orlando, Florida/i);
 });
 
 /* ------------------------------------------------- 10. Florida unchanged --- */
@@ -156,14 +165,68 @@ test('10c. Fees & Insurance page pricing source (data/pricing.ts) already matche
 /* --------------------------------------------- 11. no therapy terminology --- */
 
 test('11. no "therapy session"/"therapy visit"/"counseling session" terminology was introduced', () => {
-  const newText = [
-    'Self-Pay Only',
-    'Initial psychiatric evaluation',
-    'Follow-up medication management',
-    'View Fees & Insurance',
-  ].join(' ');
-  assert.doesNotMatch(newText, /therapy session|therapy visit|counseling session/i);
+  // Phase 26 added substantially more MA/AZ prose (body paragraphs, FAQs) —
+  // scan the actual current content, not a fixed historical snippet.
+  for (const state of [ma, az]) {
+    const allText = [state.heading, state.subheading, ...state.body, state.metaTitle, state.metaDescription]
+      .concat(state.faqs.flatMap((f) => [f.question, f.answer]))
+      .join(' ');
+    assert.doesNotMatch(allText, /therapy session|therapy visit|counseling session/i);
+  }
   assert.doesNotMatch(componentSource, /therapy session|therapy visit|counseling session/i);
+});
+
+/* --------------------------------- 13. Phase 26: genuine differentiation --- */
+
+test('13. Massachusetts and Arizona no longer share near-duplicate copy', () => {
+  // The Phase 25 finding this closes out: MA/AZ heading/subheading/body/FAQs
+  // were templated from each other with only the state name and price
+  // swapped. Every one of these fields must now genuinely differ.
+  assert.notEqual(ma.heading, az.heading);
+  assert.notEqual(ma.subheading, az.subheading);
+  assert.notEqual(ma.badge, az.badge);
+  assert.notEqual(ma.metaTitle, az.metaTitle);
+  assert.notEqual(ma.metaDescription, az.metaDescription);
+  assert.notDeepEqual(ma.body, az.body);
+  assert.ok(ma.faqs.length > 0 && az.faqs.length > 0, 'both states must have FAQ content');
+  const maQuestions = ma.faqs.map((f) => f.question);
+  const azQuestions = az.faqs.map((f) => f.question);
+  assert.notDeepEqual(maQuestions, azQuestions);
+  // Swapping only the state name into an otherwise-identical sentence is
+  // exactly the pattern being fixed — assert the two subheadings aren't just
+  // that (same text with the state name substituted).
+  const normalize = (s, name) => s.replace(new RegExp(name, 'gi'), '{STATE}');
+  assert.notEqual(normalize(ma.subheading, 'Massachusetts'), normalize(az.subheading, 'Arizona'));
+});
+
+test('14. state-specific facts remain correctly scoped to their own page (no cross-contamination from differentiation)', () => {
+  assert.match(ma.subheading + ma.body.join(' '), /Massachusetts/);
+  assert.doesNotMatch(ma.subheading, /Arizona/);
+  assert.match(az.subheading + az.body.join(' '), /Arizona/);
+  assert.doesNotMatch(az.subheading, /Massachusetts/);
+  for (const f of ma.faqs) assert.doesNotMatch(f.question + f.answer, /Arizona/);
+  for (const f of az.faqs) assert.doesNotMatch(f.question + f.answer, /Massachusetts/);
+});
+
+test('15. 988 crisis guidance is present on both state pages via the shared disclaimer component', () => {
+  assert.match(componentSource, /import \{ ArticleDisclaimer \} from '@\/components\/sections\/ArticleDisclaimer';/);
+  assert.match(componentSource, /<ArticleDisclaimer \/>/);
+  const disclaimerSource = readFileSync(
+    join(__dirname, '../src/components/sections/ArticleDisclaimer.tsx'),
+    'utf8'
+  );
+  assert.match(disclaimerSource, /988/);
+  assert.match(disclaimerSource, /not a substitute for personalized/i);
+});
+
+test('16. neither state page promises a prescription, diagnosis, or guaranteed outcome', () => {
+  for (const state of [ma, az]) {
+    const allText = [state.heading, state.subheading, ...state.body]
+      .concat(state.faqs.flatMap((f) => [f.question, f.answer]))
+      .join(' ');
+    assert.doesNotMatch(allText, /\bguarantee(d)?\b.*(prescri|diagnos|outcome|appointment)/i);
+    assert.doesNotMatch(allText, /\bwill prescribe\b|\bwe will diagnose\b/i);
+  }
 });
 
 /* --------------------------------------------------------- CMS isolation --- */
