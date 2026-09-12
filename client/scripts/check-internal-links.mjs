@@ -45,6 +45,16 @@ const SEED_ROUTES = [
   '/preceptorship-program',
   '/orlando-psychiatric-care',
   '/blog',
+  // Real, CMS-published articles — no static fallback exists for these
+  // (see /blog/[slug]/page.tsx), so this list previously never actually
+  // crawled a real article page.
+  '/blog/understanding-anxiety-symptoms-and-when-to-seek-help',
+  '/blog/adult-adhd-what-to-know-about-evaluation-and-treatment',
+  '/blog/what-happens-during-a-psychiatric-evaluation',
+  '/blog/understanding-anxiety-when-worry-becomes-more-than-everyday-stress',
+  '/blog/is-a-psychiatric-evaluation-right-for-you',
+  '/blog/medication-management-follow-up-visits-explained',
+  '/blog/how-to-prepare-for-a-telehealth-psychiatry-appointment',
   '/managing-anxiety-in-everyday-life',
   '/privacy-policy',
   '/terms-conditions',
