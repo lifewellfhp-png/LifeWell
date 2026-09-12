@@ -18,6 +18,11 @@ const eslintConfig = [
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       'no-console': 'off',
+      // These scripts destructure `{ field: _field, ...rest }` to build a
+      // fixture that's missing one field — `_field` is deliberately unused,
+      // it exists only so `...rest` excludes it. ignoreRestSiblings targets
+      // exactly that pattern, not unused variables generally.
+      '@typescript-eslint/no-unused-vars': ['warn', { ignoreRestSiblings: true }],
     },
   },
 ];

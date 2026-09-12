@@ -43,10 +43,16 @@ if (result.status !== 0) {
   process.exit(2);
 }
 
+// Windows checkouts with core.autocrlf=true re-materialize tracked LF blobs
+// as CRLF on disk; git itself treats that as no change. Comparing raw bytes
+// here would otherwise report false drift on every such file. The generator
+// always writes LF, so normalize both sides before comparing content.
+const normalize = (s) => s.replace(/\r\n/g, '\n');
+
 let drifted = 0;
 for (const file of FILES) {
-  const committed = readFileSync(join(REAL_OUT, file), 'utf-8');
-  const fresh = readFileSync(join(scratchDir, file), 'utf-8');
+  const committed = normalize(readFileSync(join(REAL_OUT, file), 'utf-8'));
+  const fresh = normalize(readFileSync(join(scratchDir, file), 'utf-8'));
   if (committed === fresh) {
     console.log(`  PASS  ${file.padEnd(16)} matches a fresh regeneration from _source/`);
   } else {

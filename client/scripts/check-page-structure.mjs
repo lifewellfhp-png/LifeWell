@@ -24,8 +24,26 @@
  *   node scripts/check-page-structure.mjs   (in another)
  */
 import { chromium } from 'playwright';
+import { SITE_BASE, preflight, tryFetchPublicContent } from './lib/site-config.mjs';
 
-const BASE = process.env.SITE_BASE ?? 'http://localhost:3000';
+const BASE = SITE_BASE;
+
+await preflight({ requireSite: true, requireApi: false });
+
+// See check-internal-links.mjs for the full explanation: these 7 articles
+// have no static fallback and only resolve when the CMS API is reachable, so
+// a down local API makes them 404 exactly like a genuinely broken page would.
+const CMS_ONLY_ROUTES = new Set([
+  '/blog/understanding-anxiety-symptoms-and-when-to-seek-help',
+  '/blog/adult-adhd-what-to-know-about-evaluation-and-treatment',
+  '/blog/what-happens-during-a-psychiatric-evaluation',
+  '/blog/understanding-anxiety-when-worry-becomes-more-than-everyday-stress',
+  '/blog/is-a-psychiatric-evaluation-right-for-you',
+  '/blog/medication-management-follow-up-visits-explained',
+  '/blog/how-to-prepare-for-a-telehealth-psychiatry-appointment',
+]);
+const cmsAvailable = (await tryFetchPublicContent()) !== null;
+console.log(`CMS API: ${cmsAvailable ? 'reachable' : 'unreachable — CMS-only routes reported separately, not as broken pages'}\n`);
 
 /** Same public route surface check-internal-links.mjs crawls. */
 const ROUTES = [
@@ -89,7 +107,8 @@ for (const route of ROUTES) {
     continue;
   }
   if (!res || res.status() >= 400) {
-    note(route, 'crawl-error', `HTTP ${res?.status() ?? 'no response'}`);
+    const kind = !cmsAvailable && CMS_ONLY_ROUTES.has(route) ? 'cms-unavailable-locally' : 'crawl-error';
+    note(route, kind, `HTTP ${res?.status() ?? 'no response'}`);
     continue;
   }
   pagesChecked++;
@@ -177,12 +196,24 @@ if (pagesChecked === 0) {
 }
 
 console.log('');
-if (problems.length === 0) {
+
+// A down local CMS is an environment condition, never a production defect.
+const envNotes = problems.filter((p) => p.kind === 'cms-unavailable-locally');
+const realProblems = problems.filter((p) => p.kind !== 'cms-unavailable-locally');
+
+if (envNotes.length > 0) {
+  console.log(`cms-unavailable-locally (${envNotes.length}) — local CMS API unreachable, not a production defect`);
+  envNotes.slice(0, 20).forEach((p) => console.log(`   ${p.page} — ${p.detail}`));
+  if (envNotes.length > 20) console.log(`   … and ${envNotes.length - 20} more`);
+  console.log('');
+}
+
+if (realProblems.length === 0) {
   console.log(`✓ ALL PASS — ${pagesChecked} page(s), ${titles.size} unique titles, ${descriptions.size} unique descriptions\n`);
   process.exit(0);
 }
 
-const grouped = problems.reduce((acc, p) => {
+const grouped = realProblems.reduce((acc, p) => {
   (acc[p.kind] ??= []).push(`${p.page} — ${p.detail}`);
   return acc;
 }, {});
@@ -192,5 +223,5 @@ for (const [kind, list] of Object.entries(grouped)) {
   if (list.length > 20) console.log(`   … and ${list.length - 20} more`);
   console.log('');
 }
-console.log(`${problems.length} issue(s)\n`);
+console.log(`${realProblems.length} issue(s)\n`);
 process.exit(1);
