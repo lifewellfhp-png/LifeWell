@@ -1,16 +1,20 @@
 /**
  * End-to-end form test: real browser -> Next.js frontend -> Node API.
  *
+ * Local-only, by design: this script issues real POST /api/contact and
+ * POST /api/newsletter requests, so it must never run against production —
+ * doing so would submit a genuine contact request and newsletter signup
+ * every run. There is no check-forms.mjs "prod" variant; see
+ * check-deeplinks.prod.mjs for how a read-only production script looks.
+ *
  * Requires both servers running:
  *   server/  npm start   (port 4000)
  *   client/  npm start   (port 3000)
  *
- *   node scripts/check-forms.mjs
+ *   npm run check:forms
  */
 import { chromium } from 'playwright';
-
-const SITE = process.env.SITE_BASE ?? 'http://localhost:3000';
-const API = process.env.API_BASE ?? 'http://localhost:4000';
+import { SITE_BASE as SITE, API_BASE as API, preflight } from './lib/site-config.mjs';
 
 const results = [];
 const record = (name, ok, detail = '') => {
@@ -18,14 +22,18 @@ const record = (name, ok, detail = '') => {
   console.log(`  ${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? `  — ${detail}` : ''}`);
 };
 
-// Fail fast if the API is not up, rather than blaming the UI.
-try {
-  const health = await fetch(`${API}/health`).then((r) => r.json());
-  console.log(`\nAPI health: ${health.status} (mail: ${health.integrations.mail})\n`);
-} catch {
-  console.error(`Cannot reach the API at ${API}. Start server/ first.`);
-  process.exit(1);
+if (/lifewellfhp\.com|lifewellfhp-server\.vercel\.app|vercel\.app/.test(SITE + API) && !/localhost|127\.0\.0\.1/.test(SITE)) {
+  console.error(
+    'REFUSING TO RUN: check-forms.mjs submits real form data and must only target a local server.\n' +
+      `SITE_BASE (${SITE}) or API_BASE (${API}) looks like production/a deployed host.\n`
+  );
+  process.exit(2);
 }
+
+await preflight({ requireSite: true, requireApi: true });
+
+const health = await fetch(`${API}/health`).then((r) => r.json());
+console.log(`API health: ${health.status} (mail: ${health.integrations.mail})\n`);
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
@@ -47,12 +55,18 @@ await page.goto(`${SITE}/contact-telehealth-mental-health-provider`, {
 // The footer newsletter also has an email field, so scope to the contact form.
 let contactForm = page.locator('form').filter({ has: page.getByRole('button', { name: /send message/i }) });
 
-// Client-side validation must block an empty submit.
+// Client-side validation must block an empty submit. The deployed contact
+// form is ContactForm's "compact" variant (see ContactPageContent.tsx and
+// CTASection.tsx — both pass variant="compact"; "full" is not rendered
+// anywhere in the app), which has exactly 3 required fields: Name, E-mail,
+// Reason. Phone is full-variant-only and never rendered here; there is no
+// consent checkbox in compact mode because compact submissions send
+// consent: true unconditionally (see ContactForm.tsx's onSubmit).
 await ready(page.getByRole('button', { name: /send message/i }));
 await page.getByRole('button', { name: /send message/i }).click();
 await page.waitForTimeout(300);
 const clientErrors = await page.locator('[id$="-error"]').count();
-record('client-side validation blocks empty submit', clientErrors > 0, `${clientErrors} field errors`);
+record('client-side validation blocks empty submit', clientErrors === 3, `${clientErrors} field errors (expected 3: name, email, reason)`);
 
 const requestSeen = { hit: false, body: null };
 page.on('request', (req) => {
@@ -66,14 +80,9 @@ page.on('request', (req) => {
   }
 });
 
-await contactForm.getByLabel(/your name/i).fill('Playwright Tester');
-await contactForm.getByLabel(/email address/i).fill('tester@example.com');
-await contactForm.getByLabel(/phone number/i).fill('(407) 555-0199');
-await contactForm.getByLabel(/subject/i).fill('Automated integration test');
-await page
-  .getByLabel(/how can we help/i)
-  .fill('This is an automated end-to-end test of the contact form submission path.');
-await contactForm.getByRole('checkbox').check();
+await contactForm.getByLabel('Name', { exact: true }).fill('Playwright Tester');
+await contactForm.getByLabel('E-mail', { exact: true }).fill('tester@example.com');
+await contactForm.getByLabel('Reason', { exact: true }).selectOption('scheduling');
 await page.getByRole('button', { name: /send message/i }).click();
 
 await page.waitForTimeout(1500);
@@ -81,8 +90,10 @@ await page.waitForTimeout(1500);
 record('POST /api/contact issued from the browser', requestSeen.hit);
 record(
   'payload carries the entered values',
-  requestSeen.body?.name === 'Playwright Tester' && requestSeen.body?.consent === true,
-  requestSeen.body ? `name="${requestSeen.body.name}"` : 'no body'
+  requestSeen.body?.name === 'Playwright Tester' &&
+    requestSeen.body?.reason === 'scheduling' &&
+    requestSeen.body?.consent === true,
+  requestSeen.body ? `name="${requestSeen.body.name}" reason="${requestSeen.body.reason}"` : 'no body'
 );
 record(
   'honeypot field sent empty',
@@ -102,8 +113,16 @@ record('offers to send another message', canResend);
 console.log('\nNewsletter form');
 await page.goto(`${SITE}/`, { waitUntil: 'domcontentloaded' });
 
+// FooterNewsletter (the only NewsletterForm instance in the app — see
+// Footer.tsx) renders collapsed by default: just a "Sign up to Newsletter"
+// toggle button. The email input doesn't exist in the DOM until that's
+// clicked, so the field must be revealed before it can be located.
+const newsletterToggle = page.getByRole('button', { name: /sign up to newsletter/i });
+await newsletterToggle.scrollIntoViewIfNeeded();
+await ready(newsletterToggle);
+await newsletterToggle.click();
+
 const newsletterInput = page.locator('input[name="email"]').first();
-await newsletterInput.scrollIntoViewIfNeeded();
 await ready(newsletterInput);
 
 // Invalid address is caught before any request goes out.
@@ -142,12 +161,9 @@ await page.goto(`${SITE}/contact-telehealth-mental-health-provider`, {
 });
 contactForm = page.locator('form').filter({ has: page.getByRole('button', { name: /send message/i }) });
 await ready(page.getByRole('button', { name: /send message/i }));
-await contactForm.getByLabel(/your name/i).fill('Offline Tester');
-await contactForm.getByLabel(/email address/i).fill('offline@example.com');
-await page
-  .getByLabel(/how can we help/i)
-  .fill('Testing the failure path when the API cannot be reached at all.');
-await contactForm.getByRole('checkbox').check();
+await contactForm.getByLabel('Name', { exact: true }).fill('Offline Tester');
+await contactForm.getByLabel('E-mail', { exact: true }).fill('offline@example.com');
+await contactForm.getByLabel('Reason', { exact: true }).selectOption('scheduling');
 await page.getByRole('button', { name: /send message/i }).click();
 await page.waitForTimeout(1200);
 

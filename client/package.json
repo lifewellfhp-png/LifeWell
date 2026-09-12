@@ -20,6 +20,8 @@
     "check:coverage": "node scripts/check-content-coverage.cjs",
     "check:hero": "node scripts/shot-hero.mjs",
     "check:deeplinks": "node scripts/check-deeplinks.mjs",
+    "check:deeplinks:prod": "node scripts/check-deeplinks.prod.mjs",
+    "check:drift": "node scripts/check-content-drift.mjs",
     "check:vercel": "node scripts/check-vercel-config.mjs"
   },
   "dependencies": {

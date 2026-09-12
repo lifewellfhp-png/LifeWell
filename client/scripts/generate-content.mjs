@@ -15,7 +15,9 @@ import { dirname, join } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SRC = join(here, '..', '..', '_source');
-const OUT = join(here, '..', 'src', 'data', 'generated');
+// Overridable so check-content-drift.mjs can regenerate into a scratch
+// directory and diff against the committed output without ever touching it.
+const OUT = process.env.GENERATED_OUT_DIR ?? join(here, '..', 'src', 'data', 'generated');
 mkdirSync(OUT, { recursive: true });
 
 /* ------------------------------------------------------------------ utils */
