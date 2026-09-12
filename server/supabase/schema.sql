@@ -263,6 +263,12 @@ create table if not exists conversions (
   conversion_type text not null check (conversion_type in ('contact', 'newsletter', 'booking_click')),
   path text,
   meta jsonb not null default '{}'::jsonb,
+  -- Phase 8 P3-1: privacy-minimized device/referrer attribution, added via
+  -- server/supabase/ops.sql (nullable, additive — see that file for the
+  -- exact migration and rollback). Documented here so this file stays an
+  -- accurate declaration of the live schema.
+  device text check (device is null or device in ('mobile', 'tablet', 'desktop', 'unknown')),
+  referrer_host text,
   created_at timestamptz not null default now()
 );
 

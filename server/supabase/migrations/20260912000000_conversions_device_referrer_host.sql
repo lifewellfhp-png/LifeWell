@@ -1,0 +1,106 @@
+-- Migration: conversions.device / conversions.referrer_host
+-- Date: 2026-09-12
+-- Author: analytics hotfix (production Admin Analytics error:
+--   "column conversions.device does not exist")
+--
+-- BACKGROUND
+-- Commit 7512eb0 (2026-09-06, "add privacy-minimized device and referrer
+-- attribution to conversions") shipped application code that reads and
+-- writes conversions.device / conversions.referrer_host, and appended this
+-- exact DDL to server/supabase/ops.sql at the time. That DDL was never run
+-- against the production database. Since then:
+--   - server/src/controllers/analytics.controller.ts:42-55
+--     (handleConversionIngest) has attempted to INSERT a `device` value on
+--     every single conversion (booking_click / contact / newsletter) and
+--     failed with this same "column does not exist" error every time. The
+--     client (client/src/lib/cms.ts trackConversion(), line ~177) wraps the
+--     call in try/catch and ignores the failure, so this has been silently
+--     dropping all conversion-tracking writes since 2026-09-06.
+--   - server/src/controllers/analytics.controller.ts:229-233
+--     (getAnalyticsSummary) SELECTs `device, referrer_host` from
+--     conversions for the Admin /analytics page, which is the read that
+--     surfaces the visible red error.
+--
+-- This migration only adds the two columns the already-deployed code has
+-- always expected. No application code changes are required or included.
+--
+-- SAFETY
+-- - Strictly additive: ADD COLUMN IF NOT EXISTS, no DROP/RENAME/TRUNCATE,
+--   no ALTER ... TYPE, no rewrite of any existing row.
+-- - Both columns are nullable with no DEFAULT, so every existing row gets
+--   NULL for both — Postgres does this as a metadata-only change on a
+--   nullable column with no default (no table rewrite, no row scan).
+-- - `device` carries the same closed-vocabulary CHECK constraint as
+--   analytics_events.device (mobile/tablet/desktop/unknown) so the two
+--   tables can never drift into divergent categories.
+-- - `referrer_host` intentionally has no DB-level format/length check,
+--   matching analytics_events.referrer_host and every other free-text
+--   column in this schema — validated/normalized at the application layer
+--   (Zod schema + normalizeReferrerHost() in server/src/lib/attribution.ts).
+-- - Neither column stores a raw user-agent string, full referrer URL, IP
+--   address, or any other high-entropy/identifying value.
+--
+-- HISTORICAL ROWS
+-- Every row inserted before this migration will read back device = NULL
+-- and referrer_host = NULL — there is no way to retroactively know a past
+-- visitor's device/referrer, and this migration does not attempt to
+-- fabricate one. This is already handled by the deployed application code,
+-- unchanged by this migration:
+--   analytics.controller.ts:264   const device = e.device || 'unknown';
+--   analytics.controller.ts:323   const device = c.device || 'unknown';
+--   analytics.controller.ts:325   const ref = c.referrer_host || 'direct';
+-- i.e. NULL already renders as "Unknown" (device) / "Direct" (referrer) in
+-- the Admin Analytics aggregates — no code change needed for that either.
+
+-- =============================================================================
+-- STEP 1 — read-only: inspect the current schema before changing anything
+-- =============================================================================
+-- select column_name, data_type, is_nullable, column_default
+-- from information_schema.columns
+-- where table_schema = 'public' and table_name = 'conversions'
+-- order by ordinal_position;
+--
+-- select conname, pg_get_constraintdef(oid)
+-- from pg_constraint
+-- where conrelid = 'public.conversions'::regclass;
+--
+-- select count(*) as total_rows from conversions;
+
+-- =============================================================================
+-- STEP 2 — the migration itself (idempotent; safe to run more than once)
+-- =============================================================================
+alter table conversions add column if not exists device text
+  check (device is null or device in ('mobile', 'tablet', 'desktop', 'unknown'));
+
+alter table conversions add column if not exists referrer_host text;
+
+-- Make PostgREST's schema cache (used by the Supabase JS client / REST API)
+-- aware of the new columns immediately, without waiting for its own poll
+-- interval or a project restart.
+notify pgrst, 'reload schema';
+
+-- =============================================================================
+-- STEP 3 — read-only: verify after running STEP 2
+-- =============================================================================
+-- select column_name, data_type, is_nullable, column_default
+-- from information_schema.columns
+-- where table_schema = 'public' and table_name = 'conversions'
+-- order by ordinal_position;
+--
+-- select conname, pg_get_constraintdef(oid)
+-- from pg_constraint
+-- where conrelid = 'public.conversions'::regclass;
+--
+-- -- Existing rows should be NULL/NULL (never a fabricated value); confirms
+-- -- no backfill happened and the table wasn't rewritten with placeholder data.
+-- select count(*) as total_rows,
+--        count(*) filter (where device is null) as device_null,
+--        count(*) filter (where referrer_host is null) as referrer_host_null
+-- from conversions;
+
+-- =============================================================================
+-- ROLLBACK (manual — this schema has no automated down-migration tooling;
+-- run only if this change ever needs to be reverted)
+-- =============================================================================
+-- alter table conversions drop column if exists device;
+-- alter table conversions drop column if exists referrer_host;
