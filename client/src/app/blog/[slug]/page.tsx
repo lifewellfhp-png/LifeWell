@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,6 +25,48 @@ function str(value: unknown): string | null {
 }
 
 /**
+ * Minimal inline-link support inside an otherwise-plain-text CMS field:
+ * `[label](url)` becomes a real link — an internal <Link> for a root-relative
+ * path (starts with "/"), or an external <a target="_blank" rel="noopener">
+ * for an http(s) URL. Without this, a source citation or a mention of
+ * another article could only ever be plain text, never an actual clickable
+ * link, since the body has no HTML/markdown rendering otherwise.
+ */
+function renderInline(text: string, keyPrefix: string) {
+  const parts: ReactNode[] = [];
+  const re = /\[([^\]]+)\]\((\/[^\s)]+|https?:\/\/[^\s)]+)\)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = re.exec(text))) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    const label = m[1] ?? '';
+    const href = m[2] ?? '';
+    parts.push(
+      href.startsWith('/') ? (
+        <Link key={`${keyPrefix}-${i}`} href={href} className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline">
+          {label}
+        </Link>
+      ) : (
+        <a
+          key={`${keyPrefix}-${i}`}
+          href={href}
+          target="_blank"
+          rel="noopener"
+          className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline"
+        >
+          {label}
+        </a>
+      )
+    );
+    last = re.lastIndex;
+    i++;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+
+/**
  * Article bodies are a single plain-text field (CMS `blog_posts.body`), not
  * markdown or HTML — authored with blank-line-separated paragraphs and
  * short, punctuation-free lines used as section labels (see the existing
@@ -31,10 +74,12 @@ function str(value: unknown): string | null {
  * this rendered as undifferentiated <p> text via whitespace-pre-wrap, so a
  * screen reader or search crawler saw one long paragraph with no heading
  * structure at all. This gives those already-heading-shaped lines a real
- * <h2>, and "- " lines a real <ul>, without requiring a markdown authoring
- * format or a new dependency — a block only becomes a heading if it's a
- * single short line with no sentence-ending punctuation, so normal prose
- * paragraphs (including one-line ones that end in a period) are unaffected.
+ * <h2>, "- " lines a real <ul>, and a `[label](url)` substring anywhere in a
+ * paragraph or list item a real link (see renderInline) — without requiring
+ * a markdown *renderer* or a new dependency. A block only becomes a heading
+ * if it's a single short line with no sentence-ending punctuation, so normal
+ * prose paragraphs (including one-line ones that end in a period) are
+ * unaffected.
  */
 function renderBody(body: string) {
   const blocks = body.split(/\r?\n\s*\r?\n/).map((b) => b.trim()).filter(Boolean);
@@ -44,7 +89,7 @@ function renderBody(body: string) {
       return (
         <ul key={i} className="my-4 list-disc space-y-1.5 pl-6">
           {lines.map((l, j) => (
-            <li key={j}>{l.slice(2)}</li>
+            <li key={j}>{renderInline(l.slice(2), `${i}-${j}`)}</li>
           ))}
         </ul>
       );
@@ -59,7 +104,7 @@ function renderBody(body: string) {
     }
     return (
       <p key={i} className="mt-4 first:mt-0">
-        {lines.join(' ')}
+        {renderInline(lines.join(' '), `${i}`)}
       </p>
     );
   });
