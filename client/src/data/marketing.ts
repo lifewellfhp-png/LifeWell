@@ -9,8 +9,8 @@ export const hero = {
     'Compassionate, evidence-based psychiatric care with a whole-person approach — available through secure telehealth and in-person visits in Orlando.',
   image: {
     src: '/images/sections/lifewell.avif',
-    width: 1180,
-    height: 1000,
+    width: 1000,
+    height: 667,
     alt: 'Telehealth mental health care session with a board-certified psychiatric nurse practitioner',
   },
 };
@@ -53,7 +53,7 @@ export const benefits: Benefit[] = [
     title: 'Personalized One-on-One Care',
     description:
       'Every patient receives individual attention and a treatment plan tailored to their unique needs, goals, and mental health journey.',
-    image: { src: '/images/benefits/Personalized-One-on-One-Care.avif', width: 1180, height: 1180 },
+    image: { src: '/images/benefits/Personalized-One-on-One-Care.avif', width: 1180, height: 990 },
   },
   {
     title: 'Private & Secure Telehealth Sessions',
@@ -62,7 +62,7 @@ export const benefits: Benefit[] = [
     image: {
       src: '/images/benefits/Private-Secure-Telehealth-Sessions.avif',
       width: 1180,
-      height: 1180,
+      height: 990,
     },
   },
   {
@@ -72,7 +72,7 @@ export const benefits: Benefit[] = [
     image: {
       src: '/images/benefits/Flexible-Convenient-Scheduling.avif',
       width: 1180,
-      height: 1180,
+      height: 990,
     },
   },
   {
@@ -82,7 +82,7 @@ export const benefits: Benefit[] = [
     image: {
       src: '/images/benefits/Compassionate-Judgment-Free-Support.avif',
       width: 1180,
-      height: 1180,
+      height: 990,
     },
   },
   {
@@ -92,7 +92,7 @@ export const benefits: Benefit[] = [
     image: {
       src: '/images/benefits/Evidence-Based-Treatment-Approach.avif',
       width: 1180,
-      height: 1180,
+      height: 990,
     },
   },
 ];
@@ -104,7 +104,7 @@ export const howItWorks = {
   heading: 'How Our Simple Telehealth Process Works',
   body: 'Getting started is simple. Follow these three easy steps to begin your mental wellness journey.',
   cta: { label: 'Book an Appointment' },
-  image: { src: '/images/sections/How-It-Works.avif', width: 633, height: 570 },
+  image: { src: '/images/sections/How-It-Works.avif', width: 570, height: 606 },
 };
 
 export const steps: Step[] = [
@@ -256,7 +256,7 @@ export const primaryCta = {
 
 export const contactCta = {
   heading: 'Reach Out and Take the First Step',
-  image: { src: '/images/sections/CONTACT-US-IMG.avif', width: 633, height: 520 },
+  image: { src: '/images/sections/CONTACT-US-IMG.avif', width: 520, height: 690 },
 };
 
 /**

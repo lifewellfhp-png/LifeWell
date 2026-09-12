@@ -88,7 +88,7 @@ export const providerPage = {
   philosophyImage: {
     src: '/images/sections/My-Treatment-Philosophy.avif',
     width: 1180,
-    height: 1180,
+    height: 990,
     alt: 'A calm, private space for confidential telehealth mental health appointments',
   },
   consultation: {
