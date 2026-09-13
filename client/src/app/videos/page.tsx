@@ -13,9 +13,6 @@ import { getResolvedContent } from '@/lib/cms-resolve';
 const DESCRIPTION =
   'Watch and learn with educational videos from LifeWell Family Health & Psychiatry — practical mental health guidance from a board-certified PMHNP.';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {

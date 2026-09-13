@@ -15,9 +15,6 @@ import { fetchPublicBlogPost } from '@/lib/cms';
 import { getServiceSummary } from '@/data/service-catalog';
 import { formatDate, isoDate } from '@/lib/utils';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 type Props = { params: Promise<{ slug: string }> };
 
 function str(value: unknown): string | null {

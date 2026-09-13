@@ -18,9 +18,6 @@ import { provider as staticProvider } from '@/data/provider';
 import { cmsMetadata } from '@/lib/cms-seo';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
