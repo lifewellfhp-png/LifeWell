@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { site } from '@/data/site';
 import { headerNav, headerCta } from '@/data/navigation';
 import { cn } from '@/lib/utils';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 import { NavBar } from './NavBar';
 
 /**
@@ -40,7 +41,7 @@ export function Header({
   const overlay = isHome && !scrolled;
   const button = cta ?? headerCta;
   const logo = logoUrl || '/images/brand/logo-v2.avif';
-  const remoteLogo = logo.startsWith('http');
+  const optimizableLogo = isOptimizableImageSrc(logo);
 
   return (
     <header
@@ -60,16 +61,21 @@ export function Header({
           className="relative z-10 shrink-0 no-underline"
           aria-label={`${site.name} — home`}
         >
-          {remoteLogo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logo} alt={site.name} className="h-9 w-auto max-w-[min(11rem,46vw)] object-contain object-left sm:h-11 sm:max-w-none lg:h-[50px]" />
-          ) : (
+          {optimizableLogo ? (
             <Image
               src={logo}
               alt={site.name}
               width={945}
               height={191}
               priority
+              className="h-9 w-auto max-w-[min(11rem,46vw)] object-contain object-left sm:h-11 sm:max-w-none lg:h-[50px]"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logo}
+              alt={site.name}
+              fetchPriority="high"
               className="h-9 w-auto max-w-[min(11rem,46vw)] object-contain object-left sm:h-11 sm:max-w-none lg:h-[50px]"
             />
           )}

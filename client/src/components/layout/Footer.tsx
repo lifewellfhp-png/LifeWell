@@ -14,6 +14,7 @@ import { FooterNewsletter } from '@/components/forms/NewsletterForm';
 import { newsletter } from '@/data/marketing';
 import { getResolvedContent } from '@/lib/cms-resolve';
 import { cn } from '@/lib/utils';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 import type { NavLink } from '@/types/content';
 
 export async function Footer() {
@@ -23,7 +24,7 @@ export async function Footer() {
   const email = cms.settings.practiceEmail || primary?.email || site.contact.email;
   const phoneHref = phone.replace(/[^\d+]/g, '').length ? `tel:+1${phone.replace(/\D/g, '').replace(/^1/, '')}` : site.contact.phoneHref;
   const logo = cms.settings.logoUrl || '/images/brand/logo-v2.avif';
-  const remoteLogo = logo.startsWith('http');
+  const optimizableLogo = isOptimizableImageSrc(logo);
 
   return (
     <footer className="bg-[#F4F7FA] pb-[env(safe-area-inset-bottom)]">
@@ -44,17 +45,18 @@ export async function Footer() {
                 className="inline-flex rounded-[12px] bg-white px-3 py-2.5 sm:px-4 sm:py-3"
                 aria-label={`${site.name} — home`}
               >
-                {remoteLogo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={logo} alt={site.name} className="h-8 w-auto sm:h-10" />
-                ) : (
+                {optimizableLogo ? (
                   <Image
                     src={logo}
                     alt={site.name}
                     width={945}
                     height={191}
+                    loading="lazy"
                     className="h-8 w-auto sm:h-10"
                   />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logo} alt={site.name} loading="lazy" className="h-8 w-auto sm:h-10" />
                 )}
               </Link>
               <p className="mt-6 max-w-[42ch] font-body text-[15px] font-normal leading-[1.7] text-white sm:text-[16px]">

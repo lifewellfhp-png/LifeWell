@@ -14,6 +14,7 @@ import { articleGraph } from '@/lib/schema';
 import { fetchPublicBlogPost } from '@/lib/cms';
 import { getServiceSummary } from '@/data/service-catalog';
 import { formatDate, isoDate } from '@/lib/utils';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -200,10 +201,7 @@ export default async function BlogPostPage({ params }: Props) {
 
           {coverImage && (
             <div className="mt-8 overflow-hidden rounded-md border border-border-subtle bg-surface-muted">
-              {coverImage.startsWith('http') ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={coverImage} alt="" className="w-full object-cover" />
-              ) : (
+              {isOptimizableImageSrc(coverImage) ? (
                 <Image
                   src={coverImage}
                   alt=""
@@ -213,6 +211,9 @@ export default async function BlogPostPage({ params }: Props) {
                   sizes="(min-width: 1024px) 52rem, 92vw"
                   className="w-full object-cover"
                 />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={coverImage} alt="" className="w-full object-cover" />
               )}
             </div>
           )}

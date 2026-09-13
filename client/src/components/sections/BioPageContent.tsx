@@ -7,6 +7,7 @@ import { SwapButton } from '@/components/ui/SwapButton';
 import { TrackedBookingLink } from '@/components/ui/TrackedBookingLink';
 import { StatsBand } from '@/components/sections/StatsBand';
 import { ProviderTrustLinks } from '@/components/sections/BookingProfiles';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 import type { BookingProfiles } from '@/lib/cms-resolve';
 
 /**
@@ -214,7 +215,7 @@ function BioHero({
   phone?: string | null;
   email?: string | null;
 }) {
-  const remotePhoto = overlay.photo.startsWith('http');
+  const optimizablePhoto = isOptimizableImageSrc(overlay.photo);
   const displayPhone = phone || site.contact.phone;
   const displayEmail = email || site.contact.email;
   const digits = displayPhone.replace(/\D/g, '').replace(/^1/, '');
@@ -278,10 +279,7 @@ function BioHero({
         </div>
 
         <div className="relative min-h-[340px] sm:min-h-[500px] lg:min-h-[570px] lg:w-1/2">
-          {remotePhoto ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={overlay.photo} alt={overlay.name} className="absolute inset-0 h-full w-full object-cover object-center" />
-          ) : (
+          {optimizablePhoto ? (
             <Image
               src={overlay.photo}
               alt={overlay.name}
@@ -289,6 +287,14 @@ function BioHero({
               priority
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="object-cover object-center"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={overlay.photo}
+              alt={overlay.name}
+              fetchPriority="high"
+              className="absolute inset-0 h-full w-full object-cover object-center"
             />
           )}
         </div>

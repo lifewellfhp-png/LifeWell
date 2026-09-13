@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { Container, Section, SectionHeading } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { Hero } from '@/components/sections/Hero';
@@ -6,12 +7,17 @@ import { WelcomeSection } from '@/components/sections/WelcomeSection';
 import { ServicesGrid } from '@/components/sections/ServicesGrid';
 import { BenefitsGrid } from '@/components/sections/BenefitsGrid';
 import { HowItWorks } from '@/components/sections/HowItWorks';
-import { StatsBand } from '@/components/sections/StatsBand';
-import { InsuranceGrid } from '@/components/sections/InsuranceGrid';
-import { Testimonials } from '@/components/sections/Testimonials';
-import { ContactCTA } from '@/components/sections/CTASection';
 import { VideosSection } from '@/components/sections/VideosSection';
 import { TrustStrip } from '@/components/sections/TrustStrip';
+
+// Below-the-fold, interactive-only sections — code-split out of the main
+// bundle (SSR stays on, so content/markup and SEO are unaffected; only the
+// hydration JS for these loads as a separate chunk instead of inflating the
+// bundle every above-the-fold section shares).
+const StatsBand = dynamic(() => import('@/components/sections/StatsBand').then((m) => m.StatsBand));
+const InsuranceGrid = dynamic(() => import('@/components/sections/InsuranceGrid').then((m) => m.InsuranceGrid));
+const Testimonials = dynamic(() => import('@/components/sections/Testimonials').then((m) => m.Testimonials));
+const ContactCTA = dynamic(() => import('@/components/sections/CTASection').then((m) => m.ContactCTA));
 
 import { site } from '@/data/site';
 import { provider as staticProvider } from '@/data/provider';

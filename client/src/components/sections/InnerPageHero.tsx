@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 
 /**
  * Inner-page hero used across live Elementor templates: rounded #EEF3F7 card,
@@ -77,10 +78,7 @@ export function InnerPageHero({
 
   const photo = image ? (
     <div className="relative min-h-[400px] sm:min-h-[500px] lg:min-h-[570px] lg:w-[55%]">
-      {image.src.startsWith('http') ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={image.src} alt={image.alt} className="absolute inset-0 h-full w-full object-cover object-center" />
-      ) : (
+      {isOptimizableImageSrc(image.src) ? (
         <Image
           src={image.src}
           alt={image.alt}
@@ -88,6 +86,14 @@ export function InnerPageHero({
           priority
           sizes="(min-width: 1024px) 55vw, 100vw"
           className="object-cover object-center"
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={image.src}
+          alt={image.alt}
+          fetchPriority="high"
+          className="absolute inset-0 h-full w-full object-cover object-center"
         />
       )}
     </div>

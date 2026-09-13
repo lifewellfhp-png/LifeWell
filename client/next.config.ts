@@ -13,7 +13,19 @@ const nextConfig: NextConfig = {
   },
 
   images: {
-    // All imagery is served locally from /public — no remote patterns needed.
+    // Most imagery is served locally from /public. Admin-uploaded CMS media
+    // (service/provider photos) lives in Supabase Storage's public bucket —
+    // allow next/image to optimize those too (previously bypassed entirely
+    // via a plain <img> fallback, shipping a 1.9MB unoptimized PNG on the
+    // homepage). Scoped to Supabase's own storage path convention, not a
+    // bare wildcard host.
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [360, 414, 768, 1024, 1280, 1536, 1920],
     imageSizes: [64, 96, 128, 200, 256, 320, 384],

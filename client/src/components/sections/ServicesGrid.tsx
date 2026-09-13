@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ServiceSummary } from '@/types/content';
 import { cn } from '@/lib/utils';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 
 /**
  * Pastel content-box colours as they appear on the live Elementor cards
@@ -25,14 +26,7 @@ export function ServiceCard({
   return (
     <article className={cn('group relative flex h-full flex-col', className)}>
       <div className="relative overflow-hidden rounded-[20px]">
-        {service.image.src.startsWith('http') ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={service.image.src}
-            alt={service.image.alt}
-            className="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-110"
-          />
-        ) : (
+        {isOptimizableImageSrc(service.image.src) ? (
           <Image
             src={service.image.src}
             alt={service.image.alt}
@@ -40,6 +34,16 @@ export function ServiceCard({
             height={service.image.height}
             loading="lazy"
             sizes="(min-width: 1181px) 22vw, (min-width: 768px) 45vw, 92vw"
+            className="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-110"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={service.image.src}
+            alt={service.image.alt}
+            loading="lazy"
+            width={service.image.width}
+            height={service.image.height}
             className="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
         )}

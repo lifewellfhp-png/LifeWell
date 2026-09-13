@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Container, Section } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { insuranceCarriers as staticCarriers } from '@/data/marketing';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 import type { InsuranceCarrier } from '@/types/content';
 
 const FALLBACK_LOGO = '/images/insurance/insurance-placeholder.svg';
@@ -181,23 +182,25 @@ function CarrierLogo({ carrier }: { carrier: InsuranceCarrier }) {
 
   const className = 'h-full w-full object-contain object-center';
 
-  return src.startsWith('http') ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt=""
-      width={carrier.width}
-      height={carrier.height}
-      onError={handleError}
-      className={className}
-    />
-  ) : (
+  return isOptimizableImageSrc(src) ? (
     <Image
       src={src}
       alt=""
       width={carrier.width}
       height={carrier.height}
       loading="lazy"
+      sizes="(min-width: 640px) 220px, 45vw"
+      onError={handleError}
+      className={className}
+    />
+  ) : (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      width={carrier.width}
+      height={carrier.height}
       onError={handleError}
       className={className}
     />

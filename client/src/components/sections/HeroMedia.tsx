@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 
 /**
  * Hero background media.
@@ -29,14 +30,7 @@ export function HeroMedia({
   }, []);
 
   const heroImage = cmsImage ? (
-    cmsImage.src.startsWith('http') ? (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={cmsImage.src}
-        alt={cmsImage.alt}
-        className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
-      />
-    ) : (
+    isOptimizableImageSrc(cmsImage.src) ? (
       <Image
         src={cmsImage.src}
         alt={cmsImage.alt}
@@ -45,6 +39,14 @@ export function HeroMedia({
         fetchPriority="high"
         sizes="100vw"
         className="-z-20 object-cover object-[80%_center]"
+      />
+    ) : (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={cmsImage.src}
+        alt={cmsImage.alt}
+        fetchPriority="high"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
       />
     )
   ) : (

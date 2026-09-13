@@ -13,6 +13,7 @@ import { cmsMetadata } from '@/lib/cms-seo';
 import { pageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 import { CmsCta } from '@/components/CmsCta';
+import { isOptimizableImageSrc } from '@/lib/site-asset';
 
 const DESCRIPTION =
   'The LifeWell Wellness Resource Hub — practical, evidence-informed guidance on anxiety, depression, ADHD, sleep, and whole-person mental health from LifeWell Family Health & Psychiatry.';
@@ -66,10 +67,7 @@ export default async function BlogIndexPage() {
                   <article className="group flex w-full flex-col overflow-hidden rounded-md border border-border-subtle bg-surface-raised transition-shadow duration-fast hover:shadow-md">
                     {post.image && (
                       <div className="relative aspect-[16/9] overflow-hidden bg-surface-muted">
-                        {post.image.startsWith('http') ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={post.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                        ) : (
+                        {isOptimizableImageSrc(post.image) ? (
                           <Image
                             src={post.image}
                             alt=""
@@ -77,6 +75,14 @@ export default async function BlogIndexPage() {
                             loading="lazy"
                             sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 92vw"
                             className="object-cover"
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={post.image}
+                            alt=""
+                            loading="lazy"
+                            className="absolute inset-0 h-full w-full object-cover"
                           />
                         )}
                       </div>

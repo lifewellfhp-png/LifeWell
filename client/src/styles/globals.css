@@ -93,7 +93,6 @@
   /* ---- Typography ---- */
   --font-heading: var(--font-lora), Georgia, 'Times New Roman', serif;
   --font-body: var(--font-source-sans), system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --animate-insurance-marquee: insurance-marquee 45s linear infinite;
 
   --text-xs: 0.8125rem; /* 13 */
   --text-sm: 1rem; /* 16 */
