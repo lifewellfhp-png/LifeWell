@@ -1,10 +1,33 @@
 /**
  * Public CMS client — fetches published content from the API.
  * Falls back to null when the CMS is empty/unconfigured so static data remains.
+ *
+ * Caching: every fetch here is cached by Next.js's Data Cache for
+ * CMS_REVALIDATE_SECONDS as a freshness fallback, and tagged so an admin
+ * Save can purge it immediately via revalidateTag() in
+ * src/app/api/revalidate/route.ts — see that file for why tags (not
+ * revalidatePath alone) are required for a fetch shared across many
+ * routes. Do not reintroduce cache-busting (a `?ts=` param, `no-store`, or
+ * `noStore()`) — that was previously forcing every page to fully
+ * re-render and re-query the CMS on every single request, which is what
+ * exhausted this project's Vercel Hobby-plan Fluid Active CPU quota.
  */
-import { unstable_noStore as noStore } from 'next/cache';
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lifewellfhp-server.vercel.app';
+
+/** Freshness fallback: the longest content can ever be stale if an admin
+ * Save's revalidation callback (refreshPublicSite() -> /api/revalidate)
+ * never arrives or fails. */
+const CMS_REVALIDATE_SECONDS = 300;
+
+/** Applied to every general CMS fetch (services, providers, insurance,
+ * testimonials, faqs, locations, telehealth states, the posts summary
+ * list, videos, sections, booking, seo, settings) so one revalidateTag()
+ * call purges all of it, regardless of which route triggered the fetch. */
+const CMS_CONTENT_TAG = 'cms-content';
+/** Applied to individual blog-post-detail fetches (one Data Cache entry
+ * per slug) so a single revalidateTag() call purges every cached post,
+ * not just whichever slug happens to get requested next. */
+const CMS_BLOG_TAG = 'cms-blog';
 
 export type PublicCmsPayload = {
   announcements: unknown[];
@@ -34,12 +57,9 @@ async function fetchWithTimeout(url: string, init?: RequestInit, ms = 12_000) {
 }
 
 export async function fetchPublicCms(): Promise<PublicCmsPayload | null> {
-  noStore();
-  const url = `${API_URL}/api/public/content?ts=${Date.now()}`;
+  const url = `${API_URL}/api/public/content`;
   const init: RequestInit = {
-    cache: 'no-store',
-    next: { revalidate: 0 },
-    headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    next: { revalidate: CMS_REVALIDATE_SECONDS, tags: [CMS_CONTENT_TAG] },
   };
 
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -56,12 +76,9 @@ export async function fetchPublicCms(): Promise<PublicCmsPayload | null> {
 }
 
 export async function fetchPublicBlogPost(slug: string): Promise<Record<string, unknown> | null> {
-  noStore();
-  const url = `${API_URL}/api/public/blog/${encodeURIComponent(slug)}?ts=${Date.now()}`;
+  const url = `${API_URL}/api/public/blog/${encodeURIComponent(slug)}`;
   const init: RequestInit = {
-    cache: 'no-store',
-    next: { revalidate: 0 },
-    headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    next: { revalidate: CMS_REVALIDATE_SECONDS, tags: [CMS_BLOG_TAG] },
   };
 
   for (let attempt = 0; attempt < 2; attempt++) {

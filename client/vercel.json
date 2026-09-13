@@ -31,11 +31,20 @@
       ]
     },
     {
-      "source": "/((?!images/|video/|_next/static|_next/image).*)",
+      "source": "/api/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=0, s-maxage=0, must-revalidate"
+          "value": "private, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/((?!api/|images/|video/|_next/static|_next/image|sitemap\\.xml|robots\\.txt).*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600"
         }
       ]
     }
