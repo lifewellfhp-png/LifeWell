@@ -72,6 +72,19 @@ const schema = z.object({
    * tool for "the one canonical link destination").
    */
   PUBLIC_SITE_URL: z.string().url().default('https://www.lifewellfhp.com'),
+
+  /*
+   * Chat assistant (Gemini). Left unset until configured; the route
+   * degrades to a clear "not configured" error rather than crashing at
+   * boot — same posture as SMTP above. GEMINI_MODEL has no safe default:
+   * Google's model identifiers change over time, so a placeholder that
+   * merely "looks like" a model name would fail silently at the API call
+   * instead of loudly at boot. The operator must set a real, currently
+   * valid model id before this route is usable.
+   */
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('CONFIRM-BEFORE-DEPLOY'),
+  RATE_LIMIT_CHAT: z.coerce.number().int().positive().default(10),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -94,5 +107,8 @@ export const corsOrigins = env.CORS_ORIGINS.split(',')
 export const mailConfigured = Boolean(
   env.SMTP_HOST && env.SMTP_PORT && env.SMTP_USER && env.SMTP_PASSWORD
 );
+
+/** True once a Gemini API key is present; otherwise /api/chat answers with a clear "not configured" error. */
+export const geminiConfigured = Boolean(env.GEMINI_API_KEY);
 
 export const isProduction = env.NODE_ENV === 'production';

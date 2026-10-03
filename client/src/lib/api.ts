@@ -59,6 +59,20 @@ export const submitContact = (payload: ContactPayload) => post('/api/contact', p
 export const submitNewsletter = (payload: { email: string; company?: string }) =>
   post('/api/newsletter', payload);
 
+export interface ChatHistoryEntry {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * Goes through the real Express server (API_BASE above), not a relative
+ * Next.js API route — this app has no server-side route handlers of its
+ * own; every backend call in this codebase goes through this same post()
+ * helper to the separate server/ deployment.
+ */
+export const submitChatMessage = (payload: { message: string; history: ChatHistoryEntry[] }) =>
+  post('/api/chat', payload);
+
 /**
  * Marketing unsubscribe (P4-I3). Only the opaque signed token is ever
  * sent — no email address, no other identifying data. Reuses the same

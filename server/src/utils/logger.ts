@@ -14,6 +14,8 @@ const REDACTED = '[redacted]';
 /** Keys whose values must never reach the logs. */
 const SENSITIVE = new Set([
   'message',
+  'messages',
+  'content',
   'name',
   'email',
   'phone',

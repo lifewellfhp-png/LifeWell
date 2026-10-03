@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { handleContact } from '../controllers/contact.controller.js';
 import { handleNewsletter } from '../controllers/newsletter.controller.js';
+import { handleChat } from '../controllers/chat.controller.js';
 import {
   getPublicContent,
   getPublicBlogPost,
@@ -14,11 +15,12 @@ import {
   asyncHandler,
   contactLimiter,
   newsletterLimiter,
+  chatLimiter,
   analyticsLimiter,
   conversionLimiter,
   marketingUnsubscribeLimiter,
 } from '../middleware/index.js';
-import { mailConfigured, env } from '../config/env.js';
+import { mailConfigured, geminiConfigured, env } from '../config/env.js';
 import { adminRouter } from './admin.routes.js';
 import { supabaseConfigured } from '../lib/supabase.js';
 
@@ -39,12 +41,14 @@ router.get('/health', (_req, res) => {
       mail: mailConfigured ? 'configured' : 'log-only',
       newsletter: env.NEWSLETTER_PROVIDER,
       supabase: supabaseConfigured() ? 'configured' : 'missing',
+      chat: geminiConfigured ? 'configured' : 'missing',
     },
   });
 });
 
 router.post('/api/contact', contactLimiter, asyncHandler(handleContact));
 router.post('/api/newsletter', newsletterLimiter, asyncHandler(handleNewsletter));
+router.post('/api/chat', chatLimiter, asyncHandler(handleChat));
 
 // Public CMS + privacy-focused telemetry for the marketing site
 router.get('/api/public/content', asyncHandler(getPublicContent));

@@ -123,6 +123,35 @@ export const marketingUnsubscribeSchema = z
   })
   .strict();
 
+/**
+ * Public chat assistant (Gemini-backed). This is the one place in the whole
+ * codebase that accepts genuine free-text visitor input — every other
+ * public form (Contact, above) deliberately has none. `message` gets the
+ * same control-character-stripping/whitespace-collapsing treatment as every
+ * other field in this file. `history` is bounded in both length and
+ * per-entry size so a request can't smuggle an oversized payload into the
+ * system prompt or run up Gemini API cost.
+ */
+export const chatSchema = z
+  .object({
+    message: trimmed(1, 1000, 'Please enter a message.', 'Please keep your message under 1000 characters.').transform(
+      sanitise
+    ),
+    history: z
+      .array(
+        z.object({
+          role: z.enum(['user', 'assistant']),
+          content: trimmed(1, 1000, 'Invalid message.', 'Invalid message.').transform(sanitise),
+        })
+      )
+      .max(20, 'Conversation history is too long.')
+      .optional()
+      .default([]),
+  })
+  .strict();
+
+export type ChatInput = z.infer<typeof chatSchema>;
+
 /** Flattens Zod issues into a field -> message map for the client. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

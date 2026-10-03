@@ -50,6 +50,13 @@ export const newsletterLimiter = limiter(
   'Too many signup attempts. Please try again later.'
 );
 
+/** Guards a paid external API (Gemini), not just abuse — keep this tight. */
+export const chatLimiter = limiter(
+  HOUR_MS,
+  env.RATE_LIMIT_CHAT,
+  'Too many messages sent from this connection. Please try again later, or call us directly.'
+);
+
 /**
  * Admin login. A bounded per-IP limiter, not a distributed account lockout —
  * counts every attempt (success or failure) so a scripted probe can't loop

@@ -10,7 +10,7 @@ import { ThemeVars } from '@/components/layout/ThemeVars';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { AnalyticsBeacon } from '@/components/seo/AnalyticsBeacon';
-import { ChatWidget } from '@/components/chat/ChatWidget';
+import { ChatAssistant } from '@/components/chat/ChatAssistant';
 import { homeGraph } from '@/lib/schema';
 import { DEFAULT_OG_IMAGE, withBrand } from '@/lib/seo';
 import { getResolvedContent } from '@/lib/cms-resolve';
@@ -90,7 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </main>
         <Footer />
         <AnalyticsBeacon />
-        <ChatWidget psychiatricStatePricing={cms.fees.psychiatricStatePricing} bookingUrl={cms.booking.page} />
+        <ChatAssistant psychiatricStatePricing={cms.fees.psychiatricStatePricing} bookingUrl={cms.booking.page} />
       </body>
     </html>
   );
