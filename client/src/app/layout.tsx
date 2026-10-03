@@ -10,8 +10,10 @@ import { ThemeVars } from '@/components/layout/ThemeVars';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { AnalyticsBeacon } from '@/components/seo/AnalyticsBeacon';
+import { ChatWidget } from '@/components/chat/ChatWidget';
 import { homeGraph } from '@/lib/schema';
 import { DEFAULT_OG_IMAGE, withBrand } from '@/lib/seo';
+import { getResolvedContent } from '@/lib/cms-resolve';
 
 /* Self-hosted via next/font — no runtime request to Google. Only the weights
    the design system actually uses are loaded. */
@@ -72,7 +74,9 @@ export const viewport: Viewport = {
   colorScheme: 'light',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cms = await getResolvedContent();
+
   return (
     <html lang="en-US" className={`${lora.variable} ${sourceSans.variable}`}>
       <body>
@@ -86,6 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <Footer />
         <AnalyticsBeacon />
+        <ChatWidget psychiatricStatePricing={cms.fees.psychiatricStatePricing} bookingUrl={cms.booking.page} />
       </body>
     </html>
   );
