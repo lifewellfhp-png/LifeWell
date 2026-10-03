@@ -90,7 +90,7 @@ export default async function HomePage() {
         bookingUrl={cms.booking.page}
         showCta={false}
         heading="A Foundation of Experience"
-        body="Board-certified telehealth care, backed by more than 15 years of clinical experience."
+        body="Board-certified psychiatric nurse practitioner care, backed by more than 15 years of clinical experience."
       />
       <InsuranceGrid
         showCta={true}

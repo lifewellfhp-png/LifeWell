@@ -36,7 +36,7 @@ export const welcome = {
 
 export const servicesSection = {
   eyebrow: 'Our Services',
-  heading: 'How We Help',
+  heading: 'Mental Health & Primary Care Services We Offer',
   /* Source typo "View All Serices" corrected. */
   body: 'Specialized telehealth services tailored to meet your unique mental health needs.',
   cta: { label: 'View All Services', href: '/our-services' },
@@ -101,7 +101,7 @@ export const benefits: Benefit[] = [
 
 export const howItWorks = {
   eyebrow: 'How It Works',
-  heading: 'How Our Simple Telehealth Process Works',
+  heading: 'Getting Started with Your Care Plan',
   body: 'Getting started is simple. Follow these three easy steps to begin your mental wellness journey.',
   cta: { label: 'Book an Appointment' },
   image: { src: '/images/sections/How-It-Works.avif', width: 570, height: 606 },
