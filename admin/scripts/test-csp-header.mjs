@@ -28,7 +28,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const require = createRequire(import.meta.url);
 
-const nextConfigSource = readFileSync(join(root, 'next.config.js'), 'utf8');
 const middlewareSource = readFileSync(join(root, 'src', 'middleware.ts'), 'utf8');
 const layoutSource = readFileSync(join(root, 'src', 'app', 'layout.tsx'), 'utf8');
 const cspReportSource = readFileSync(join(root, 'src', 'app', 'api', 'csp-report', 'route.ts'), 'utf8');

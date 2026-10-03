@@ -27,7 +27,7 @@
     "check:vercel": "node scripts/check-vercel-config.mjs"
   },
   "dependencies": {
-    "next": "15.5.23",
+    "next": "15.5.27",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -43,7 +43,7 @@
     "typescript": "5.9.2"
   },
   "overrides": {
-    "sharp": "0.35.3",
+    "sharp": "0.35.5",
     "postcss": "8.5.26"
   }
 }

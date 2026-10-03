@@ -61,7 +61,6 @@ function clientIp(req: Request): string {
  * field value can never forge additional log lines or otherwise corrupt
  * the structured log entry it ends up in. */
 function stripControlChars(value: string): string {
-  // eslint-disable-next-line no-control-regex
   return value.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
 }
 

@@ -354,7 +354,7 @@ export default function AnalyticsPage() {
       <div className="dash-split">
         <section className="card card-pad">
           <h2>Booking clicks by device</h2>
-          <p className="page-sub">"Unknown" includes clicks recorded before device attribution existed.</p>
+          <p className="page-sub">{'"Unknown" includes clicks recorded before device attribution existed.'}</p>
           <DonutChart
             slices={
               bookingDevices.length
@@ -369,7 +369,7 @@ export default function AnalyticsPage() {
         </section>
         <section className="card card-pad">
           <h2>Booking clicks by referral source</h2>
-          <p className="page-sub">"Direct" includes clicks with no referrer and clicks recorded before referrer attribution existed.</p>
+          <p className="page-sub">{'"Direct" includes clicks with no referrer and clicks recorded before referrer attribution existed.'}</p>
           <BarList points={bookingReferrers} color="#2f6691" />
         </section>
       </div>
