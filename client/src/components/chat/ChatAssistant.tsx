@@ -23,7 +23,7 @@
 import { useId, useRef, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { site } from '@/data/site';
-import { submitChatMessage } from '@/lib/api';
+import { submitChatMessage, getChatStatus } from '@/lib/api';
 import type { ChatHistoryEntry } from '@/lib/api';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { ContactForm } from '@/components/forms/ContactForm';
@@ -36,6 +36,27 @@ const GREETING: Message = {
   content:
     "Hello! I'm the LifeWell Assistant. Ask me about pricing, services, hours, or service areas — or use the buttons below to book an appointment or request a callback.",
 };
+
+/**
+ * Fail-closed status indicator: starts in the "checking" state (gray,
+ * no claim either way) and only ever turns green once getChatStatus() has
+ * actually confirmed the server reports Gemini as configured. Never
+ * defaults to "online" — an unresolved or failed check stays gray, same as
+ * confirmed-offline, so the dot can never be wrong in the optimistic
+ * direction.
+ */
+function StatusLight({ online }: { online: boolean | null }) {
+  const label = online === true ? 'Online' : online === false ? 'Limited availability' : 'Checking…';
+  return (
+    <span className="flex items-center gap-1.5 text-[11px] text-white/80">
+      <span
+        className={`size-2 rounded-full ${online === true ? 'bg-emerald-400' : 'bg-white/40'}`}
+        aria-hidden="true"
+      />
+      {label}
+    </span>
+  );
+}
 
 function CrisisFooter() {
   return (
@@ -67,11 +88,25 @@ export function ChatAssistant(props: {
   const [history, setHistory] = useState<ChatHistoryEntry[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [chatOnline, setChatOnline] = useState<boolean | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
+
+  // Checked once per page load (not on every open) — a single lightweight
+  // GET, not polled, matching this component's no-persistence/no-background-
+  // chatter posture.
+  useEffect(() => {
+    let cancelled = false;
+    getChatStatus().then((online) => {
+      if (!cancelled) setChatOnline(online);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const close = () => {
     setOpen(false);
@@ -149,9 +184,12 @@ export function ChatAssistant(props: {
           className="flex h-[30rem] w-[min(360px,calc(100vw-2rem))] flex-col rounded-md border border-border-subtle bg-surface-raised shadow-lg"
         >
           <div className="flex items-center justify-between rounded-t-md bg-[var(--lw-primary)] p-3">
-            <h2 id={`${uid}-heading`} className="text-sm font-semibold text-white">
-              {site.shortName} Assistant
-            </h2>
+            <div>
+              <h2 id={`${uid}-heading`} className="text-sm font-semibold text-white">
+                {site.shortName} Assistant
+              </h2>
+              <StatusLight online={chatOnline} />
+            </div>
             <button type="button" onClick={close} aria-label="Close chat" className="font-bold text-white">
               &times;
             </button>

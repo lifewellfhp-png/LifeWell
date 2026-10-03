@@ -25,6 +25,44 @@ const widgetSource = readFileSync(join(root, 'src/components/chat/ChatAssistant.
 const layoutSource = readFileSync(join(root, 'src/app/layout.tsx'), 'utf8');
 const apiSource = readFileSync(join(root, 'src/lib/api.ts'), 'utf8');
 
+test('13. the online status indicator is fail-closed: both "still checking" (null) and "confirmed unavailable" (false) render as non-claiming, never green', () => {
+  const fnStart = widgetSource.indexOf('function StatusLight(');
+  assert.ok(fnStart >= 0, 'expected a StatusLight component');
+  const fnBody = widgetSource.slice(fnStart, widgetSource.indexOf('\n}', fnStart) + 2);
+  // The green/"Online" branch requires a strict === true check; anything
+  // else (false OR null/unresolved) falls through to the same muted color —
+  // there is no code path where an unresolved check renders as green.
+  assert.match(fnBody, /online === true \? 'bg-emerald-400' : 'bg-white\/40'/);
+  assert.match(fnBody, /online === true \? 'Online' : online === false \? 'Limited availability' : 'Checking…'/);
+});
+
+test('14. the initial state of the online check is null (unresolved), not true', () => {
+  assert.match(widgetSource, /useState<boolean \| null>\(null\)/);
+});
+
+test('15. the status check calls the real getChatStatus() helper, not a hardcoded true/decorative value', () => {
+  assert.match(widgetSource, /import \{ submitChatMessage, getChatStatus \} from '@\/lib\/api';/);
+  assert.match(widgetSource, /getChatStatus\(\)\.then\(/);
+});
+
+test('16. getChatStatus() itself is fail-closed in api.ts: every early return/catch path returns false, never true, on uncertainty', () => {
+  const fnStart = apiSource.indexOf('export async function getChatStatus()');
+  assert.ok(fnStart >= 0);
+  const fnBody = apiSource.slice(fnStart, apiSource.indexOf('\n}', fnStart) + 2);
+  assert.match(fnBody, /if \(!res\.ok\) return false;/);
+  assert.match(fnBody, /catch \{\s*return false;\s*\}/);
+  // The only path that can return true is the explicit equality check
+  // against the server's confirmed "configured" string.
+  assert.match(fnBody, /data\.integrations\?\.chat === 'configured'/);
+});
+
+test('17. the status check runs once per mount, not polled on an interval', () => {
+  const effectStart = widgetSource.indexOf('getChatStatus().then');
+  const surroundingEffect = widgetSource.slice(widgetSource.lastIndexOf('useEffect(() => {', effectStart), effectStart + 400);
+  assert.doesNotMatch(surroundingEffect, /setInterval/);
+  assert.match(surroundingEffect, /\}, \[\]\);/);
+});
+
 test('1. ChatWidget.tsx no longer exists — replaced, not left dangling alongside the new component', () => {
   assert.throws(() => readFileSync(join(root, 'src/components/chat/ChatWidget.tsx'), 'utf8'));
 });

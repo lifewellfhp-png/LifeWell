@@ -74,6 +74,24 @@ export const submitChatMessage = (payload: { message: string; history: ChatHisto
   post('/api/chat', payload);
 
 /**
+ * Fail-closed status check for the chat assistant's online indicator: only
+ * ever returns true once the server has actually confirmed Gemini is
+ * configured (GET /health's `integrations.chat` field). Any network error,
+ * non-200, or unexpected shape returns false — the indicator must never
+ * claim "online" on uncertain/missing data.
+ */
+export async function getChatStatus(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/health`);
+    if (!res.ok) return false;
+    const data = (await res.json()) as { integrations?: { chat?: string } };
+    return data.integrations?.chat === 'configured';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Marketing unsubscribe (P4-I3). Only the opaque signed token is ever
  * sent — no email address, no other identifying data. Reuses the same
  * post() helper (and its network-failure/JSON-parse fallbacks) as every
