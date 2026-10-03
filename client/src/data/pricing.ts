@@ -38,26 +38,27 @@ export const selfPay = {
 };
 
 export const psychiatricStatePricing: PsychiatricStatePricing[] = [
-  { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 300, followUpFee: 150 },
-  { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 300, followUpFee: 175 },
-  { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 175 },
+  { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 250, followUpFee: 150 },
+  { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 350, followUpFee: 175 },
+  { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 165 },
 ];
 
 /**
  * Non-psychiatric self-pay service lines only — the psychiatric self-pay
  * figures are psychiatricStatePricing above, the sole source of truth for
- * those. A 'Mental Health' entry here ($250/$150) previously duplicated
- * and contradicted that figure (Florida's approved initial fee is $300,
- * not $250); it was never rendered (FeesPageContent filtered it out) and
- * has been removed rather than left as a landmine one refactor away from
- * being displayed.
+ * those. A 'Mental Health' entry here once duplicated and contradicted
+ * that figure; it was never rendered (FeesPageContent filtered it out)
+ * and was removed rather than left as a landmine one refactor away from
+ * being displayed. Do not re-add a duplicate psychiatric-pricing entry
+ * here — update psychiatricStatePricing above instead, so there is never
+ * more than one place a fee change has to be made.
  */
 export const pricingTiers: PricingTier[] = [
   {
     name: 'Primary Care',
-    initialFee: 125,
+    initialFee: 135,
     initialDuration: '60 minutes',
-    followUpFee: 75,
+    followUpFee: 85,
     followUpDuration: '30 minutes',
     includes: [
       'New Patient Visits',
@@ -70,9 +71,9 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     name: 'Weight Management',
-    initialFee: 100,
+    initialFee: 125,
     initialDuration: '60 minutes',
-    followUpFee: 75,
+    followUpFee: 85,
     followUpDuration: '30 minutes',
     includes: [
       'Medical Weight Loss',

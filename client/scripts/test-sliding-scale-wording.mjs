@@ -74,22 +74,22 @@ test('3. no eligibility criteria, guarantee, income threshold, or timeline langu
 
 /* ---------------------------------------------------- 4-6. pricing intact --- */
 
-test('4. Florida pricing remains $300 / $150', () => {
+test('4. Florida pricing remains $250 / $150', () => {
   const fl = psychiatricStatePricing.find((p) => p.state === 'Florida');
-  assert.equal(fl.initialFee, 300);
+  assert.equal(fl.initialFee, 250);
   assert.equal(fl.followUpFee, 150);
 });
 
-test('5. Massachusetts pricing remains $300 / $175', () => {
+test('5. Massachusetts pricing remains $350 / $175', () => {
   const ma = psychiatricStatePricing.find((p) => p.state === 'Massachusetts');
-  assert.equal(ma.initialFee, 300);
+  assert.equal(ma.initialFee, 350);
   assert.equal(ma.followUpFee, 175);
 });
 
-test('6. Arizona pricing remains $325 / $175', () => {
+test('6. Arizona pricing remains $325 / $165', () => {
   const az = psychiatricStatePricing.find((p) => p.state === 'Arizona');
   assert.equal(az.initialFee, 325);
-  assert.equal(az.followUpFee, 175);
+  assert.equal(az.followUpFee, 165);
 });
 
 /* ------------------------------------------------- 7, 8. state/insurance --- */
@@ -125,10 +125,10 @@ test('10. P7-2 state pricing (telehealth state pages) is unaffected by this chan
   const ma = getTelehealthState('massachusetts');
   const az = getTelehealthState('arizona');
   const fl = getTelehealthState('florida');
-  assert.equal(ma.selfPayInitialFee, 300);
+  assert.equal(ma.selfPayInitialFee, 350);
   assert.equal(ma.selfPayFollowUpFee, 175);
   assert.equal(az.selfPayInitialFee, 325);
-  assert.equal(az.selfPayFollowUpFee, 175);
+  assert.equal(az.selfPayFollowUpFee, 165);
   assert.deepEqual(ma.pricingCta, { label: 'View Fees & Insurance', href: '/fees-insurance' });
   assert.deepEqual(az.pricingCta, { label: 'View Fees & Insurance', href: '/fees-insurance' });
   // Arizona's secondaryCta was deliberately changed by Phase 26 (internal-link

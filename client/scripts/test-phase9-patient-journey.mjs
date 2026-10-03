@@ -7,11 +7,13 @@
  *   1. Removed a dead, contradictory 'Mental Health' pricing tier
  *      ($250/$150) from pricingTiers (data/pricing.ts) — it duplicated and
  *      contradicted the real psychiatric self-pay figure (Florida's
- *      approved initial fee is $300, not $250) and was already filtered
+ *      approved initial fee was $300 at the time) and was already filtered
  *      out of rendering on /fees-insurance, but remained a landmine one
  *      refactor away from being displayed. The approved
  *      psychiatricStatePricing figures (the actual source of truth for
- *      FL/MA/AZ psychiatric self-pay) are untouched.
+ *      FL/MA/AZ psychiatric self-pay) are untouched by this phase; a later,
+ *      separate business pricing update is what later changed those figures
+ *      (Florida's approved initial fee is now $250 again, legitimately).
  *
  *   2. Added one small contextual link on /our-services ("Questions about
  *      cost or whether we serve your state? View Fees & Insurance"),
@@ -44,17 +46,17 @@ test('1. pricingTiers no longer contains a "Mental Health" entry (removed dead, 
   );
 });
 
-test('2. pricingTiers retains exactly the two legitimate non-psychiatric self-pay tiers, figures unchanged', () => {
+test('2. pricingTiers retains exactly the two legitimate non-psychiatric self-pay tiers, at their current approved figures', () => {
   assert.deepEqual(
     pricingTiers.map((t) => t.name),
     ['Primary Care', 'Weight Management']
   );
   const primaryCare = pricingTiers.find((t) => t.name === 'Primary Care');
-  assert.equal(primaryCare.initialFee, 125);
-  assert.equal(primaryCare.followUpFee, 75);
+  assert.equal(primaryCare.initialFee, 135);
+  assert.equal(primaryCare.followUpFee, 85);
   const weightMgmt = pricingTiers.find((t) => t.name === 'Weight Management');
-  assert.equal(weightMgmt.initialFee, 100);
-  assert.equal(weightMgmt.followUpFee, 75);
+  assert.equal(weightMgmt.initialFee, 125);
+  assert.equal(weightMgmt.followUpFee, 85);
 });
 
 test('3. no $250 figure remains anywhere in pricingTiers (the removed tier\'s exact contradictory value)', () => {
@@ -63,11 +65,11 @@ test('3. no $250 figure remains anywhere in pricingTiers (the removed tier\'s ex
   }
 });
 
-test('4. psychiatricStatePricing (the real FL/MA/AZ psychiatric self-pay source of truth) is completely unaffected', () => {
+test('4. psychiatricStatePricing (the real FL/MA/AZ psychiatric self-pay source of truth) reflects the current approved figures', () => {
   const bySt = Object.fromEntries(psychiatricStatePricing.map((p) => [p.state, p]));
-  assert.deepEqual(bySt.Florida, { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 300, followUpFee: 150 });
-  assert.deepEqual(bySt.Massachusetts, { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 300, followUpFee: 175 });
-  assert.deepEqual(bySt.Arizona, { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 175 });
+  assert.deepEqual(bySt.Florida, { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 250, followUpFee: 150 });
+  assert.deepEqual(bySt.Massachusetts, { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 350, followUpFee: 175 });
+  assert.deepEqual(bySt.Arizona, { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 165 });
 });
 
 test('5. FeesPageContent no longer carries the now-unnecessary "Mental Health" filter (dead code removed alongside the data)', () => {

@@ -51,19 +51,19 @@ function buildSelfPaySavePayload(selfPayContent, selfPayHeading, selfPayBody) {
 // 1-5: protected pricing display values
 // ---------------------------------------------------------------------------
 
-test('1. Florida protected pricing is $300/$150', () => {
-  assert.equal(findState('Florida').initialFee, 300);
+test('1. Florida protected pricing is $250/$150', () => {
+  assert.equal(findState('Florida').initialFee, 250);
   assert.equal(findState('Florida').followUpFee, 150);
 });
 
-test('2. Massachusetts protected pricing is $300/$175', () => {
-  assert.equal(findState('Massachusetts').initialFee, 300);
+test('2. Massachusetts protected pricing is $350/$175', () => {
+  assert.equal(findState('Massachusetts').initialFee, 350);
   assert.equal(findState('Massachusetts').followUpFee, 175);
 });
 
-test('3. Arizona protected pricing is $325/$175', () => {
+test('3. Arizona protected pricing is $325/$165', () => {
   assert.equal(findState('Arizona').initialFee, 325);
-  assert.equal(findState('Arizona').followUpFee, 175);
+  assert.equal(findState('Arizona').followUpFee, 165);
 });
 
 test('4. Massachusetts displays Self-Pay Only', () => {
@@ -234,9 +234,15 @@ test('25. MA/AZ self-pay-only behavior is unchanged (both true, matching Phase 1
   assert.equal(findState('Arizona').selfPayOnly, true);
 });
 
-test('26. no $250 pricing reintroduced anywhere in the Admin pricing display', () => {
-  assert.ok(!PROTECTED_PSYCHIATRIC_PRICING.some((s) => s.initialFee === 250 || s.followUpFee === 250));
-  assert.doesNotMatch(feesCopySource, /\$250/);
+test('26. the Admin pricing display never hardcodes a literal dollar figure (it must always read from PROTECTED_PSYCHIATRIC_PRICING, not a stray duplicate constant)', () => {
+  // Previously banned the literal figure $250 outright, back when $250 was
+  // not any state's approved price. It legitimately became Florida's
+  // approved initialFee in a later pricing update, which made that literal
+  // ban factually wrong rather than protective. The real invariant it was
+  // meant to guard — that FeesCopy.tsx has no separate, hardcoded dollar
+  // literal competing with PROTECTED_PSYCHIATRIC_PRICING — is checked
+  // directly here instead.
+  assert.doesNotMatch(feesCopySource, /\$\d{2,3}(?!\w)/);
 });
 
 // ---------------------------------------------------------------------------

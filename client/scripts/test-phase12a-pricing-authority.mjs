@@ -45,9 +45,9 @@ function cmsWithFeesSelfPay(content) {
 // 1-8: approved figures render correctly with NO CMS row at all
 // ---------------------------------------------------------------------------
 
-test('1. Florida initial remains $300 with no CMS row', () => {
+test('1. Florida initial remains $250 with no CMS row', () => {
   const result = mapFees(null);
-  assert.equal(findState(result.psychiatricStatePricing, 'Florida').initialFee, 300);
+  assert.equal(findState(result.psychiatricStatePricing, 'Florida').initialFee, 250);
 });
 
 test('2. Florida follow-up remains $150 with no CMS row', () => {
@@ -55,9 +55,9 @@ test('2. Florida follow-up remains $150 with no CMS row', () => {
   assert.equal(findState(result.psychiatricStatePricing, 'Florida').followUpFee, 150);
 });
 
-test('3. Massachusetts initial remains $300 with no CMS row', () => {
+test('3. Massachusetts initial remains $350 with no CMS row', () => {
   const result = mapFees(null);
-  assert.equal(findState(result.psychiatricStatePricing, 'Massachusetts').initialFee, 300);
+  assert.equal(findState(result.psychiatricStatePricing, 'Massachusetts').initialFee, 350);
 });
 
 test('4. Massachusetts follow-up remains $175 with no CMS row', () => {
@@ -70,9 +70,9 @@ test('5. Arizona initial remains $325 with no CMS row', () => {
   assert.equal(findState(result.psychiatricStatePricing, 'Arizona').initialFee, 325);
 });
 
-test('6. Arizona follow-up remains $175 with no CMS row', () => {
+test('6. Arizona follow-up remains $165 with no CMS row', () => {
   const result = mapFees(null);
-  assert.equal(findState(result.psychiatricStatePricing, 'Arizona').followUpFee, 175);
+  assert.equal(findState(result.psychiatricStatePricing, 'Arizona').followUpFee, 165);
 });
 
 test('7. Massachusetts remains Self-Pay Only with no CMS row', () => {
@@ -104,9 +104,9 @@ const HOSTILE_CMS = cmsWithFeesSelfPay({
   ],
 });
 
-test('9. an invalid CMS override attempting Florida initial = $1 falls back to $300', () => {
+test('9. an invalid CMS override attempting Florida initial = $1 falls back to $250', () => {
   const result = mapFees(HOSTILE_CMS);
-  assert.equal(findState(result.psychiatricStatePricing, 'Florida').initialFee, 300);
+  assert.equal(findState(result.psychiatricStatePricing, 'Florida').initialFee, 250);
 });
 
 test('10. an invalid CMS override attempting Florida follow-up = $999 falls back to $150', () => {
@@ -114,9 +114,9 @@ test('10. an invalid CMS override attempting Florida follow-up = $999 falls back
   assert.equal(findState(result.psychiatricStatePricing, 'Florida').followUpFee, 150);
 });
 
-test('11. an invalid CMS override attempting MA initial = $1 falls back to $300', () => {
+test('11. an invalid CMS override attempting MA initial = $1 falls back to $350', () => {
   const result = mapFees(HOSTILE_CMS);
-  assert.equal(findState(result.psychiatricStatePricing, 'Massachusetts').initialFee, 300);
+  assert.equal(findState(result.psychiatricStatePricing, 'Massachusetts').initialFee, 350);
 });
 
 test('12. an invalid CMS override attempting MA follow-up = $999 falls back to $175', () => {
@@ -129,9 +129,9 @@ test('13. an invalid CMS override attempting AZ initial = $1 falls back to $325'
   assert.equal(findState(result.psychiatricStatePricing, 'Arizona').initialFee, 325);
 });
 
-test('14. an invalid CMS override attempting AZ follow-up = $999 falls back to $175', () => {
+test('14. an invalid CMS override attempting AZ follow-up = $999 falls back to $165', () => {
   const result = mapFees(HOSTILE_CMS);
-  assert.equal(findState(result.psychiatricStatePricing, 'Arizona').followUpFee, 175);
+  assert.equal(findState(result.psychiatricStatePricing, 'Arizona').followUpFee, 165);
 });
 
 test('15. an invalid CMS override attempting to change MA self-pay-only status (false) falls back to true', () => {
@@ -220,9 +220,19 @@ test('22. Florida-only insurance distinction remains unchanged (Florida is not s
   assert.equal(findState(staticPricing, 'Arizona').selfPayOnly, true);
 });
 
-test('23. no $250 psychiatric tier reappears anywhere in pricing.ts', () => {
-  assert.ok(!pricingTiers.some((t) => t.initialFee === 250 || t.followUpFee === 250));
-  assert.ok(!staticPricing.some((s) => s.initialFee === 250 || s.followUpFee === 250));
+test('23. pricingTiers contains only the two non-psychiatric self-pay service lines — no duplicate/contradicting psychiatric-pricing tier has been reintroduced', () => {
+  // The original bug this guarded was a stray 'Mental Health' entry in
+  // pricingTiers duplicating (and, at the time, contradicting)
+  // psychiatricStatePricing's Florida figure — not any specific dollar
+  // amount. Checking against a literal number stopped being meaningful
+  // once Florida's own approved figure legitimately became $250; the real
+  // invariant is that pricingTiers never grows a psychiatric-sounding
+  // entry at all, since psychiatricStatePricing is its sole source of
+  // truth (see the comment directly above pricingTiers in pricing.ts).
+  assert.deepEqual(
+    pricingTiers.map((t) => t.name),
+    ['Primary Care', 'Weight Management']
+  );
 });
 
 test('24. state pages (telehealth-states.ts) remain consistent with Fees & Insurance (pricing.ts) for MA/AZ', () => {

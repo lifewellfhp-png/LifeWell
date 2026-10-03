@@ -35,14 +35,14 @@ const fl = getTelehealthState('florida');
 
 /* ---------------------------------------------------------- 1, 2. pricing --- */
 
-test('1. Massachusetts approved pricing: $300 initial, $175 follow-up', () => {
-  assert.equal(ma.selfPayInitialFee, 300);
+test('1. Massachusetts approved pricing: $350 initial, $175 follow-up', () => {
+  assert.equal(ma.selfPayInitialFee, 350);
   assert.equal(ma.selfPayFollowUpFee, 175);
 });
 
-test('2. Arizona approved pricing: $325 initial, $175 follow-up', () => {
+test('2. Arizona approved pricing: $325 initial, $165 follow-up', () => {
   assert.equal(az.selfPayInitialFee, 325);
-  assert.equal(az.selfPayFollowUpFee, 175);
+  assert.equal(az.selfPayFollowUpFee, 165);
 });
 
 /* ------------------------------------------------------- 3, 4. self-pay --- */
@@ -148,7 +148,7 @@ test('10b. Florida approved psychiatric self-pay pricing on /fees-insurance is u
   const { psychiatricStatePricing } = await import('../src/data/pricing.ts');
   const flPricing = psychiatricStatePricing.find((p) => p.state === 'Florida');
   assert.ok(flPricing, 'expected a Florida entry in psychiatricStatePricing');
-  assert.equal(flPricing.initialFee, 300);
+  assert.equal(flPricing.initialFee, 250);
   assert.equal(flPricing.followUpFee, 150);
 });
 

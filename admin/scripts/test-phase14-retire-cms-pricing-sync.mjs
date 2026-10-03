@@ -91,8 +91,8 @@ test('6. protected pricing remains read-only — no editable pricing state exist
   assert.doesNotMatch(pricingBlock, /<textarea/);
 });
 
-test('7. Florida displays $300/$150', () => {
-  assert.equal(findState('Florida').initialFee, 300);
+test('7. Florida displays $250/$150', () => {
+  assert.equal(findState('Florida').initialFee, 250);
   assert.equal(findState('Florida').followUpFee, 150);
 });
 
@@ -100,16 +100,16 @@ test('8. Florida is not marked Self-Pay Only', () => {
   assert.equal(findState('Florida').selfPayOnly, false);
 });
 
-test('9. Massachusetts displays Self-Pay Only and $300/$175', () => {
+test('9. Massachusetts displays Self-Pay Only and $350/$175', () => {
   assert.equal(findState('Massachusetts').selfPayOnly, true);
-  assert.equal(findState('Massachusetts').initialFee, 300);
+  assert.equal(findState('Massachusetts').initialFee, 350);
   assert.equal(findState('Massachusetts').followUpFee, 175);
 });
 
-test('10. Arizona displays Self-Pay Only and $325/$175', () => {
+test('10. Arizona displays Self-Pay Only and $325/$165', () => {
   assert.equal(findState('Arizona').selfPayOnly, true);
   assert.equal(findState('Arizona').initialFee, 325);
-  assert.equal(findState('Arizona').followUpFee, 175);
+  assert.equal(findState('Arizona').followUpFee, 165);
 });
 
 // ---------------------------------------------------------------------------
@@ -209,10 +209,17 @@ test('15 (superseded by Phase 15). the client resolver now uses a conditional au
 // 16-18: adjacent protected facts unaffected
 // ---------------------------------------------------------------------------
 
-test('16. obsolete $250 psychiatric pricing is absent anywhere touched by this phase', () => {
-  assert.doesNotMatch(insurancePageSource, /\$250/);
-  assert.doesNotMatch(feesCopySource, /\$250/);
-  assert.ok(!PROTECTED_PSYCHIATRIC_PRICING.some((s) => s.initialFee === 250 || s.followUpFee === 250));
+test('16. no hardcoded dollar literal competing with PROTECTED_PSYCHIATRIC_PRICING was introduced anywhere touched by this phase', () => {
+  // Previously banned the literal figure $250 outright, back when $250 was
+  // not any state's approved price. It legitimately became Florida's
+  // approved initialFee in a later pricing update, which made that literal
+  // ban factually wrong rather than protective. The real invariant it was
+  // meant to guard — that neither file hardcodes its own competing dollar
+  // figure instead of reading from the governed constant — is checked
+  // directly here instead.
+  assert.doesNotMatch(insurancePageSource, /\$\d{2,3}(?!\w)/);
+  assert.doesNotMatch(feesCopySource, /\$\d{2,3}(?!\w)/);
+  assert.equal(PROTECTED_PSYCHIATRIC_PRICING.length, 3);
 });
 
 test('17. Florida-only insurance governance remains intact (approvedInsurance/approvedDisclaimer untouched by this phase)', () => {

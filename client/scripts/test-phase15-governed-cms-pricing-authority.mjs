@@ -23,14 +23,14 @@ function findState(list, name) {
 }
 
 function validEntry(overrides) {
-  const base = { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 300, followUpFee: 150 };
+  const base = { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 250, followUpFee: 150 };
   return { ...base, ...overrides };
 }
 
 const VALID_UNCHANGED = [
-  { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 300, followUpFee: 150 },
-  { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 300, followUpFee: 175 },
-  { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 175 },
+  { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 250, followUpFee: 150 },
+  { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 350, followUpFee: 175 },
+  { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 165 },
 ];
 
 const VALID_CHANGED = [
@@ -253,23 +253,23 @@ test('11. one invalid state (Arizona zero fee) invalidates the entire collection
   const result = resolvePsychiatricStatePricing(pricing);
   assert.deepEqual(result, staticPricing);
   // Explicitly confirm Florida's changed $310 did NOT leak through despite being individually valid.
-  assert.equal(findState(result, 'Florida').initialFee, 300);
+  assert.equal(findState(result, 'Florida').initialFee, 250);
 });
 
 // ---------------------------------------------------------------------------
-// 12: fallback is exactly FL $300/$150, MA $300/$175 Self-Pay Only, AZ $325/$175 Self-Pay Only
+// 12: fallback is exactly FL $250/$150, MA $350/$175 Self-Pay Only, AZ $325/$165 Self-Pay Only
 // ---------------------------------------------------------------------------
 
 test('12. the fallback values are exactly the approved figures', () => {
   const fallback = resolvePsychiatricStatePricing(null);
-  assert.equal(findState(fallback, 'Florida').initialFee, 300);
+  assert.equal(findState(fallback, 'Florida').initialFee, 250);
   assert.equal(findState(fallback, 'Florida').followUpFee, 150);
   assert.equal(findState(fallback, 'Florida').selfPayOnly, false);
-  assert.equal(findState(fallback, 'Massachusetts').initialFee, 300);
+  assert.equal(findState(fallback, 'Massachusetts').initialFee, 350);
   assert.equal(findState(fallback, 'Massachusetts').followUpFee, 175);
   assert.equal(findState(fallback, 'Massachusetts').selfPayOnly, true);
   assert.equal(findState(fallback, 'Arizona').initialFee, 325);
-  assert.equal(findState(fallback, 'Arizona').followUpFee, 175);
+  assert.equal(findState(fallback, 'Arizona').followUpFee, 165);
   assert.equal(findState(fallback, 'Arizona').selfPayOnly, true);
 });
 
@@ -293,11 +293,18 @@ test('13b. the fallback is also always in canonical order', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 16: obsolete $250 psychiatric pricing is absent
+// 16: the static fallback has no stray/duplicate state entries
 // ---------------------------------------------------------------------------
 
-test('16. no valid CMS collection using $250 is inadvertently normalized to $250 anywhere, and $250 is absent from the fallback', () => {
-  assert.ok(!staticPricing.some((s) => s.initialFee === 250 || s.followUpFee === 250));
+test('16. the static fallback contains exactly the three canonical states, each exactly once — no stray or duplicate entry has been introduced', () => {
+  // This previously banned the literal figure $250 outright, back when $250
+  // was not any state's approved price. It legitimately became Florida's
+  // approved initialFee in a later pricing update, which made that literal
+  // ban factually wrong rather than protective. The real invariant it was
+  // meant to guard — that the fallback dataset isn't silently carrying a
+  // stray or duplicate state entry — is checked directly here instead.
+  assert.equal(staticPricing.length, 3);
+  assert.deepEqual(staticPricing.map((s) => s.state).sort(), ['Arizona', 'Florida', 'Massachusetts']);
 });
 
 // ---------------------------------------------------------------------------

@@ -265,12 +265,23 @@ test('23b. sliding-scale governance is true for all three states and is never ex
 });
 
 // ---------------------------------------------------------------------------
-// 24: obsolete $250 psychiatric pricing is absent
+// 24: the governed Admin pricing source has no stray/duplicate state entries
 // ---------------------------------------------------------------------------
 
-test('24. no $250 psychiatric pricing anywhere in the governed Admin pricing values or source', () => {
-  assert.ok(!PROTECTED_PSYCHIATRIC_PRICING.some((s) => s.initialFee === 250 || s.followUpFee === 250));
-  assert.doesNotMatch(feesCopySource, /\$250/);
+test('24. PROTECTED_PSYCHIATRIC_PRICING contains exactly the three canonical states, each exactly once, and FeesCopy.tsx never hardcodes a competing dollar literal', () => {
+  // Previously banned the literal figure $250 outright, back when $250 was
+  // not any state's approved price. It legitimately became Florida's
+  // approved initialFee in a later pricing update, which made that literal
+  // ban factually wrong rather than protective. The real invariants it was
+  // meant to guard — no stray/duplicate state entry in the governed
+  // constant, and no separate hardcoded dollar figure competing with it in
+  // FeesCopy.tsx — are checked directly here instead.
+  assert.equal(PROTECTED_PSYCHIATRIC_PRICING.length, 3);
+  assert.deepEqual(
+    PROTECTED_PSYCHIATRIC_PRICING.map((s) => s.state).sort(),
+    ['Arizona', 'Florida', 'Massachusetts']
+  );
+  assert.doesNotMatch(feesCopySource, /\$\d{2,3}(?!\w)/);
 });
 
 // ---------------------------------------------------------------------------

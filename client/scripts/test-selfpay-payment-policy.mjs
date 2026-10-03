@@ -73,11 +73,11 @@ test('7. the short pricing-card sliding-scale statement (a separate string in Fe
   assert.match(text, /Sliding Scale Available — Contact us to ask about eligibility and availability\./);
 });
 
-test('8. approved FL/MA/AZ psychiatric self-pay pricing is completely unaffected by this change', () => {
+test('8. approved FL/MA/AZ psychiatric self-pay pricing reflects the current approved figures', () => {
   const bySt = Object.fromEntries(psychiatricStatePricing.map((p) => [p.state, p]));
-  assert.deepEqual(bySt.Florida, { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 300, followUpFee: 150 });
-  assert.deepEqual(bySt.Massachusetts, { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 300, followUpFee: 175 });
-  assert.deepEqual(bySt.Arizona, { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 175 });
+  assert.deepEqual(bySt.Florida, { state: 'Florida', selfPayOnly: false, slidingScaleAvailable: true, initialFee: 250, followUpFee: 150 });
+  assert.deepEqual(bySt.Massachusetts, { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 350, followUpFee: 175 });
+  assert.deepEqual(bySt.Arizona, { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 165 });
 });
 
 test('9. selfPay.body still has exactly two paragraphs (no unrelated structural change)', () => {
