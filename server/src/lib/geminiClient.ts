@@ -48,7 +48,11 @@ export async function callGemini(args: {
     contents,
     config: {
       systemInstruction: args.systemPrompt,
-      maxOutputTokens: 300,
+      // 300 was found in production to truncate real answers mid-sentence
+      // (multi-state pricing/insurance questions routinely need more); 500
+      // gives real headroom while the system prompt's own "keep answers
+      // short" instruction keeps typical usage well under that ceiling.
+      maxOutputTokens: 500,
     },
   });
 

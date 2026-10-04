@@ -64,3 +64,9 @@ test('6. non-psychiatric tiers (Primary Care, Weight Management) are included', 
   assert.match(prompt, /Primary Care: Initial \$135/);
   assert.match(prompt, /Weight Management: Initial \$125/);
 });
+
+test('7. the prompt instructs plain-text replies, no markdown — replies render in a plain chat bubble, not a markdown renderer', () => {
+  const prompt = buildSystemPrompt(FIXTURE);
+  assert.match(prompt, /no markdown/i);
+  assert.match(prompt, /no \*\*bold\*\*/);
+});
