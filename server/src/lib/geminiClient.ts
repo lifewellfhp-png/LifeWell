@@ -53,6 +53,15 @@ export async function callGemini(args: {
       // gives real headroom while the system prompt's own "keep answers
       // short" instruction keeps typical usage well under that ceiling.
       maxOutputTokens: 500,
+      // On "thinking"-capable models, internal reasoning tokens are drawn
+      // from the same maxOutputTokens budget as the visible reply by
+      // default — production testing showed replies truncating mid-
+      // sentence even at 500 tokens because thinking consumed an
+      // unpredictable share of it first. A short customer-facing Q&A
+      // assistant has no need for extended reasoning, so thinking is
+      // disabled outright, leaving the full budget for the visible answer.
+      // (Harmlessly ignored by non-thinking models.)
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
