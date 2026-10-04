@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { chatSchema, fieldErrors } from '../validation/schemas.js';
 import { detectCrisis, CRISIS_RESPONSE } from '../lib/chatCrisis.js';
-import { getPsychiatricStatePricing, CHAT_NAP } from '../lib/chatFacts.js';
+import { getPsychiatricStatePricing, getInsurancePlans, getServicesList, getProviderInfo, CHAT_NAP } from '../lib/chatFacts.js';
 import { buildSystemPrompt } from '../lib/chatPrompt.js';
 import { callGemini, GeminiNotConfiguredError } from '../lib/geminiClient.js';
 import { badRequest } from '../utils/errors.js';
@@ -31,8 +31,13 @@ export async function handleChat(req: Request, res: Response): Promise<void> {
   }
 
   try {
-    const pricing = await getPsychiatricStatePricing();
-    const systemPrompt = buildSystemPrompt(pricing);
+    const [pricing, insurance, services, provider] = await Promise.all([
+      getPsychiatricStatePricing(),
+      getInsurancePlans(),
+      getServicesList(),
+      getProviderInfo(),
+    ]);
+    const systemPrompt = buildSystemPrompt(pricing, insurance, services, provider);
     const reply = await callGemini({ systemPrompt, history, message });
     res.json({ success: true, message: reply });
   } catch (err) {

@@ -16,12 +16,22 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { CHAT_NAP, CHAT_PRICING_TIERS, CHAT_PRICING_FALLBACK } from '../src/lib/chatFacts.ts';
+import {
+  CHAT_NAP,
+  CHAT_PRICING_TIERS,
+  CHAT_PRICING_FALLBACK,
+  CHAT_INSURANCE_FALLBACK,
+  CHAT_SERVICES_FALLBACK,
+  CHAT_PROVIDER_FALLBACK,
+} from '../src/lib/chatFacts.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../..');
 const siteSource = readFileSync(join(repoRoot, 'client/src/data/site.ts'), 'utf8');
 const pricingSource = readFileSync(join(repoRoot, 'client/src/data/pricing.ts'), 'utf8');
+const marketingSource = readFileSync(join(repoRoot, 'client/src/data/marketing.ts'), 'utf8');
+const servicesSource = readFileSync(join(repoRoot, 'client/src/data/generated/services.ts'), 'utf8');
+const providerSource = readFileSync(join(repoRoot, 'client/src/data/provider.ts'), 'utf8');
 
 test('1. phone number matches client/src/data/site.ts', () => {
   assert.match(siteSource, /phone: '\(407\) 603-1717'/);
@@ -70,4 +80,35 @@ test('7. non-psychiatric pricing tiers match client/src/data/pricing.ts', () => 
   assert.equal(primaryCare.followUpFee, 85);
   assert.equal(weightMgmt.initialFee, 125);
   assert.equal(weightMgmt.followUpFee, 85);
+});
+
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+test('8. the insurance fallback list is a subset of client/src/data/marketing.ts\'s real carrier names (every fallback name actually exists there)', () => {
+  const match = marketingSource.match(/export const insuranceCarriers: InsuranceCarrier\[\] = \[([\s\S]*?)\n\];/);
+  assert.ok(match, 'expected to find insuranceCarriers in client/src/data/marketing.ts');
+  for (const name of CHAT_INSURANCE_FALLBACK) {
+    assert.match(match[1], new RegExp(`name: '${escapeRegExp(name)}'`), `expected "${name}" to exist in client's insuranceCarriers`);
+  }
+});
+
+test('9. the insurance fallback list is complete — every real carrier name also appears in the chat fallback (no silent omission)', () => {
+  const match = marketingSource.match(/export const insuranceCarriers: InsuranceCarrier\[\] = \[([\s\S]*?)\n\];/);
+  const realNames = [...match[1].matchAll(/name: '([^']+)'/g)].map((m) => m[1]);
+  for (const name of realNames) {
+    assert.ok(CHAT_INSURANCE_FALLBACK.includes(name), `expected chat fallback to include real carrier "${name}"`);
+  }
+});
+
+test('10. the services fallback list matches client/src/data/generated/services.ts\'s real titles exactly', () => {
+  const realTitles = [...servicesSource.matchAll(/"title": "([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(CHAT_SERVICES_FALLBACK, realTitles);
+});
+
+test('11. the provider fallback matches client/src/data/provider.ts', () => {
+  assert.match(providerSource, new RegExp(`name: '${escapeRegExp(CHAT_PROVIDER_FALLBACK.name)}'`));
+  assert.match(providerSource, new RegExp(`credentials: '${escapeRegExp(CHAT_PROVIDER_FALLBACK.credentials)}'`));
+  assert.match(providerSource, new RegExp(`role: '${escapeRegExp(CHAT_PROVIDER_FALLBACK.role)}'`));
 });

@@ -65,3 +65,17 @@ test('7. successful responses use the shared {success, message} shape every othe
   assert.match(controllerSource, /res\.json\(\{ success: true, message: CRISIS_RESPONSE \}\)/);
   assert.match(controllerSource, /res\.json\(\{ success: true, message: reply \}\)/);
 });
+
+test('8. the controller fetches pricing, insurance, services, and provider info together (Promise.all), not sequentially or omitting any of them', () => {
+  const allIdx = controllerSource.indexOf('Promise.all([');
+  assert.ok(allIdx >= 0, 'expected a Promise.all([...]) call');
+  const block = controllerSource.slice(allIdx, controllerSource.indexOf(']);', allIdx));
+  assert.match(block, /getPsychiatricStatePricing\(\)/);
+  assert.match(block, /getInsurancePlans\(\)/);
+  assert.match(block, /getServicesList\(\)/);
+  assert.match(block, /getProviderInfo\(\)/);
+});
+
+test('9. all four resolved values are passed into buildSystemPrompt, in the order buildSystemPrompt expects', () => {
+  assert.match(controllerSource, /buildSystemPrompt\(pricing, insurance, services, provider\)/);
+});

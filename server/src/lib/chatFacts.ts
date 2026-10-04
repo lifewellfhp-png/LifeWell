@@ -131,3 +131,131 @@ export async function getPsychiatricStatePricing(): Promise<PsychiatricStatePric
     return CHAT_PRICING_FALLBACK;
   }
 }
+
+/**
+ * Mirror of client/src/data/marketing.ts's insuranceCarriers names (Florida
+ * only — see client/src/components/sections/FeesPageContent.tsx's "Accepted
+ * Insurance Plans — Florida Only" heading). Used only if the live
+ * `insurance_plans` table is unreachable; the names-only list below omits
+ * logos, which the chat has no use for.
+ */
+export const CHAT_INSURANCE_FALLBACK: string[] = [
+  'AVMED Florida Exchange',
+  'Florida Exchange',
+  'Oscar Health Plan',
+  'UBH General',
+  'Veterans Affairs Coordinated Care Network Region 3',
+  'Oxford (Commercial)',
+  'Aetna (Commercial)',
+  'First Health (Coventry Health Care)',
+  'Cigna (Commercial)',
+  'Medicaid',
+  'Medicare',
+  'UHC Medicare Advantage',
+  'Optum',
+  'Curative',
+  'TRICARE',
+];
+
+/**
+ * Live insurance payer names for the chat system prompt. Reads the same
+ * `insurance_plans` table the public /fees-insurance page resolves
+ * (published rows only, same ordering), falling back to the static mirror
+ * above on any missing config, query error, or empty result.
+ */
+export async function getInsurancePlans(): Promise<string[]> {
+  if (!supabaseConfigured()) return CHAT_INSURANCE_FALLBACK;
+  try {
+    const { data, error } = await getSupabase()
+      .from('insurance_plans')
+      .select('name')
+      .eq('published', true)
+      .order('sort_order', { ascending: true });
+    if (error || !data || data.length === 0) return CHAT_INSURANCE_FALLBACK;
+    const names = data.map((r) => r.name).filter((n): n is string => typeof n === 'string' && n.trim().length > 0);
+    return names.length ? names : CHAT_INSURANCE_FALLBACK;
+  } catch (err) {
+    logger.error('chat insurance fetch failed, using fallback', {
+      reason: err instanceof Error ? err.message : 'unknown',
+    });
+    return CHAT_INSURANCE_FALLBACK;
+  }
+}
+
+/** Mirror of client/src/data/generated/services.ts's service titles. */
+export const CHAT_SERVICES_FALLBACK: string[] = [
+  'Psychiatric Evaluations',
+  'Medication Management',
+  'Treatment for Depression, Anxiety, ADHD, Bipolar Disorder & PTSD',
+  'Follow-Up Visits for Ongoing Mental Health Care',
+  'Annual Physicals & Preventive Screenings',
+  'Chronic Disease Management',
+  'Preventive Care',
+  'Sick Visits (Acute Primary Care – Adults 18+)',
+  'Weight Management',
+  'Wellness and Lifestyle Counseling',
+  'Lab Testing Coordination',
+];
+
+/**
+ * Live service titles for the chat system prompt. Reads the same
+ * `services` table the public /our-services page resolves (published rows
+ * only, same ordering), falling back to the static mirror above on any
+ * missing config, query error, or empty result.
+ */
+export async function getServicesList(): Promise<string[]> {
+  if (!supabaseConfigured()) return CHAT_SERVICES_FALLBACK;
+  try {
+    const { data, error } = await getSupabase()
+      .from('services')
+      .select('title')
+      .eq('published', true)
+      .order('sort_order', { ascending: true });
+    if (error || !data || data.length === 0) return CHAT_SERVICES_FALLBACK;
+    const titles = data.map((r) => r.title).filter((t): t is string => typeof t === 'string' && t.trim().length > 0);
+    return titles.length ? titles : CHAT_SERVICES_FALLBACK;
+  } catch (err) {
+    logger.error('chat services fetch failed, using fallback', {
+      reason: err instanceof Error ? err.message : 'unknown',
+    });
+    return CHAT_SERVICES_FALLBACK;
+  }
+}
+
+export type ChatProviderInfo = { name: string; credentials: string; role: string };
+
+/** Mirror of client/src/data/provider.ts's name/credentials/role. */
+export const CHAT_PROVIDER_FALLBACK: ChatProviderInfo = {
+  name: 'Lourdie Chachoute',
+  credentials: 'APRN, FNP-C, PMHNP-BC, RRT, CCRN',
+  role: 'Psychiatric-Mental Health Nurse Practitioner',
+};
+
+/**
+ * Live provider info for the chat system prompt. Reads the same
+ * `providers` table the public /bio page resolves (first published row
+ * with a name), falling back to the static mirror above on any missing
+ * config, query error, or empty result.
+ */
+export async function getProviderInfo(): Promise<ChatProviderInfo> {
+  if (!supabaseConfigured()) return CHAT_PROVIDER_FALLBACK;
+  try {
+    const { data, error } = await getSupabase()
+      .from('providers')
+      .select('name, credentials, title')
+      .neq('published', false);
+    if (error || !data || data.length === 0) return CHAT_PROVIDER_FALLBACK;
+    const row = data.find((r) => typeof r.name === 'string' && r.name.trim().length > 0);
+    if (!row) return CHAT_PROVIDER_FALLBACK;
+    return {
+      name: String(row.name),
+      credentials: typeof row.credentials === 'string' && row.credentials ? row.credentials : CHAT_PROVIDER_FALLBACK.credentials,
+      role: typeof row.title === 'string' && row.title ? row.title : CHAT_PROVIDER_FALLBACK.role,
+    };
+  } catch (err) {
+    logger.error('chat provider fetch failed, using fallback', {
+      reason: err instanceof Error ? err.message : 'unknown',
+    });
+    return CHAT_PROVIDER_FALLBACK;
+  }
+}
