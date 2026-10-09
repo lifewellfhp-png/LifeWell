@@ -12,6 +12,8 @@
  * re-render and re-query the CMS on every single request, which is what
  * exhausted this project's Vercel Hobby-plan Fluid Active CPU quota.
  */
+import { fireGoogleAdsConversion } from '@/lib/googleAdsConversion';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lifewellfhp-server.vercel.app';
 
 /** Freshness fallback: the longest content can ever be stale if an admin
@@ -188,7 +190,7 @@ export async function trackPageView(path: string): Promise<void> {
 }
 
 export async function trackConversion(
-  conversion_type: 'contact' | 'newsletter' | 'booking_click',
+  conversion_type: 'contact' | 'newsletter' | 'booking_click' | 'phone_click',
   path?: string
 ): Promise<void> {
   try {
@@ -206,5 +208,11 @@ export async function trackConversion(
     });
   } catch {
     // ignore
+  }
+
+  // Google Ads only (never GA4/GTM); no-ops if unconfigured. 'newsletter' has
+  // no Ads conversion label by design — not one of the three tracked events.
+  if (conversion_type !== 'newsletter') {
+    fireGoogleAdsConversion(conversion_type);
   }
 }

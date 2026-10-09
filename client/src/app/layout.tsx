@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Lora, Source_Sans_3 } from 'next/font/google';
+import Script from 'next/script';
 import '@/styles/globals.css';
 
 import { site } from '@/data/site';
@@ -74,12 +75,39 @@ export const viewport: Viewport = {
   colorScheme: 'light',
 };
 
+/**
+ * Google Ads conversion tracking only — gtag.js loaded directly, no GTM
+ * container and no GA4. Renders only when NEXT_PUBLIC_GOOGLE_ADS_ID is set,
+ * so an unconfigured environment loads no third-party script at all. This
+ * is the root layout for the public app only (admin/ is a separate Next.js
+ * app with its own layout) and has no reach into the cross-origin
+ * CharmHealth booking iframe rendered on the booking page.
+ */
+const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cms = await getResolvedContent();
 
   return (
     <html lang="en-US" className={`${lora.variable} ${sourceSans.variable}`}>
       <body>
+        {GOOGLE_ADS_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-ads-gtag-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){window.dataLayer.push(arguments);}
+                window.gtag = gtag;
+                gtag('js', new Date());
+                gtag('config', ${JSON.stringify(GOOGLE_ADS_ID)}, { allow_ad_personalization_signals: false });
+              `}
+            </Script>
+          </>
+        )}
         <JsonLd data={homeGraph()} id="site-schema" />
         <ThemeVars />
         <SkipLink />

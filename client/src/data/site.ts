@@ -112,11 +112,6 @@ export const site = {
     phoneHref: 'tel:988',
     href: 'https://988lifeline.org/',
   },
-
-  /** Google Analytics 4 property carried over from the source site. */
-  analytics: {
-    ga4: process.env.NEXT_PUBLIC_GA4_ID ?? '',
-  },
 } as const;
 
 export type Site = typeof site;

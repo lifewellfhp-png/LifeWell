@@ -505,7 +505,7 @@ export const analyticsIngestSchema = z.object({
 });
 
 export const conversionIngestSchema = z.object({
-  conversion_type: z.enum(['contact', 'newsletter', 'booking_click']),
+  conversion_type: z.enum(['contact', 'newsletter', 'booking_click', 'phone_click']),
   path: z.string().max(500).optional().nullable(),
   meta: z.record(z.unknown()).default({}),
   /**
