@@ -11,9 +11,14 @@ export const contactPage = {
   infoAccent: 'Information',
   infoBody:
     'We’re here to support you on your mental wellness journey. Whether you have questions about our services, would like to schedule an appointment, or need additional information, compassionate and confidential assistance is available to help you move forward with confidence.',
-  hours: [
-    'Monday–Friday | 08:00 AM–10:00 PM EST',
-    'Saturday–Sunday | 07:00 AM–10:00 PM EST',
+  /** Physical Orlando office hours — owner-confirmed (pre-launch accuracy audit). Mirrors site.ts's `hours`. */
+  hours: ['Monday | Closed', 'Tuesday–Friday | 10:00 AM–4:00 PM EST', 'Saturday | Closed', 'Sunday | Closed'],
+  /** Telehealth appointment hours — genuinely separate from the physical office above. Mirrors site.ts's `telehealthHours`. */
+  telehealthHours: [
+    'Monday–Thursday | 6:30 PM–8:30 PM EST',
+    'Friday | 10:00 AM–5:00 PM EST',
+    'Saturday | 10:00 AM–5:00 PM EST',
+    'Sunday | Closed',
   ],
   formHeading: 'Ask a',
   formAccent: 'Question',

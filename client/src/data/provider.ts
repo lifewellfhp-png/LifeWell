@@ -103,12 +103,12 @@ export const providerPage = {
   expertiseBlurb:
     "Anxiety disorders treatment, Depression treatment, ADHD evaluation and management, Mood disorders (including bipolar disorder), Trauma and PTSD care, Sleep disorder management, Medication management, Women's health support, Weight management, Chronic disease management, PMHNP telehealth psychiatric care",
   yearsBlurb: '15+',
-  shifts: [
-    { day: 'Monday', hours: '18:00-22:00' },
-    { day: 'Tuesday', hours: '18:00-22:00' },
-    { day: 'Wednesday', hours: '18:00-22:00' },
-    { day: 'Thursday', hours: '18:00-22:00' },
-    { day: 'Friday', hours: '07:00-22:00' },
-    { day: 'Saturday', hours: '07:00-22:00' },
-  ],
+  /**
+   * `shifts` (Working Shifts — Mon–Thu 18:00–22:00, Fri–Sat 07:00–22:00)
+   * was removed (pre-launch accuracy audit): it matched neither the
+   * owner-confirmed physical office hours nor the owner-confirmed
+   * telehealth hours, was unverifiable, and was not required for booking
+   * itself to function. See BioPageContent.tsx's removal comment for the
+   * full rationale before reintroducing anything like it.
+   */
 };

@@ -4,7 +4,6 @@ import { site } from '@/data/site';
 import { stats, testimonials } from '@/data/marketing';
 import { Container } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
-import { TrackedBookingLink } from '@/components/ui/TrackedBookingLink';
 import { StatsBand } from '@/components/sections/StatsBand';
 import { ProviderTrustLinks } from '@/components/sections/BookingProfiles';
 import { isOptimizableImageSrc } from '@/lib/site-asset';
@@ -102,26 +101,23 @@ export function BioPageContent({
                 <CredentialRow title="Years of practice" body={providerPage.yearsBlurb} last />
               </dl>
 
-              <h3 className="mt-10 font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[36px] desktop:text-[42px]">
-                Working Shifts
-              </h3>
-              <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {providerPage.shifts.map((shift) => (
-                  <li key={shift.day}>
-                    <TrackedBookingLink
-                      href={bookHref}
-                      className="flex flex-col items-center rounded-[15px] bg-[var(--lw-accent)] px-6 py-8 text-center no-underline transition-transform duration-300 hover:-translate-y-2.5"
-                    >
-                      <span className="text-[16px] font-semibold leading-snug text-white sm:text-[18px]">
-                        {shift.day}
-                      </span>
-                      <span className="mt-2 text-[16px] font-normal leading-snug text-white sm:text-[18px]">
-                        {shift.hours}
-                      </span>
-                    </TrackedBookingLink>
-                  </li>
-                ))}
-              </ul>
+              {/*
+                Pre-launch accuracy audit: the "Working Shifts" block that
+                previously rendered here (provider.ts's `shifts`, each tile
+                a direct booking link — i.e. framed as provider appointment
+                availability, not physical-office status) showed Mon–Thu
+                18:00–22:00 / Fri–Sat 07:00–22:00. That schedule matches
+                neither the owner-confirmed physical office hours (closed
+                Mon/Sat/Sun; Tue–Fri 10 AM–4 PM) nor the owner-confirmed
+                telehealth hours (Mon–Thu 6:30–8:30 PM; Fri–Sat 10 AM–5 PM;
+                closed Sun) — it was unverifiable and actively conflicting,
+                not merely unconfirmed, so it was removed rather than left
+                live. It was never required for booking itself to work (the
+                real-time CharmHealth calendar is the actual availability
+                source). If a provider-specific availability summary is
+                wanted here again, it should be rebuilt from the two
+                confirmed schedules above, not restored as-is.
+              */}
             </div>
           </div>
         </Container>
@@ -253,23 +249,25 @@ function BioHero({
             </li>
           </ul>
 
-          <ul className="flex gap-[5px]">
-            {site.social.map((s) => (
-              <li key={s.name}>
-                <a
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex size-10 items-center justify-center rounded-full bg-[var(--lw-accent)] text-white transition-colors duration-300 hover:bg-[#2F6691]"
-                >
-                  <span className="sr-only">
-                    {site.name} on {s.name}
-                  </span>
-                  <SocialGlyph name={s.name} />
-                </a>
-              </li>
-            ))}
-          </ul>
+          {site.social.length > 0 && (
+            <ul className="flex gap-[5px]">
+              {site.social.map((s) => (
+                <li key={s.name}>
+                  <a
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex size-10 items-center justify-center rounded-full bg-[var(--lw-accent)] text-white transition-colors duration-300 hover:bg-[#2F6691]"
+                  >
+                    <span className="sr-only">
+                      {site.name} on {s.name}
+                    </span>
+                    <SocialGlyph name={s.name} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <p className="max-w-[42ch] text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
             Personalized, compassionate psychiatric care and professional{' '}

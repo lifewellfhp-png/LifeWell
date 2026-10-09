@@ -31,7 +31,7 @@ export function BookingCalendar({ src = site.booking.url }: { src?: string }) {
             <span className="italic tracking-normal text-[var(--lw-primary)]">that works for you</span>
           </h2>
           <p className="mx-auto mt-5 max-w-[46ch] text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
-            Book a secure telehealth visit in the same CharmHealth calendar used on the previous LifeWell site.
+            Select an available date and time below to book your secure telehealth visit.
           </p>
         </div>
 

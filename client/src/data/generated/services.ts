@@ -200,7 +200,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "All psychiatric evaluations are conducted through our telehealth platform, allowing you to receive professional care from the comfort and privacy of your home."
+            "text": "Psychiatric evaluations are available through secure telehealth, or in person at our Orlando office, allowing you to receive professional care in the format that works best for you."
           },
           {
             "type": "text",
@@ -439,7 +439,7 @@ export const generatedServices: Service[] = [
         "blocks": [
           {
             "type": "text",
-            "text": "All medication management appointments are conducted through our telehealth platform. This allows you to receive professional psychiatric care without needing to travel."
+            "text": "Medication management appointments are available through secure telehealth, or in person at our Orlando office, so you can receive professional psychiatric care in the format that works best for you."
           },
           {
             "type": "text",

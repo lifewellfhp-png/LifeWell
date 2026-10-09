@@ -161,14 +161,21 @@ test('4. every confirmed legitimate booking CTA carries trackAs="booking_click"'
   }
 });
 
-test('4b. BioPageContent Working Shifts tiles use the dedicated TrackedBookingLink client-component leaf', () => {
+test('4b. BioPageContent no longer references TrackedBookingLink, and the component file was removed rather than left as orphaned dead code', () => {
+  // Pre-launch accuracy audit: BioPageContent's "Working Shifts" tiles (the
+  // component's sole reason for existing — see its own prior docstring)
+  // were removed because the schedule they displayed conflicted with both
+  // owner-confirmed office and telehealth schedules. With zero remaining
+  // callers anywhere in the app, the component itself was deleted rather
+  // than left as an unused, confusing leftover.
   const bio = src('components/sections/BioPageContent.tsx');
-  assert.match(bio, /<TrackedBookingLink/);
-  assert.doesNotMatch(bio, /onClick=/, 'BioPageContent itself should stay a Server Component with no onClick of its own');
-
-  const link = src('components/ui/TrackedBookingLink.tsx');
-  assert.match(link, /^'use client';/, 'TrackedBookingLink must be a Client Component to hold an onClick handler');
-  assert.match(link, /trackConversion\(\s*'booking_click'/);
+  assert.doesNotMatch(bio, /<TrackedBookingLink/);
+  // Strip comments before checking for the removed heading text — this
+  // file's own removal-rationale comment legitimately mentions "Working
+  // Shifts" when explaining why it's gone; only rendered JSX text matters.
+  const withoutComments = bio.replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+  assert.doesNotMatch(withoutComments, />Working Shifts</);
+  assert.throws(() => src('components/ui/TrackedBookingLink.tsx'), /ENOENT/);
 });
 
 test('4c. JourneyCta forwards an opt-in trackAs prop rather than assuming booking for every caller', () => {
@@ -227,11 +234,7 @@ test('6b. HeaderCta attaches onClick to exactly one element per render branch', 
 /* ---------------------------------------- 7. fire-and-forget (non-blocking) --- */
 
 test('7. every tracking call site uses void trackConversion(...), never awaits it', () => {
-  const files = [
-    'components/ui/SwapButton.tsx',
-    'components/layout/HeaderCta.tsx',
-    'components/ui/TrackedBookingLink.tsx',
-  ];
+  const files = ['components/ui/SwapButton.tsx', 'components/layout/HeaderCta.tsx'];
   for (const file of files) {
     const text = src(file);
     assert.doesNotMatch(text, /await trackConversion/, `${file} must not await trackConversion (would block navigation)`);
@@ -246,11 +249,7 @@ test('8. every component that defines an onClick handler is a Client Component',
   // a Server Component boundary — this must be 'use client', or the page
   // throws at request time ("Event handlers cannot be passed to Client
   // Component props"), a failure typecheck/build do NOT catch.
-  const files = [
-    'components/ui/SwapButton.tsx',
-    'components/layout/HeaderCta.tsx',
-    'components/ui/TrackedBookingLink.tsx',
-  ];
+  const files = ['components/ui/SwapButton.tsx', 'components/layout/HeaderCta.tsx'];
   for (const file of files) {
     const text = src(file);
     assert.match(text.slice(0, 50), /'use client';/, `${file} defines an onClick handler and must start with 'use client'`);

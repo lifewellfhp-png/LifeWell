@@ -15,6 +15,13 @@ export type ContactCms = {
   bookingUrl: string;
 };
 
+/**
+ * Telehealth appointment hours are not CMS-backed anywhere in this
+ * codebase (the `locations` CMS table models a physical address, not a
+ * virtual-appointment schedule) — this is a pure static value, same
+ * posture as other facts with no corresponding CMS field.
+ */
+
 function telHref(phone: string) {
   const digits = phone.replace(/\D/g, '').replace(/^1/, '');
   return digits ? `tel:+1${digits}` : site.contact.phoneHref;
@@ -71,10 +78,19 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
             </p>
 
             <h3 className="mt-8 font-body text-[12px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[13px] desktop:text-[15px]">
-              Open:
+              Office Hours (Orlando):
             </h3>
             <div className="mt-2 space-y-1 text-[14px] leading-[1.45] text-text-primary sm:max-desktop:text-[16px] desktop:text-[18px]">
               {hours.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </div>
+
+            <h3 className="mt-8 font-body text-[12px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[13px] desktop:text-[15px]">
+              Telehealth Appointment Hours:
+            </h3>
+            <div className="mt-2 space-y-1 text-[14px] leading-[1.45] text-text-primary sm:max-desktop:text-[16px] desktop:text-[18px]">
+              {contactPage.telehealthHours.map((line) => (
                 <p key={line}>{line}</p>
               ))}
             </div>

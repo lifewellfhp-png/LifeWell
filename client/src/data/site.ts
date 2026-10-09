@@ -42,32 +42,53 @@ export const site = {
   },
 
   /**
-   * Hours as published on the Contact page.
-   *
-   * NOTE: the source site also lists a different, narrower schedule on the Bio
-   * page (Mon–Thu 18:00–22:00, Fri–Sat 07:00–22:00). The Contact page version
-   * is used here because it is the canonical hours location and covers all
-   * seven days. Flagged for client confirmation — see README.
+   * Physical Orlando office hours — owner-confirmed (pre-launch accuracy
+   * audit). This is the PHYSICAL location's schedule only; see
+   * `telehealthHours` below for the separate, later-confirmed telehealth
+   * appointment schedule. Do not merge the two — they are genuinely
+   * different hours for different things, and conflating them was exactly
+   * the accuracy defect this audit exists to fix.
    */
   hours: [
-    { days: 'Monday – Friday', opens: '08:00', closes: '22:00', display: '8:00 AM – 10:00 PM EST' },
-    { days: 'Saturday – Sunday', opens: '07:00', closes: '22:00', display: '7:00 AM – 10:00 PM EST' },
+    { days: 'Monday', opens: null, closes: null, display: 'Closed' },
+    { days: 'Tuesday – Friday', opens: '10:00', closes: '16:00', display: '10:00 AM – 4:00 PM EST' },
+    { days: 'Saturday', opens: null, closes: null, display: 'Closed' },
+    { days: 'Sunday', opens: null, closes: null, display: 'Closed' },
   ],
 
-  /** Machine-readable form for openingHoursSpecification. */
-  hoursSpec: [
-    { days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '08:00', closes: '22:00' },
-    { days: ['Saturday', 'Sunday'], opens: '07:00', closes: '22:00' },
+  /**
+   * Machine-readable physical-office form for openingHoursSpecification.
+   * Monday/Saturday/Sunday are omitted entirely (schema.org convention for
+   * "closed") rather than given a fabricated open/close time. Telehealth
+   * hours must never appear here — this field describes the physical
+   * MedicalClinic location only.
+   */
+  hoursSpec: [{ days: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '10:00', closes: '16:00' }],
+
+  /**
+   * Telehealth appointment hours — owner-confirmed (pre-launch accuracy
+   * audit), genuinely separate from the physical office hours above. Any
+   * UI that renders this must label it clearly as telehealth/virtual
+   * appointment availability, never as "office hours".
+   */
+  telehealthHours: [
+    { days: 'Monday – Thursday', opens: '18:30', closes: '20:30', display: '6:30 PM – 8:30 PM EST' },
+    { days: 'Friday', opens: '10:00', closes: '17:00', display: '10:00 AM – 5:00 PM EST' },
+    { days: 'Saturday', opens: '10:00', closes: '17:00', display: '10:00 AM – 5:00 PM EST' },
+    { days: 'Sunday', opens: null, closes: null, display: 'Closed' },
   ],
 
-  social: [
-    { name: 'Facebook', href: 'https://www.facebook.com/groups/3391671304409221' },
-    { name: 'LinkedIn', href: 'https://www.linkedin.com/in/lourdie-chachoute-914327209' },
-    {
-      name: 'Instagram',
-      href: 'https://www.instagram.com/nashb.lue?igsh=MWVicGh3MGh2MXJiMQ%3D%3D&utm_source=qr',
-    },
-  ],
+  /**
+   * All three previously-listed destinations were removed per owner
+   * decision (pre-launch accuracy audit): the Facebook link pointed to a
+   * Group rather than an official Page, the LinkedIn link was a personal
+   * profile, and the Instagram handle did not match the practice's brand.
+   * None were replaced with a guessed URL — add real official profiles
+   * here once confirmed. Every consumer (Footer, Bio page, JSON-LD
+   * `sameAs`) renders nothing when this is empty rather than showing a
+   * broken/empty icon.
+   */
+  social: [] as { name: string; href: string }[],
 
   /**
    * Booking.

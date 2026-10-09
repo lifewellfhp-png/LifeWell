@@ -102,7 +102,9 @@ export function organizationNode() {
       opens: h.opens,
       closes: h.closes,
     })),
-    sameAs: site.social.map((s) => s.href),
+    // Omitted entirely rather than emitted as an empty array when there are
+    // no confirmed official profiles — see the comment on site.social.
+    ...(site.social.length > 0 ? { sameAs: site.social.map((s) => s.href) } : {}),
     employee: { '@id': PROVIDER_ID },
   };
 }

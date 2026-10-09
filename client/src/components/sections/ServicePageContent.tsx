@@ -37,7 +37,16 @@ export async function ServicePageContent({ slug }: { slug: string }) {
   if (!summary && !service) return null;
 
   const title = summary?.title || service?.title || slug;
+  // Hero subheading: the site-wide service summary (also used on
+  // /our-services cards), so the hero and the catalog never disagree.
   const lead = summary?.description || service?.lead || '';
+  // Article heading: a distinct heading sourced from the original service
+  // content (there is no CMS field for this — summary/body are the only
+  // admin-editable text on a service row), never the hero's own lead text.
+  // Previously this fell back to `lead`, which meant the hero subheading
+  // and this H2 rendered the identical sentence twice on every service
+  // page.
+  const articleHeading = service?.lead || title;
   const image = summary?.image || {
     src: '/images/services/Psychiatric-Evaluation-Telehealth.avif',
     alt: title,
@@ -72,7 +81,7 @@ export async function ServicePageContent({ slug }: { slug: string }) {
         <div className="mx-auto grid max-w-[1840px] items-start gap-12 lg:max-[1601px]:grid-cols-[minmax(0,1fr)_20rem] lg:max-[1601px]:gap-16 min-[1601px]:grid-cols-[minmax(0,1fr)_24rem] min-[1601px]:gap-20">
           <article className="min-w-0">
             <h2 className="font-heading text-[28px] font-normal leading-[1.2] tracking-[-1px] text-[var(--lw-accent)] sm:max-desktop:text-[36px] desktop:text-[42px]">
-              {lead || title}
+              {articleHeading}
             </h2>
 
             {bodyParagraphs.length ? (

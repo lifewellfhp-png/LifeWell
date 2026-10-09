@@ -102,23 +102,25 @@ export async function Footer() {
                 </ul>
               </address>
 
-              <ul className="mt-6 flex gap-3">
-                {site.social.map((s) => (
-                  <li key={s.name}>
-                    <a
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex size-10 items-center justify-center rounded-full bg-[var(--lw-accent)] text-white transition-colors duration-300 hover:bg-white hover:text-[var(--lw-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                    >
-                      <span className="sr-only">
-                        {site.name} on {s.name}
-                      </span>
-                      <SocialIcon name={s.name} />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              {site.social.length > 0 && (
+                <ul className="mt-6 flex gap-3">
+                  {site.social.map((s) => (
+                    <li key={s.name}>
+                      <a
+                        href={s.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex size-10 items-center justify-center rounded-full bg-[var(--lw-accent)] text-white transition-colors duration-300 hover:bg-white hover:text-[var(--lw-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                      >
+                        <span className="sr-only">
+                          {site.name} on {s.name}
+                        </span>
+                        <SocialIcon name={s.name} />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div className="flex min-w-0 flex-col gap-10 xl:col-span-2">

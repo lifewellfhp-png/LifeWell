@@ -58,7 +58,7 @@ export const benefits: Benefit[] = [
   {
     title: 'Private & Secure Telehealth Sessions',
     description:
-      'All appointments are conducted through our telehealth platform, designed with your privacy and confidentiality in mind at every step.',
+      'Most appointments are conducted through our secure, private telehealth platform, with in-person visits also available at our Orlando office for select services.',
     image: {
       src: '/images/benefits/Private-Secure-Telehealth-Sessions.avif',
       width: 1180,
@@ -114,9 +114,9 @@ export const steps: Step[] = [
       'Schedule your appointment online through our secure booking system and choose a date and time that works best for you.',
   },
   {
-    title: 'Attend Your Virtual Session',
+    title: 'Attend Your Appointment',
     description:
-      'You will meet with your provider through a secure telehealth platform, allowing you to receive care from the comfort and privacy of your home.',
+      "You will meet with your provider by secure telehealth or in person at our Orlando office, depending on how you booked. We'll send instructions appropriate to your appointment format.",
   },
   {
     title: 'Begin Your Personalized Care Plan',
