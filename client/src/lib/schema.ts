@@ -301,7 +301,7 @@ export function serviceGraph(service: Service, description: string) {
 
 export function serviceListGraph(summaries: ServiceSummary[], description: string) {
   return graph([
-    webPageNode('/our-services', 'Comprehensive Online Mental Health Services', description),
+    webPageNode('/our-services', 'Comprehensive Online Mental Health & Primary Care Services', description),
     {
       '@type': 'ItemList',
       '@id': `${site.url}/our-services#services`,

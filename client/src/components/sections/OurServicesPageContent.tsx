@@ -45,8 +45,8 @@ export function OurServicesPageContent({
         }}
         imageSide="left"
         title="Comprehensive Online"
-        accent="Mental Health Services"
-        lead="Personalized, evidence-based psychiatric care delivered through secure and convenient telehealth sessions as part of our comprehensive online mental health services, designed to support your long-term emotional wellness."
+        accent="Mental Health & Primary Care Services"
+        lead="Personalized, evidence-based mental health and primary care from a board-certified nurse practitioner, delivered through secure and convenient telehealth sessions designed to support your long-term wellness."
         leadSize="subhead"
       />
 

@@ -7,7 +7,7 @@ import { serviceListGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
 const DESCRIPTION =
-  'Personalized, evidence-based psychiatric care delivered through secure and convenient telehealth sessions as part of our comprehensive online mental health services.';
+  'Psychiatric evaluations, medication management, chronic disease care, physicals, and wellness counseling. Telehealth in FL, MA & AZ; in-person in Orlando.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();

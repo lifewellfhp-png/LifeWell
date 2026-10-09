@@ -63,7 +63,7 @@ if (homeHeadline) {
 const CASES = [
   ['/', 200, homeHeadline],
   ['/bio', 200, 'Lourdie Chachoute'],
-  ['/our-services', 200, 'Comprehensive Online Mental Health Services'],
+  ['/our-services', 200, 'Comprehensive Online Mental Health & Primary Care Services'],
   ['/services/psychiatric-evaluations', 200, 'Psychiatric Evaluations'],
   ['/services/weight-management-telehealth', 200, 'Weight Management'],
   ['/services/lab-testing-coordination-telehealth', 200, 'Lab Testing'],
