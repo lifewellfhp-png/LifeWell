@@ -299,9 +299,16 @@ overriding them only creates ways for the deploy to fail.
 | --- | --- | --- |
 | `NEXT_PUBLIC_API_URL` | **Yes** | The deployed API origin. Left at localhost, the forms fail (gracefully — they show the phone number — but nothing is delivered). |
 | `NEXT_PUBLIC_SITE_URL` | Recommended | Drives canonicals, sitemap and JSON-LD. Falls back to `https://www.lifewellfhp.com`; set it per environment so previews don't claim production URLs. |
-| `NEXT_PUBLIC_GA4_ID` | Optional | `G-31C1GHVRGF` carried over from WordPress. Blank disables analytics. |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID` | Optional | Google Ads tag ID (`AW-...`). The tag only loads when this is set. |
+| `NEXT_PUBLIC_GOOGLE_ADS_LABEL_CONTACT` | Optional | Conversion label; fires only after the server confirms the contact form submission succeeded. |
+| `NEXT_PUBLIC_GOOGLE_ADS_LABEL_PHONE_CLICK` | Optional | Conversion label; fires on `tel:` link clicks (the 988 crisis line is excluded). |
+| `NEXT_PUBLIC_GOOGLE_ADS_LABEL_BOOKING_CLICK` | Optional | Conversion label; fires on booking CTA clicks. |
 
 These are read at **build** time and baked in, so changing one needs a redeploy.
+
+Google Ads tag only — no GA4, no GTM, no enhanced conversions. The tag's `config` call sets
+`allow_ad_personalization_signals: false`, and every conversion payload sends only `send_to` —
+never form fields or other PII.
 
 ### Refresh behaviour
 
