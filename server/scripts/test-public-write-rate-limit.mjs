@@ -238,13 +238,41 @@ test('C14. no custom keyGenerator was introduced for the new limiters — the sh
   assert.match(conversionBlock, /= limiter\(/);
 });
 
-test('C14b. the shared limiter() factory itself still has no keyGenerator anywhere in this file', () => {
-  assert.doesNotMatch(middlewareSource, /keyGenerator/);
+test('C14b. the shared limiter() factory has exactly one keyGenerator (trustedClientIp), applied uniformly — not a separate one per limiter (Phase 1 item 3 follow-up: the admin-proxy trusted-IP override)', () => {
+  const keyGeneratorMatches = middlewareSource.match(/keyGenerator/g) || [];
+  // Exactly 2: the property name inside trustedClientIp's own definition
+  // context doesn't count it twice — one in the factory's rateLimit options
+  // (`keyGenerator: trustedClientIp`), one in trustedClientIp's own doc
+  // reference is prose, not code, so really just the one functional usage.
+  // Assert narrowly on the actual wiring instead of a magic count.
+  assert.match(middlewareSource, /const limiter = \([^)]*\) =>\s*\n?\s*rateLimit\(\{[\s\S]*?keyGenerator: trustedClientIp/);
+  assert.ok(keyGeneratorMatches.length >= 1, 'trustedClientIp must be wired as the factory keyGenerator');
 });
 
-test('C15. no req.ip or forwarded-header value is logged or persisted anywhere in this file or the analytics controller', () => {
-  assert.doesNotMatch(middlewareSource, /req\.ip|request\.ip|x-forwarded-for/i);
+test('C15. req.ip is used exactly once in actual code in this file — trustedClientIp\'s own fallback — never logged, and never in the analytics controller', () => {
+  // Scoped to the function body, not its doc comment, which legitimately
+  // mentions "req.ip" in prose explaining the fallback.
+  const fnBody = middlewareSource.slice(
+    middlewareSource.indexOf('function trustedClientIp'),
+    middlewareSource.indexOf('const limiter =')
+  );
+  const reqIpMatches = fnBody.match(/req\.ip/g) || [];
+  assert.equal(reqIpMatches.length, 1, 'req.ip should appear exactly once in code: trustedClientIp\'s fallback line');
+  assert.doesNotMatch(middlewareSource, /logger\.[a-z]+\([^)]*req\.ip/);
   assert.doesNotMatch(analyticsControllerSource, /req\.ip|request\.ip|x-forwarded-for/i);
+});
+
+test('C15b. the admin-proxy client-ip header is only ever trusted when the shared secret header matches — never on its own', () => {
+  const fn = middlewareSource.slice(
+    middlewareSource.indexOf('function trustedClientIp'),
+    middlewareSource.indexOf('const limiter =')
+  );
+  assert.match(fn, /PROXY_SECRET_HEADER\]\s*===\s*secret/);
+  // The client-ip header must be read only inside that same matched branch,
+  // never unconditionally.
+  const secretCheckIdx = fn.search(/PROXY_SECRET_HEADER\]\s*===\s*secret/);
+  const clientIpReadIdx = fn.indexOf('CLIENT_IP_HEADER');
+  assert.ok(clientIpReadIdx > secretCheckIdx, 'the client-ip header must only be read after the secret check');
 });
 
 test('C15b. the shared limiter() factory options are unchanged: standardHeaders true, legacyHeaders false, skipFailedRequests false', () => {

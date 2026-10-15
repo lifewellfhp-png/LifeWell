@@ -58,6 +58,16 @@ const schema = z.object({
     .string()
     .min(32, 'ADMIN_JWT_SECRET must be set to a random value at least 32 characters long.'),
 
+  /**
+   * Shared with the admin app (same value in both Vercel projects). Gates
+   * trust of the admin proxy's x-lifewell-client-ip header for rate
+   * limiting — see middleware/index.ts's trustedClientIp(). Optional: when
+   * unset, that header is never trusted and every request (including the
+   * admin proxy's own) falls back to Express's normal trust-proxy-derived
+   * req.ip, same as before this existed.
+   */
+  ADMIN_PROXY_SECRET: z.string().optional(),
+
   GA4_MEASUREMENT_ID: z.string().optional(),
   GOOGLE_SEARCH_CONSOLE_SITE: z.string().optional(),
 

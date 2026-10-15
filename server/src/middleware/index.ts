@@ -25,6 +25,30 @@ export const requestLogger: RequestHandler = (req, res, next) => {
   next();
 };
 
+const CLIENT_IP_HEADER = 'x-lifewell-client-ip';
+const PROXY_SECRET_HEADER = 'x-lifewell-proxy-secret';
+
+/**
+ * Rate-limit key. Trusts the admin proxy's explicitly-declared client IP
+ * ONLY when the shared secret header matches ADMIN_PROXY_SECRET exactly —
+ * that match is what proves the request genuinely came through the admin
+ * app's own server-side proxy (which only ever forwards a Vercel-verified
+ * IP for its own incoming request), not a direct caller forging both
+ * headers to impersonate it. A direct caller who doesn't know the secret
+ * falls straight through to req.ip below — Express's normal trust-proxy-
+ * derived value (see app.ts's `trust proxy` comment), completely unaffected
+ * by whatever they put in x-lifewell-client-ip. Same fallback if
+ * ADMIN_PROXY_SECRET is ever unset.
+ */
+function trustedClientIp(req: Request): string {
+  const secret = env.ADMIN_PROXY_SECRET;
+  if (secret && req.headers[PROXY_SECRET_HEADER] === secret) {
+    const claimed = req.headers[CLIENT_IP_HEADER];
+    if (typeof claimed === 'string' && claimed.trim()) return claimed.trim();
+  }
+  return req.ip ?? 'unknown';
+}
+
 const limiter = (windowMs: number, max: number, message: string) =>
   rateLimit({
     windowMs,
@@ -34,6 +58,7 @@ const limiter = (windowMs: number, max: number, message: string) =>
     message: { success: false, message },
     // Failed validation still counts, so a scripted probe cannot loop freely.
     skipFailedRequests: false,
+    keyGenerator: trustedClientIp,
   });
 
 const HOUR_MS = 60 * 60 * 1000;

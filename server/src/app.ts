@@ -17,7 +17,12 @@ export function createApp(): Express {
   const app = express();
 
   // Required for correct client IPs (and therefore rate limiting) behind a
-  // reverse proxy or platform load balancer.
+  // reverse proxy or platform load balancer. Vercel is exactly one such
+  // trusted hop in front of this deployment, so `1` is the right count: req.ip
+  // resolves to whatever Vercel's own edge appended to X-Forwarded-For, never
+  // an earlier entry a direct caller could have forged themselves — this is
+  // unaffected by, and independent from, the admin-proxy trusted-IP override
+  // in middleware/index.ts's trustedClientIp().
   if (isProduction) app.set('trust proxy', 1);
 
   app.disable('x-powered-by');

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { EXPRESS_API_URL, SESSION_COOKIE, sessionCookieOptions, forwardedForHeaders } from '@/lib/session';
+import { EXPRESS_API_URL, SESSION_COOKIE, sessionCookieOptions, trustedClientIpHeaders } from '@/lib/session';
 
 /**
  * Dedicated route rather than the generic catch-all: a successful password
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
-      ...forwardedForHeaders(request),
+      ...trustedClientIpHeaders(request),
     },
     body,
   });

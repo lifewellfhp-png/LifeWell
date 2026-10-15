@@ -79,18 +79,39 @@ test('3. a GET request (not state-changing) is forwarded regardless of Origin', 
   assert.equal(calls.length, 1);
 });
 
-test('4. ADMIN_APP_URL, when set, is honored by the Origin check instead of the default', async () => {
-  const before = process.env.ADMIN_APP_URL;
-  process.env.ADMIN_APP_URL = 'https://staging-admin.example.com';
+test('4. the Origin check compares against this request\'s own Host, not a configured URL — a Vercel preview\'s distinct domain is accepted with zero config', async () => {
+  stubFetch();
+  const request = new NextRequest('https://lifewellfhp-admin-git-some-branch-team.vercel.app/api/admin/users', {
+    method: 'POST',
+    headers: { cookie: `${SESSION_COOKIE}=x`, origin: 'https://lifewellfhp-admin-git-some-branch-team.vercel.app' },
+    body: JSON.stringify({ a: 1 }),
+  });
+  const response = await POST(request, ctx('admin/users'));
+  assert.notEqual(response.status, 403);
+  assert.equal(calls.length, 1);
+});
+
+test('4b. a request whose Origin does NOT match its own Host is still rejected (e.g. a stale/forged Origin on a preview domain)', async () => {
+  stubFetch();
+  const request = new NextRequest('https://lifewellfhp-admin-git-some-branch-team.vercel.app/api/admin/users', {
+    method: 'POST',
+    // Origin claims production, but this request actually arrived at the preview host.
+    headers: { cookie: `${SESSION_COOKIE}=x`, origin: 'https://lifewellfhp-admin.vercel.app' },
+    body: JSON.stringify({ a: 1 }),
+  });
+  const response = await POST(request, ctx('admin/users'));
+  assert.equal(response.status, 403);
+  assert.equal(calls.length, 0);
+});
+
+test('4c. a state-changing request with NO Origin header at all is rejected, not silently allowed', async () => {
   stubFetch();
   const response = await POST(
-    req('/admin/users', { method: 'POST', cookie: 'x', origin: 'https://lifewellfhp-admin.vercel.app', body: {} }),
+    req('/admin/users', { method: 'POST', cookie: 'x', body: { a: 1 } }),
     ctx('admin/users')
   );
-  process.env.ADMIN_APP_URL = before;
-  // The real ADMIN_APP_URL is now staging-admin.example.com, so the
-  // production default origin must be rejected.
   assert.equal(response.status, 403);
+  assert.equal(calls.length, 0);
 });
 
 test('5. the session cookie is attached as an Authorization Bearer header on the upstream call', async () => {
@@ -114,11 +135,34 @@ test('7. the upstream URL reconstructs the path and forwards the query string', 
   assert.match(String(calls[0].url), /\/api\/admin\/leads\?page=2&pageSize=25$/);
 });
 
-test('8. x-forwarded-for is preserved across the proxy hop (rate limiting depends on the real client IP)', async () => {
+test('8. the raw x-forwarded-for/x-real-ip headers are never forwarded upstream verbatim (unauthenticated passthrough would let anyone spoof their rate-limit bucket)', async () => {
   stubFetch();
   await GET(req('/admin/users', { headers: { 'x-forwarded-for': '203.0.113.9' } }), ctx('admin/users'));
   const sentHeaders = new Headers(calls[0].init.headers);
-  assert.equal(sentHeaders.get('x-forwarded-for'), '203.0.113.9');
+  assert.equal(sentHeaders.has('x-forwarded-for'), false);
+  assert.equal(sentHeaders.has('x-real-ip'), false);
+});
+
+test('8b. with ADMIN_PROXY_SECRET set, the client IP is forwarded via the private secret-gated header instead', async () => {
+  const before = process.env.ADMIN_PROXY_SECRET;
+  process.env.ADMIN_PROXY_SECRET = 'shared-secret-value';
+  stubFetch();
+  await GET(req('/admin/users', { headers: { 'x-forwarded-for': '203.0.113.9' } }), ctx('admin/users'));
+  process.env.ADMIN_PROXY_SECRET = before;
+  const sentHeaders = new Headers(calls[0].init.headers);
+  assert.equal(sentHeaders.get('x-lifewell-client-ip'), '203.0.113.9');
+  assert.equal(sentHeaders.get('x-lifewell-proxy-secret'), 'shared-secret-value');
+});
+
+test('8c. without ADMIN_PROXY_SECRET set, no client-ip headers are sent at all', async () => {
+  const before = process.env.ADMIN_PROXY_SECRET;
+  delete process.env.ADMIN_PROXY_SECRET;
+  stubFetch();
+  await GET(req('/admin/users', { headers: { 'x-forwarded-for': '203.0.113.9' } }), ctx('admin/users'));
+  process.env.ADMIN_PROXY_SECRET = before;
+  const sentHeaders = new Headers(calls[0].init.headers);
+  assert.equal(sentHeaders.has('x-lifewell-client-ip'), false);
+  assert.equal(sentHeaders.has('x-lifewell-proxy-secret'), false);
 });
 
 test('9. the upstream response status and content-type pass through unchanged', async () => {

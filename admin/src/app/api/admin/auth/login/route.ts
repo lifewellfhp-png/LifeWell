@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { EXPRESS_API_URL, SESSION_COOKIE, sessionCookieOptions, forwardedForHeaders } from '@/lib/session';
+import { EXPRESS_API_URL, SESSION_COOKIE, sessionCookieOptions, trustedClientIpHeaders } from '@/lib/session';
 
 /**
  * The only route that ever sees the raw JWT from Express. Sets it as an
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...forwardedForHeaders(request),
+      ...trustedClientIpHeaders(request),
     },
     body,
   });

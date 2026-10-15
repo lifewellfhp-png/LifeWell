@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { EXPRESS_API_URL, SESSION_COOKIE, forwardedForHeaders } from '@/lib/session';
+import { EXPRESS_API_URL, SESSION_COOKIE, trustedClientIpHeaders } from '@/lib/session';
 
 /**
  * Generic reverse proxy for every admin API call this app doesn't give its
@@ -24,23 +24,24 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   // CSRF defense in depth: SameSite=Strict on the session cookie already
   // stops it being sent on cross-site requests, but this catches anything
   // that mechanism might miss (older browsers, same-site-but-unexpected
-  // origins) for anything that actually changes state. Read per-request
-  // (not a module-level const) so it reflects the real env at call time.
+  // origins) for anything that actually changes state. Compared against
+  // this request's own Host (same-origin), not a configured URL — works
+  // identically on every Vercel preview and on production with zero config,
+  // and a preview's distinct URL can never be mistaken for a different,
+  // misconfigured "expected" origin. Missing Origin is rejected too, not
+  // just a mismatched one — a same-origin browser request always sends one
+  // for a state-changing fetch.
   if (STATE_CHANGING.has(request.method)) {
-    // Deliberately NOT NEXT_PUBLIC_SITE_URL — that's the public *client*
-    // site's URL (used for "View site" links, see lib/site.ts), a
-    // different origin entirely. This is the admin app's own origin,
-    // server-only.
-    const adminOrigin = process.env.ADMIN_APP_URL || 'https://lifewellfhp-admin.vercel.app';
     const origin = request.headers.get('origin');
-    if (origin && origin !== adminOrigin) {
+    const expectedOrigin = `${request.nextUrl.protocol}//${request.nextUrl.host}`;
+    if (!origin || origin !== expectedOrigin) {
       return NextResponse.json({ success: false, message: 'Request origin not allowed.' }, { status: 403 });
     }
   }
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
-  const upstreamHeaders = new Headers(forwardedForHeaders(request));
+  const upstreamHeaders = new Headers(trustedClientIpHeaders(request));
   const contentType = request.headers.get('content-type');
   if (contentType) upstreamHeaders.set('Content-Type', contentType);
   if (token) upstreamHeaders.set('Authorization', `Bearer ${token}`);

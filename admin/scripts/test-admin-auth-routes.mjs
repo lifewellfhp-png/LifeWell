@@ -77,7 +77,7 @@ test('2. a failed login (bad credentials) sets no cookie and leaks no token', as
   assert.equal(getCookie(response, SESSION_COOKIE), undefined);
 });
 
-test('3. login forwards x-forwarded-for upstream (adminLoginLimiter is IP-keyed)', async () => {
+test('3. login never forwards the raw x-forwarded-for header upstream', async () => {
   let seenHeaders;
   stubFetch(async (_url, init) => {
     seenHeaders = new Headers(init.headers);
@@ -89,7 +89,26 @@ test('3. login forwards x-forwarded-for upstream (adminLoginLimiter is IP-keyed)
     body: JSON.stringify({ email: 'a@b.com', password: 'x' }),
   });
   await login(request);
-  assert.equal(seenHeaders.get('x-forwarded-for'), '198.51.100.4');
+  assert.equal(seenHeaders.has('x-forwarded-for'), false);
+});
+
+test('3b. with ADMIN_PROXY_SECRET set, login forwards the client IP via the private secret-gated header instead (adminLoginLimiter is IP-keyed)', async () => {
+  const before = process.env.ADMIN_PROXY_SECRET;
+  process.env.ADMIN_PROXY_SECRET = 'shared-secret-value';
+  let seenHeaders;
+  stubFetch(async (_url, init) => {
+    seenHeaders = new Headers(init.headers);
+    return new Response(JSON.stringify({ success: false, message: 'nope' }), { status: 401 });
+  });
+  const request = new NextRequest('https://lifewellfhp-admin.vercel.app/api/admin/auth/login', {
+    method: 'POST',
+    headers: { 'x-forwarded-for': '198.51.100.4' },
+    body: JSON.stringify({ email: 'a@b.com', password: 'x' }),
+  });
+  await login(request);
+  process.env.ADMIN_PROXY_SECRET = before;
+  assert.equal(seenHeaders.get('x-lifewell-client-ip'), '198.51.100.4');
+  assert.equal(seenHeaders.get('x-lifewell-proxy-secret'), 'shared-secret-value');
 });
 
 /* ------------------------------------------------------------- logout --- */
