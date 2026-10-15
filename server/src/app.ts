@@ -30,6 +30,10 @@ export function createApp(): Express {
       // Public JSON API called from the marketing site on another origin.
       crossOriginResourcePolicy: { policy: 'cross-origin' },
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      // Explicit rather than Helmet's default (180 days, no preload) or
+      // relying on Vercel's edge — matches the 2-year/preload value set on
+      // both Next.js apps.
+      hsts: { maxAge: 63072000, includeSubDomains: true, preload: true },
     })
   );
 

@@ -43,6 +43,12 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
           },
+          // Set explicitly rather than relying on Vercel's edge default —
+          // 2 years, applies to subdomains, eligible for browser preload lists.
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
         ],
       },
     ];
