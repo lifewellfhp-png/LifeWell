@@ -1,0 +1,77 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { EXPRESS_API_URL, SESSION_COOKIE, forwardedForHeaders } from '@/lib/session';
+
+/**
+ * Generic reverse proxy for every admin API call this app doesn't give its
+ * own dedicated route handler (login/logout/change-password, which need to
+ * touch the session cookie itself — see the sibling api/admin/auth/*
+ * routes, matched first by Next's router since literal segments win over a
+ * catch-all). This is what makes the httpOnly session cookie first-party:
+ * the browser only ever calls this same-origin /api/* path, never the
+ * Express origin directly, so the cookie is attached automatically and
+ * never exposed to client JS.
+ *
+ * Streams the request/response body through unmodified (no JSON parsing),
+ * so this covers every content type uniformly — JSON, multipart media
+ * uploads, CSV exports — without special-casing any of them.
+ */
+
+const STATE_CHANGING = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
+
+async function proxy(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
+  const { path } = await context.params;
+
+  // CSRF defense in depth: SameSite=Strict on the session cookie already
+  // stops it being sent on cross-site requests, but this catches anything
+  // that mechanism might miss (older browsers, same-site-but-unexpected
+  // origins) for anything that actually changes state. Read per-request
+  // (not a module-level const) so it reflects the real env at call time.
+  if (STATE_CHANGING.has(request.method)) {
+    // Deliberately NOT NEXT_PUBLIC_SITE_URL — that's the public *client*
+    // site's URL (used for "View site" links, see lib/site.ts), a
+    // different origin entirely. This is the admin app's own origin,
+    // server-only.
+    const adminOrigin = process.env.ADMIN_APP_URL || 'https://lifewellfhp-admin.vercel.app';
+    const origin = request.headers.get('origin');
+    if (origin && origin !== adminOrigin) {
+      return NextResponse.json({ success: false, message: 'Request origin not allowed.' }, { status: 403 });
+    }
+  }
+
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+
+  const upstreamHeaders = new Headers(forwardedForHeaders(request));
+  const contentType = request.headers.get('content-type');
+  if (contentType) upstreamHeaders.set('Content-Type', contentType);
+  if (token) upstreamHeaders.set('Authorization', `Bearer ${token}`);
+
+  const upstreamUrl = `${EXPRESS_API_URL}/api/${path.join('/')}${request.nextUrl.search}`;
+  const hasBody = !['GET', 'HEAD'].includes(request.method);
+
+  const upstream = await fetch(upstreamUrl, {
+    method: request.method,
+    headers: upstreamHeaders,
+    body: hasBody ? request.body : undefined,
+    // Required by Node's fetch/undici when streaming a request body.
+    ...(hasBody ? { duplex: 'half' } : {}),
+  } as RequestInit);
+
+  const responseHeaders = new Headers();
+  const upstreamContentType = upstream.headers.get('content-type');
+  if (upstreamContentType) responseHeaders.set('Content-Type', upstreamContentType);
+  const disposition = upstream.headers.get('content-disposition');
+  if (disposition) responseHeaders.set('Content-Disposition', disposition);
+  const cacheControl = upstream.headers.get('cache-control');
+  if (cacheControl) responseHeaders.set('Cache-Control', cacheControl);
+
+  return new NextResponse(upstream.body, {
+    status: upstream.status,
+    headers: responseHeaders,
+  });
+}
+
+export const GET = proxy;
+export const POST = proxy;
+export const PATCH = proxy;
+export const PUT = proxy;
+export const DELETE = proxy;

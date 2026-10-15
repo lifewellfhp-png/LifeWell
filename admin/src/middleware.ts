@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
+import { SESSION_COOKIE } from '@/lib/session';
 
 /**
  * Nonce-based Content-Security-Policy header (P4-G3F; enforced — Stage 5 of
@@ -8,10 +10,22 @@ import { NextResponse, type NextRequest } from 'next/server';
  * 'nonce-{value}' 'strict-dynamic' — Next.js auto-applies the nonce to its
  * own framework/page scripts once it can read it from the request's CSP
  * header (verified against the installed 15.5.23 package, not assumed from
- * newer-version docs).
+ * newer-version docs). Safe here (unlike the public client app) because
+ * admin's pages are effectively all dynamic — an authenticated CMS
+ * dashboard has no reason to be statically prerendered, so there's no
+ * build-time HTML that could ever carry a stale/mismatched nonce.
+ *
+ * Also verifies the admin session before rendering any page except /login
+ * (Phase 1 item 3) — previously this middleware only set headers and never
+ * looked at auth at all; the only real gate was a client-side redirect in
+ * AdminShell.tsx, which an unauthenticated request for the page HTML itself
+ * never had to pass. Browser calls to the Express API no longer happen
+ * directly (see app/api/[...path]/route.ts) — connect-src is 'self' only.
  *
  * Runs on the Edge Runtime, so nonce generation avoids Buffer (not present
- * in Next's compiled edge runtime) in favor of Web Crypto + btoa.
+ * in Next's compiled edge runtime) in favor of Web Crypto + btoa. jose is
+ * used for JWT verification (not jsonwebtoken, which needs Node's crypto
+ * module and doesn't run on Edge).
  */
 
 function generateNonce(): string {
@@ -24,9 +38,33 @@ function generateNonce(): string {
   return btoa(binary);
 }
 
-export function middleware(request: NextRequest) {
+const PUBLIC_PATHS = ['/login'];
+
+/**
+ * Signature + expiry only (no token_version/revocation check — that needs a
+ * database round-trip and stays the API layer's job, via requireAdmin on
+ * every actual data request forwarded through the proxy). This is a fast,
+ * no-network gate: it can't be bypassed to view page HTML without a validly
+ * signed, unexpired token, which is the gap this item exists to close — but
+ * a revoked-but-unexpired token can still reach page shells (never real
+ * data) until its signature-level expiry. Fails closed if ADMIN_JWT_SECRET
+ * is missing.
+ */
+async function hasValidSession(request: NextRequest): Promise<boolean> {
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  if (!token) return false;
+  const secret = process.env.ADMIN_JWT_SECRET;
+  if (!secret) return false;
+  try {
+    await jwtVerify(token, new TextEncoder().encode(secret), { algorithms: ['HS256'] });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const nonce = generateNonce();
-  const apiOrigin = process.env.NEXT_PUBLIC_API_URL || 'https://lifewellfhp-server.vercel.app';
 
   const csp = [
     "default-src 'self'",
@@ -34,7 +72,7 @@ export function middleware(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' https: data: blob:",
     "font-src 'self'",
-    `connect-src 'self' ${apiOrigin}`,
+    "connect-src 'self'",
     'frame-src https://www.youtube-nocookie.com https://player.vimeo.com',
     "frame-ancestors 'none'",
     "object-src 'none'",
@@ -42,6 +80,16 @@ export function middleware(request: NextRequest) {
     "form-action 'self'",
     'report-uri /api/csp-report',
   ].join('; ');
+
+  const { pathname } = request.nextUrl;
+  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+
+  if (!isPublic && !(await hasValidSession(request))) {
+    const loginUrl = new URL('/login', request.url);
+    const response = NextResponse.redirect(loginUrl);
+    response.headers.set('Content-Security-Policy', csp);
+    return response;
+  }
 
   // Set on the forwarded request so Next.js's SSR nonce parser can read it
   // (it inspects the incoming request's CSP header, not just the response).

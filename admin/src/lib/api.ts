@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lifewellfhp-server.vercel.app';
-
 export type ApiResult<T> = {
   success: boolean;
   data?: T;
@@ -7,40 +5,23 @@ export type ApiResult<T> = {
   errors?: Record<string, string>;
 };
 
-function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('lw_admin_token');
-}
-
-export function setToken(token: string | null) {
-  if (typeof window === 'undefined') return;
-  if (token) localStorage.setItem('lw_admin_token', token);
-  else localStorage.removeItem('lw_admin_token');
-}
-
-export async function api<T>(
-  path: string,
-  options: RequestInit & { auth?: boolean } = {}
-): Promise<ApiResult<T>> {
+/**
+ * Always calls this app's own same-origin /api/* routes, which proxy to the
+ * real Express API server-side (see app/api/[...path]/route.ts and the
+ * dedicated app/api/admin/auth/* routes). No token handling here at all —
+ * the session lives in an httpOnly cookie the browser attaches
+ * automatically to same-origin requests; client JS never sees it.
+ */
+export async function api<T>(path: string, options: RequestInit = {}): Promise<ApiResult<T>> {
   const headers = new Headers(options.headers || {});
-  if (!headers.has('Content-Type') && options.body) {
+  if (!headers.has('Content-Type') && options.body && typeof options.body === 'string') {
     headers.set('Content-Type', 'application/json');
   }
-  if (options.auth !== false) {
-    const token = getToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-  }
 
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers,
-  });
-
+  const res = await fetch(path, { ...options, headers });
   const json = (await res.json().catch(() => ({}))) as ApiResult<T>;
 
   if (res.status === 401 && typeof window !== 'undefined' && !path.includes('/auth/login')) {
-    setToken(null);
-    localStorage.removeItem('lw_admin_user');
     if (!window.location.pathname.startsWith('/login')) {
       window.location.href = '/login';
     }
@@ -60,5 +41,3 @@ export async function api<T>(
 
   return json;
 }
-
-export { API_URL };

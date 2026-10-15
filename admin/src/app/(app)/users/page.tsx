@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { Eye, KeyRound, LoaderCircle, Lock, Mail, Plus, ShieldBan, ShieldCheck, Trash2, X } from 'lucide-react';
-import { api, setToken } from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { STAFF_ACCESS, STAFF_MODULES } from '@/lib/nav';
 import { NAV_ICONS } from '@/lib/icons';
@@ -144,7 +144,7 @@ export default function UsersPage() {
     setSaving(true);
     setError(null);
     setFieldErrors({});
-    const res = await api<{ token: string }>('/api/admin/auth/change-password', {
+    const res = await api('/api/admin/auth/change-password', {
       method: 'POST',
       body: JSON.stringify(ownPasswordForm),
     });
@@ -154,10 +154,10 @@ export default function UsersPage() {
       setFieldErrors(res.errors || {});
       return;
     }
-    // Keep this session working under the new token version rather than
-    // forcing an immediate re-login — other sessions/devices are the ones
-    // this change is meant to log out.
-    if (res.data?.token) setToken(res.data.token);
+    // This session keeps working under the new token version — the route
+    // handler (app/api/admin/auth/change-password/route.ts) already
+    // replaced the httpOnly session cookie server-side. Other sessions/
+    // devices are the ones this change is meant to log out.
     setMode(null);
     setOwnPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
     setMessage('Your password was changed. Other signed-in sessions have been signed out.');
