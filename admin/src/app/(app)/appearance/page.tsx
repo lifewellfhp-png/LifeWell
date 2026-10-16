@@ -18,9 +18,19 @@ type Settings = {
   practice_email?: string | null;
 };
 
+/**
+ * Phase 24 homepage reorg: the public client app no longer reads
+ * primary_color/accent_color from these settings at all (ThemeVars.tsx
+ * stopped injecting them — ../../../CLAUDE.md-adjacent history: a stored
+ * custom color was silently overriding the logo-matched brand palette).
+ * Fixed to match the logo exactly; the fields below are read-only.
+ */
+const FIXED_PRIMARY_COLOR = '#002574';
+const FIXED_ACCENT_COLOR = '#028815';
+
 const empty: Settings = {
-  primary_color: '#3E7FB1',
-  accent_color: '#5FAF6B',
+  primary_color: FIXED_PRIMARY_COLOR,
+  accent_color: FIXED_ACCENT_COLOR,
   heading_font: 'Lora',
   body_font: 'Source Sans 3',
   header_cta_label: 'Book an Appointment',
@@ -40,7 +50,19 @@ export default function AppearancePage() {
   useEffect(() => {
     void api<Settings>('/api/admin/settings').then((res) => {
       if (!res.success || !res.data) setError(res.message || 'Could not load settings');
-      else setForm({ ...empty, ...res.data, logo_url: res.data.logo_url || '', practice_phone: res.data.practice_phone || '', practice_email: res.data.practice_email || '' });
+      else
+        setForm({
+          ...empty,
+          ...res.data,
+          // Always the fixed logo colors, regardless of whatever this
+          // account's row happens to store — see the comment by
+          // FIXED_PRIMARY_COLOR/FIXED_ACCENT_COLOR above.
+          primary_color: FIXED_PRIMARY_COLOR,
+          accent_color: FIXED_ACCENT_COLOR,
+          logo_url: res.data.logo_url || '',
+          practice_phone: res.data.practice_phone || '',
+          practice_email: res.data.practice_email || '',
+        });
     });
   }, []);
 
@@ -81,7 +103,7 @@ export default function AppearancePage() {
         <div>
           <h1 className="page-title">Appearance</h1>
           <p className="page-sub">
-            Change colors and type, preview instantly, then save to update the public website.
+            Change type, logo, and contact details, preview instantly, then save to update the public website.
           </p>
         </div>
         <button type="button" className="btn btn-ghost" onClick={() => setPreviewOpen(true)}>
@@ -95,44 +117,29 @@ export default function AppearancePage() {
       <div className="appearance-layout">
         <form className="card card-pad" onSubmit={onSubmit}>
           <p className="page-sub" style={{ marginTop: 0 }}>
-            The admin sidebar stays blue. These colors apply to the public website only after Save.
+            The admin sidebar stays blue. Font, logo, and contact changes below apply to the public website only
+            after Save.
           </p>
           <div className="grid-2">
             <div className="field">
               <label htmlFor="primary_color">Primary color</label>
               <div className="color-row">
-                <input
-                  id="primary_color"
-                  type="color"
-                  value={form.primary_color}
-                  onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
-                />
-                <input
-                  aria-label="Primary color hex"
-                  value={form.primary_color}
-                  onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
-                  pattern="^#[0-9A-Fa-f]{6}$"
-                  placeholder="#3E7FB1"
-                />
+                <input id="primary_color" type="color" value={form.primary_color} disabled readOnly />
+                <input aria-label="Primary color hex" value={form.primary_color} disabled readOnly />
               </div>
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                Brand colors are set to match the LifeWell logo.
+              </p>
             </div>
             <div className="field">
               <label htmlFor="accent_color">Accent color</label>
               <div className="color-row">
-                <input
-                  id="accent_color"
-                  type="color"
-                  value={form.accent_color}
-                  onChange={(e) => setForm({ ...form, accent_color: e.target.value })}
-                />
-                <input
-                  aria-label="Accent color hex"
-                  value={form.accent_color}
-                  onChange={(e) => setForm({ ...form, accent_color: e.target.value })}
-                  pattern="^#[0-9A-Fa-f]{6}$"
-                  placeholder="#5FAF6B"
-                />
+                <input id="accent_color" type="color" value={form.accent_color} disabled readOnly />
+                <input aria-label="Accent color hex" value={form.accent_color} disabled readOnly />
               </div>
+              <p className="muted" style={{ marginTop: '0.35rem' }}>
+                Brand colors are set to match the LifeWell logo.
+              </p>
             </div>
             <div className="field">
               <label htmlFor="heading_font">Heading font</label>
