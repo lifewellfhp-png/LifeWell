@@ -48,15 +48,28 @@ test('1. the unknown-email/inactive-account branch writes a login_failed audit e
   assert.match(branch, /action:\s*'login_failed'/);
 });
 
-test('2. the unknown-email/inactive-account entry never includes an actor sub (no real account confirmed) and records only the attempted email, never a password', () => {
+test('2. the unknown-email/inactive-account entry never includes an actor sub (no real account confirmed), records only the MASKED attempted email (not the raw value, in case a password was typed into the email field), and never a password', () => {
   const fn = sliceFn(loginSource, 'handleAdminLogin');
   const branch = fn.slice(fn.indexOf('if (!user || !user.active)'), fn.indexOf('const ok = await bcrypt.compare'));
+  assert.match(branch, /const masked = maskEmail\(email\);/, 'the raw email must be masked before logging');
   const callStart = branch.indexOf('writeAuditLog(');
   const callEnd = branch.indexOf('});', callStart) + '});'.length;
   const call = branch.slice(callStart, callEnd);
   assert.doesNotMatch(call, /actor:/);
-  assert.match(call, /attempted_email:\s*email/);
+  assert.match(call, /attempted_email:\s*masked/);
+  assert.doesNotMatch(call, /attempted_email:\s*email\b/, 'must log the masked value, not the raw one');
+  assert.match(call, /summary: `Failed sign-in attempt for \$\{masked\}`/, 'the summary string must also use the masked value, not the raw email');
   assert.doesNotMatch(call, /password/i);
+});
+
+test('2b. the wrong-password branch deliberately logs the real (DB-verified) account email unmasked — it is not raw user input, so no password-in-email-field risk applies', () => {
+  const fn = sliceFn(loginSource, 'handleAdminLogin');
+  const branch = fn.slice(fn.indexOf('const ok = await bcrypt.compare'), fn.indexOf('/**\n   * Phase 1 item 5'));
+  const callStart = branch.indexOf('writeAuditLog(');
+  const callEnd = branch.indexOf('});', callStart) + '});'.length;
+  const call = branch.slice(callStart, callEnd);
+  assert.doesNotMatch(call, /maskEmail/);
+  assert.match(call, /email:\s*user\.email/);
 });
 
 test('3. the wrong-password branch writes a login_failed audit entry attributed to the matched account, before throwing', () => {

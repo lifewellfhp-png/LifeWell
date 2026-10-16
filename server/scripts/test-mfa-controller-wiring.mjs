@@ -25,10 +25,23 @@ const middlewareSource = readFileSync(join(root, 'src/middleware/index.ts'), 'ut
 
 /* ------------------------------------------------- handleAdminLogin --- */
 
-function sliceFn(source, name, approxLength = 2500) {
-  const start = source.indexOf(`export async function ${name}`);
+/**
+ * Slices from a function's declaration to the start of the NEXT exported
+ * function (or end of file) — not a fixed character count. A fixed-length
+ * window (the original approach here) silently stopped covering the
+ * target function once Phase 1 item 6 added ~900 more characters of
+ * login_failed logic before handleAdminLogin's MFA branch, breaking tests
+ * 2/3 with an empty slice. This has no such ceiling.
+ */
+function sliceFn(source, name) {
+  const marker = `export async function ${name}`;
+  const start = source.indexOf(marker);
   assert.ok(start >= 0, `${name} must exist`);
-  return source.slice(start, start + approxLength);
+  const nextFnIndex = source.indexOf('export async function', start + marker.length);
+  const nextPlainFnIndex = source.indexOf('export function', start + marker.length);
+  const candidates = [nextFnIndex, nextPlainFnIndex].filter((i) => i >= 0);
+  const end = candidates.length ? Math.min(...candidates) : source.length;
+  return source.slice(start, end);
 }
 
 test('1. handleAdminLogin branches to an mfa-pending response BEFORE signing a real session token', () => {

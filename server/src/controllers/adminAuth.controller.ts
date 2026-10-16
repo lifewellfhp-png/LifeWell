@@ -19,6 +19,7 @@ import { fieldErrors } from '../validation/schemas.js';
 import { badRequest, unauthorized, notFound } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { writeAuditLog } from '../lib/audit.js';
+import { maskEmail } from '../lib/maskEmail.js';
 import { sendOutboundMail } from '../services/email.service.js';
 import { env } from '../config/env.js';
 
@@ -36,22 +37,30 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<voi
   if (error) throw badRequest(error.message);
   if (!user || !user.active) {
     // No real account to attribute this to (unknown email) or a blocked
-    // one (inactive) — either way, never log the submitted password, only
-    // the attempted email and which case it was. Excluded from the
-    // staff-action notification spam below (same reasoning as login/
-    // logout: high-frequency, often a typo, already rate-limited by
-    // adminLoginLimiter).
+    // one (inactive) — either way, never log the submitted password. The
+    // "email" field is raw, unverified user input at this point — it could
+    // in principle be a password pasted into the wrong field by mistake —
+    // so it's masked (lo***@gmail.com), never logged in full, in both the
+    // summary and meta. Excluded from the staff-action notification spam
+    // below (same reasoning as login/logout: high-frequency, often a typo,
+    // already rate-limited by adminLoginLimiter).
+    const masked = maskEmail(email);
     await writeAuditLog({
       action: 'login_failed',
       resource: 'auth',
-      summary: `Failed sign-in attempt for ${email}`,
-      meta: { attempted_email: email, reason: user ? 'inactive_account' : 'unknown_email' },
+      summary: `Failed sign-in attempt for ${masked}`,
+      meta: { attempted_email: masked, reason: user ? 'inactive_account' : 'unknown_email' },
     });
     throw unauthorized('Invalid email or password.');
   }
 
   const ok = await bcrypt.compare(parsed.data.password, user.password_hash);
   if (!ok) {
+    // user.email here is the real, DB-verified address of an existing
+    // account — not raw user input — so it's never masked: knowing which
+    // account is being targeted by repeated failed attempts is useful
+    // security-monitoring signal, with none of the password-in-email-field
+    // risk the branch above guards against.
     await writeAuditLog({
       actor: { sub: user.id, email: user.email, name: user.name, role: user.role as AdminRole },
       action: 'login_failed',
