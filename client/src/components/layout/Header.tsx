@@ -44,10 +44,15 @@ export function Header({
   const optimizableLogo = isOptimizableImageSrc(logo);
 
   return (
+    // Phase 24 homepage reorg: offset below the sitewide CrisisBar (rendered
+    // just above this in layout.tsx), not top-0 — the bar is in-flow, not
+    // fixed, so without this offset a fixed/sticky header would sit right
+    // at the viewport top and cover it. --crisis-bar-height is the single
+    // source of truth for the bar's own height (globals.css).
     <header
       className={cn(
         'z-50 w-full overflow-x-clip transition-[background-color,box-shadow] duration-300',
-        isHome ? 'fixed top-0' : 'sticky top-0',
+        isHome ? 'fixed top-[var(--crisis-bar-height)]' : 'sticky top-[var(--crisis-bar-height)]',
         overlay
           ? 'bg-transparent'
           : 'bg-white shadow-[0_5px_10px_0_rgb(0_0_0/0.03)]'

@@ -5,17 +5,20 @@ import { telehealthStates } from './telehealth-states';
 /**
  * Header navigation, mirroring the source site's structure.
  *
- * "Provider" and "Contact" are deliberately short NAVIGATION-LABEL-ONLY
- * simplifications — the bio page's own H1, metadata, SEO title, and
- * credentials content are untouched; this only shortens what the header
- * bar displays. The source site's full title ("Psychiatric Mental Health
- * Nurse Practitioner") and "Contact Us" remain the real page content.
+ * "Contact" is a deliberately short NAVIGATION-LABEL-ONLY simplification —
+ * the real page content (title, metadata, etc.) is untouched; this only
+ * shortens what the header bar displays.
  *
  * Phase 22: no standalone "Home" entry — the logo (in the header and in the
  * mobile drawer, both wrapped in a link to "/") already serves that role on
  * every page, as is standard. Removing the redundant nav entry reclaims
  * real width toward restoring full desktop navigation without overlap; no
  * destination is lost, "/" remains reachable everywhere the logo appears.
+ *
+ * Phase 24 (homepage reorg): "Provider" removed from this list, and "Bio"
+ * removed from footerExploreLinks below — the /bio page itself is
+ * untouched and still fully reachable at its existing URL, it just isn't
+ * linked from the header or footer (or anywhere on the homepage) anymore.
  */
 export const headerNav: NavItem[] = [
   {
@@ -36,7 +39,6 @@ export const headerNav: NavItem[] = [
       },
     ],
   },
-  { label: 'Provider', href: '/bio' },
   { label: 'Fees & Insurance', href: '/fees-insurance' },
   {
     label: 'Resources',
@@ -88,7 +90,6 @@ export const footerProfessionalEducationLinks: NavLink[] = summariesByCategory('
 /** Footer "Explore" column — visitor/resource links only; state and legal links live in their own rows below. */
 export const footerExploreLinks: NavLink[] = [
   { label: 'Home', href: '/' },
-  { label: 'Bio', href: '/bio' },
   { label: 'Orlando Office', href: '/orlando-psychiatric-care' },
   { label: 'Fees & Insurance', href: '/fees-insurance' },
   { label: 'Blog', href: '/blog' },

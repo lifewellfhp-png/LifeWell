@@ -3,12 +3,13 @@ import { site } from '@/data/site';
 import type { ResolvedHero, BookingProfiles } from '@/lib/cms-resolve';
 import { HeroMedia } from './HeroMedia';
 import { OutlineButton, SwapButton } from '@/components/ui/SwapButton';
-import Link from 'next/link';
 
 /**
- * Homepage hero — tokens from the live Elementor kit:
- * Lora 400 italic 60px / 1.05, primary #3E7FB1 + secondary #5FAF6B,
- * Source Sans 18px body, swap-button hover to green, outline hover to blue.
+ * Homepage hero. Phase 24 homepage reorg: navy-tinted overlay (matches the
+ * new logo-derived brand navy, --lw-primary) replacing the old pure-black
+ * gradient; exactly two actions (Book + Insurance & Pricing) — the old
+ * third "Explore Services" text link is gone; the trust badge is now a
+ * small pill. Copy/content/data flow are unchanged.
  */
 export function Hero({
   hero: heroProp,
@@ -44,13 +45,14 @@ export function Hero({
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative isolate flex min-h-[100svh] max-h-none items-center overflow-hidden md:max-desktop:min-h-[850px] desktop:min-h-[950px]"
+      className="relative isolate flex min-h-[calc(100svh-var(--crisis-bar-height))] max-h-none items-center overflow-hidden md:max-desktop:min-h-[calc(850px-var(--crisis-bar-height))] desktop:min-h-[calc(950px-var(--crisis-bar-height))]"
     >
       <HeroMedia image={data.image} hasCmsImage={data.hasCmsImage} />
 
+      {/* Navy-tinted overlay (Phase 24) — was a pure-black gradient. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-gradient-to-r from-black/70 via-black/50 to-black/20"
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-[var(--lw-primary)]/85 via-[var(--lw-primary)]/60 to-[var(--lw-primary)]/20"
       />
 
       <div className="relative w-full px-4 pb-14 pt-[calc(88px+env(safe-area-inset-top))] sm:max-[1601px]:px-[30px] sm:max-[1601px]:pb-20 sm:max-[1601px]:pt-[calc(120px+env(safe-area-inset-top))] lg:max-[1601px]:px-[70px] lg:max-[1601px]:py-[100px] min-[1601px]:px-10 min-[1601px]:pb-[100px] min-[1601px]:pt-[200px]">
@@ -67,15 +69,10 @@ export function Hero({
             {data.subheading}
           </p>
 
+          {/* Phase 24: exactly two actions — Book (green) + Insurance & Pricing (white outline). The old third "Explore Services" text link is gone. */}
           <div className="mt-8 flex flex-col items-stretch gap-4 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
-            <SwapButton href={bookHref} trackAs="booking_click">{bookLabel}</SwapButton>
+            <SwapButton href={bookHref} tone="accent" trackAs="booking_click">{bookLabel}</SwapButton>
             <OutlineButton href="/fees-insurance">Insurance &amp; Pricing</OutlineButton>
-            <Link
-              href="/our-services"
-              className="inline-flex min-h-[44px] items-center justify-center px-2 text-[15px] font-semibold text-white underline decoration-white/60 underline-offset-4 transition-colors hover:text-white sm:min-h-[51px] sm:text-[16px]"
-            >
-              Explore Services
-            </Link>
           </div>
 
           {zocdocUrl && (
@@ -92,7 +89,9 @@ export function Hero({
             </p>
           )}
 
-          <p className="mt-8 text-[12px] font-light leading-[1.45] text-white sm:mt-10 sm:max-desktop:text-[14px] desktop:text-[16px]">
+          {/* Small "Now accepting new patients" badge (Phase 24). */}
+          <p className="mt-8 inline-flex items-center gap-2 rounded-pill bg-white/10 px-4 py-2 text-[12px] font-medium leading-[1.45] text-white backdrop-blur-sm sm:mt-10 sm:max-desktop:text-[13px] desktop:text-[14px]">
+            <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--lw-accent)]" />
             {data.badge}
           </p>
         </div>

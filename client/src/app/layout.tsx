@@ -8,6 +8,7 @@ import { SkipLink } from '@/components/layout/SkipLink';
 import { NavigationProgress } from '@/components/layout/NavigationProgress';
 import { ThemeVars } from '@/components/layout/ThemeVars';
 import { SiteHeader } from '@/components/layout/SiteHeader';
+import { CrisisBar } from '@/components/layout/CrisisBar';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { AnalyticsBeacon } from '@/components/seo/AnalyticsBeacon';
 import { ChatAssistant } from '@/components/chat/ChatAssistant';
@@ -70,7 +71,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   // Not capped — users must be able to zoom (WCAG 1.4.4).
-  themeColor: '#3e7fb1',
+  // Phase 24 homepage reorg: matches the new brand navy (globals.css's --lw-primary).
+  themeColor: '#002574',
   colorScheme: 'light',
 };
 
@@ -84,6 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ThemeVars />
         <SkipLink />
         <NavigationProgress />
+        <CrisisBar />
         <SiteHeader />
         <main id="main-content" tabIndex={-1} className="min-w-0 overflow-x-clip focus:outline-none">
           {children}

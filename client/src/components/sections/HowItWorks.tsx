@@ -6,8 +6,12 @@ import { howItWorks, steps as defaultSteps } from '@/data/marketing';
 import { site } from '@/data/site';
 
 /**
- * Homepage “How It Works” — centered Lora heading, photo with the live
- * frosted “Are You in Danger?” card, numbered step tiles, then CTA.
+ * Homepage "How It Works" — centered Lora heading, photo, numbered step
+ * tiles with green circular number badges, then CTA.
+ *
+ * Phase 24 homepage reorg: the frosted "Are You in Danger?" overlay card
+ * that used to sit on the photo here is gone — the sitewide CrisisBar
+ * (layout.tsx, above the header on every page) replaces it.
  */
 export function HowItWorks({
   steps = defaultSteps,
@@ -70,28 +74,15 @@ export function HowItWorks({
               sizes="(min-width: 1024px) 44vw, 92vw"
               className="h-full w-full object-cover sm:h-auto"
             />
-            <div className="absolute left-4 top-4 z-10 max-w-[min(100%-2rem,280px)] rounded-[20px] bg-white/20 p-4 shadow-[0_8px_32px_rgb(0_0_0_/_0.18)] ring-1 ring-white/35 backdrop-blur-[18px] sm:left-6 sm:top-6 sm:max-w-[300px] sm:p-5">
-              <p className="font-heading text-[20px] font-normal leading-snug text-white sm:text-[24px]">
-                {site.crisis.heading}
-              </p>
-              <p className="mt-2 font-body text-[13px] leading-[1.45] text-white/95 sm:text-[15px]">
-                {site.crisis.body}
-              </p>
-              <div className="mt-4">
-                <SwapButton href={site.crisis.phoneHref} size="sm">
-                  Call or Text 988
-                </SwapButton>
-              </div>
-            </div>
           </div>
 
           <ol className="flex list-none flex-col gap-4">
             {steps.map((step, i) => (
               <li key={step.title}>
-                <article className="flex items-start gap-5 rounded-[20px] bg-white px-5 py-5 shadow-[0_4px_24px_rgb(62_127_177_/_0.08)] sm:items-center sm:gap-6 sm:px-7 sm:py-7">
+                <article className="flex items-start gap-5 rounded-[20px] bg-white px-5 py-5 shadow-[0_4px_24px_rgb(0_37_116_/_0.08)] sm:items-center sm:gap-6 sm:px-7 sm:py-7">
                   <span
                     aria-hidden="true"
-                    className="w-10 shrink-0 text-center font-heading text-[36px] font-normal leading-none text-[var(--lw-accent)] sm:w-12 sm:max-desktop:text-[42px] desktop:text-[48px]"
+                    className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[var(--lw-accent)] text-center font-heading text-[20px] font-normal leading-none text-white sm:size-14 sm:text-[24px]"
                   >
                     {i + 1}
                   </span>

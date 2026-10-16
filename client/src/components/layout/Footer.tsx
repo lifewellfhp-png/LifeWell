@@ -28,15 +28,23 @@ export async function Footer() {
 
   return (
     <footer className="bg-[#F4F7FA] pb-[env(safe-area-inset-bottom)]">
-      <div className="footer-band rounded-t-[30px] bg-[var(--lw-primary)] text-white sm:rounded-t-[40px]">
+      {/* Newsletter band (Phase 24 homepage reorg) — now its own dark-green
+          band, visually separate from the navy footer-proper band below it.
+          Previously the newsletter row was just the top of that same navy
+          band. */}
+      <div className="newsletter-band rounded-t-[30px] bg-[var(--color-brand-accent-strong)] text-white sm:rounded-t-[40px]">
         <Container>
-          <div className="flex flex-col gap-5 border-b border-white/30 py-10 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:py-12 lg:py-14">
+          <div className="flex flex-col gap-5 py-10 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:py-12 lg:py-14">
             <h2 className="max-w-[16ch] font-heading text-[28px] font-normal leading-[1.2] text-white sm:max-desktop:text-[34px] lg:max-w-[18ch] desktop:text-[42px]">
               {newsletter.heading}
             </h2>
             <FooterNewsletter />
           </div>
+        </Container>
+      </div>
 
+      <div className="footer-band bg-[var(--lw-primary)] text-white">
+        <Container>
           {/* Practice / Brand, Mental Health (+Professional Education), Primary Care, Explore, Telehealth Care + Policies */}
           <div className="grid min-w-0 grid-cols-1 gap-x-8 gap-y-12 py-10 sm:grid-cols-2 xl:grid-cols-12 xl:py-14">
             <div className="xl:col-span-3">

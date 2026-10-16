@@ -27,6 +27,7 @@ import { submitChatMessage, getChatStatus } from '@/lib/api';
 import type { ChatHistoryEntry } from '@/lib/api';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { ContactForm } from '@/components/forms/ContactForm';
+import { cn } from '@/lib/utils';
 import type { PsychiatricStatePricing } from '@/types/content';
 
 type Message = { sender: 'bot' | 'user'; content: ReactNode };
@@ -260,14 +261,47 @@ export function ChatAssistant(props: {
         </div>
       )}
 
+      {/*
+        Phase 24 homepage reorg: split-pill restyle — navy left half, green
+        right half, hard 50/50 split. Hover darkens both halves (navy-hover
+        / darker-green) without changing the split point. Only the look
+        changed here — onClick/aria-expanded/open-close behavior above are
+        untouched.
+      */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="inline-flex min-h-14 items-center justify-center rounded-full bg-[var(--lw-primary)] px-5 text-sm font-semibold text-white shadow-lg transition-colors duration-300 hover:bg-[var(--lw-accent)]"
+        aria-label={open ? 'Close chat' : 'Chat with Us'}
+        className={cn(
+          'inline-flex min-h-14 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold text-white shadow-[0_8px_24px_rgb(0_37_116_/_0.25)] transition-[background] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
+          open
+            ? 'bg-[var(--lw-primary)]'
+            : 'bg-[linear-gradient(90deg,var(--lw-primary)_50%,var(--lw-accent)_50%)] hover:bg-[linear-gradient(90deg,var(--color-brand-primary-hover)_50%,var(--color-brand-accent-hover)_50%)]'
+        )}
       >
+        {!open && <ChatBubbleIcon />}
         {open ? 'Close' : 'Chat with Us'}
       </button>
     </div>
+  );
+}
+
+function ChatBubbleIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
   );
 }

@@ -17,7 +17,8 @@ function fireTrackingClick(trackAs: 'booking_click') {
 
 /**
  * Live-site "swap button": pill label + detached circular arrow.
- * Hover fills both pieces with the secondary green.
+ * Hover fills both pieces with the secondary green (or, for tone="accent",
+ * darkens further — see below).
  */
 export function SwapButton({
   href,
@@ -25,6 +26,7 @@ export function SwapButton({
   className,
   fullWidth,
   size = 'md',
+  tone = 'primary',
   trackAs,
 }: {
   href: string;
@@ -32,6 +34,14 @@ export function SwapButton({
   className?: string;
   fullWidth?: boolean;
   size?: 'md' | 'sm';
+  /**
+   * Phase 24 homepage reorg: 'accent' makes this button green by default
+   * (hovering to the darker green) instead of the usual navy-by-default/
+   * green-on-hover — used specifically for the "Book an Appointment"
+   * buttons in the Hero and the contact section, per the brief. Every
+   * other call site keeps the default 'primary' (navy) tone.
+   */
+  tone?: 'primary' | 'accent';
   /** Opt-in conversion tracking; omit for non-booking uses of this button. */
   trackAs?: 'booking_click';
 }) {
@@ -43,15 +53,21 @@ export function SwapButton({
   const onClick = trackAs ? () => fireTrackingClick(trackAs) : undefined;
 
   const compact = size === 'sm';
+  const toneClasses =
+    tone === 'accent'
+      ? 'bg-[var(--lw-accent)] group-hover:bg-[var(--color-brand-accent-hover)]'
+      : 'bg-[var(--lw-primary)] group-hover:bg-[var(--lw-accent)]';
   const pill = cn(
-    'inline-flex min-w-0 max-w-[calc(100%-44px)] items-center justify-center rounded-[30px] bg-[var(--lw-primary)] font-semibold leading-[1.3] text-white no-underline transition-colors duration-300 group-hover:bg-[var(--lw-accent)] sm:max-w-none',
+    'inline-flex min-w-0 max-w-[calc(100%-44px)] items-center justify-center rounded-[30px] font-semibold leading-[1.3] text-white no-underline transition-colors duration-300 sm:max-w-none',
+    toneClasses,
     compact
       ? 'min-h-[40px] px-5 py-2 text-[14px]'
       : 'min-h-[51px] px-[30px] py-[14px] text-[16px] desktop:text-[18px]'
   );
 
   const chip = cn(
-    'inline-flex shrink-0 items-center justify-center rounded-full bg-[var(--lw-primary)] text-white transition-colors duration-300 group-hover:bg-[var(--lw-accent)]',
+    'inline-flex shrink-0 items-center justify-center rounded-full text-white transition-colors duration-300',
+    toneClasses,
     compact ? 'size-10' : 'size-11 sm:size-[51px]'
   );
 

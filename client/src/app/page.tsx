@@ -3,24 +3,20 @@ import dynamic from 'next/dynamic';
 import { Container, Section, SectionHeading } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { Hero } from '@/components/sections/Hero';
-import { WelcomeSection } from '@/components/sections/WelcomeSection';
 import { ServicesGrid } from '@/components/sections/ServicesGrid';
-import { BenefitsGrid } from '@/components/sections/BenefitsGrid';
 import { HowItWorks } from '@/components/sections/HowItWorks';
 import { VideosSection } from '@/components/sections/VideosSection';
 import { TrustStrip } from '@/components/sections/TrustStrip';
+import { WelcomeAndBenefits } from '@/components/sections/WelcomeAndBenefits';
 
 // Below-the-fold, interactive-only sections — code-split out of the main
 // bundle (SSR stays on, so content/markup and SEO are unaffected; only the
 // hydration JS for these loads as a separate chunk instead of inflating the
 // bundle every above-the-fold section shares).
-const StatsBand = dynamic(() => import('@/components/sections/StatsBand').then((m) => m.StatsBand));
 const InsuranceGrid = dynamic(() => import('@/components/sections/InsuranceGrid').then((m) => m.InsuranceGrid));
-const Testimonials = dynamic(() => import('@/components/sections/Testimonials').then((m) => m.Testimonials));
 const ContactCTA = dynamic(() => import('@/components/sections/CTASection').then((m) => m.ContactCTA));
 
 import { site } from '@/data/site';
-import { provider as staticProvider } from '@/data/provider';
 import { cmsMetadata } from '@/lib/cms-seo';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
@@ -34,7 +30,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Homepage.
+ * Homepage — reordered for Phase 24 (homepage reorg): Hero, four quick
+ * cards, Services, How It Works, Insurance, Welcome+Benefits (merged, was
+ * two separate sections), Watch and Learn, Contact. The crisis notice and
+ * newsletter band are now global (CrisisBar in layout.tsx above the
+ * header; the newsletter band is Footer.tsx's own top band) rather than
+ * homepage-specific sections.
+ *
+ * No provider information renders on this page (TrustStrip's old "Your
+ * provider" card is gone; see TrustStrip.tsx) and neither Stats
+ * ("A Foundation of Experience") nor Testimonials render here anymore —
+ * both are outside the reorg's explicit 12-item homepage order. Neither
+ * component was deleted; this page just no longer renders them.
  *
  * Content prefers live CMS values when present, otherwise the static rebuild data.
  */
@@ -49,11 +56,7 @@ export default async function HomePage() {
         bookingLabel={cms.booking.label}
         bookingProfiles={cms.bookingProfiles}
       />
-      <TrustStrip
-        provider={cms.provider ?? staticProvider}
-        states={cms.telehealthStates}
-      />
-      <WelcomeSection welcome={cms.welcome} />
+      <TrustStrip states={cms.telehealthStates} />
 
       <Section tone="raised" aria-labelledby="services-heading">
         <Container>
@@ -77,7 +80,6 @@ export default async function HomePage() {
         </Container>
       </Section>
 
-      <BenefitsGrid heading={cms.benefitsHeading} items={cms.benefits} />
       <HowItWorks
         bookingUrl={cms.booking.page}
         heading={cms.howItWorks.heading}
@@ -85,13 +87,7 @@ export default async function HomePage() {
         body={cms.howItWorks.body}
         steps={cms.steps}
       />
-      <StatsBand
-        stats={cms.stats}
-        bookingUrl={cms.booking.page}
-        showCta={false}
-        heading="A Foundation of Experience"
-        body="Board-certified psychiatric nurse practitioner care, backed by more than 15 years of clinical experience."
-      />
+
       <InsuranceGrid
         showCta={true}
         showDisclaimer={true}
@@ -102,7 +98,13 @@ export default async function HomePage() {
         ctaHref={cms.insuranceSection.ctaHref}
         carriers={cms.insurance}
       />
-      <Testimonials testimonials={cms.testimonials} />
+
+      <WelcomeAndBenefits
+        welcome={cms.welcome}
+        benefitsHeading={cms.benefitsHeading}
+        benefits={cms.benefits}
+      />
+
       <VideosSection videos={cms.videos} />
       <ContactCTA bookingUrl={cms.booking.page} bookingLabel={cms.booking.label} />
     </>
