@@ -107,6 +107,16 @@ const schema = z.object({
    * handleMfaSetupStart in controllers/mfa.controller.ts.
    */
   MFA_ENCRYPTION_KEY: z.string().optional(),
+
+  /**
+   * Phase 1 item 7: Cloudflare Turnstile server-side verification for the
+   * public contact/newsletter forms. Optional, same degrade-gracefully
+   * posture as every other integration above — until this is set,
+   * verifyTurnstile() treats every submission as passed (honeypot alone
+   * still applies) rather than rejecting every visitor because a key
+   * hasn't been configured yet.
+   */
+  TURNSTILE_SECRET_KEY: z.string().optional(),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -135,5 +145,8 @@ export const geminiConfigured = Boolean(env.GEMINI_API_KEY);
 
 /** True once MFA_ENCRYPTION_KEY is set; otherwise MFA setup is blocked with a clear error. */
 export const mfaConfigured = Boolean(env.MFA_ENCRYPTION_KEY);
+
+/** True once TURNSTILE_SECRET_KEY is set; otherwise verifyTurnstile() treats every submission as passed. */
+export const turnstileConfigured = Boolean(env.TURNSTILE_SECRET_KEY);
 
 export const isProduction = env.NODE_ENV === 'production';

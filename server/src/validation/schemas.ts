@@ -85,6 +85,17 @@ export const contactSchema = z
 
     /** Honeypot — must be empty. */
     company: z.string().max(0).optional().default(''),
+
+    /**
+     * Phase 1 item 7: Cloudflare Turnstile response token. Optional here —
+     * NOT required by the schema — because the actual enforcement is the
+     * real verifyTurnstile() call against Cloudflare's API in the
+     * controller, not this field's mere presence. Making it required would
+     * reject every legitimate submission the moment TURNSTILE_SECRET_KEY is
+     * configured server-side but NEXT_PUBLIC_TURNSTILE_SITE_KEY hasn't been
+     * set (or has failed to load) client-side yet.
+     */
+    turnstile_token: z.string().max(2048).optional().default(''),
   })
   // P4-B4: strictly reject any unexpected field — including the legacy
   // visitor-written `subject`/`message` fields this form used to accept.
@@ -105,6 +116,9 @@ export const newsletterSchema = z.object({
     .pipe(z.string().email('Please enter a valid email address.').max(254)),
 
   company: z.string().max(0).optional().default(''),
+
+  /** Phase 1 item 7 — see contactSchema's own turnstile_token comment. */
+  turnstile_token: z.string().max(2048).optional().default(''),
 });
 
 export type NewsletterInput = z.infer<typeof newsletterSchema>;

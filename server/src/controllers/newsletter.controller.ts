@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { newsletterSchema, fieldErrors } from '../validation/schemas.js';
 import { subscribe } from '../services/newsletter.service.js';
 import { storeLead } from './leads.controller.js';
+import { verifyTurnstile } from '../lib/turnstile.js';
 import { badRequest } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { supabaseConfigured } from '../lib/supabase.js';
@@ -19,6 +20,13 @@ export async function handleNewsletter(req: Request, res: Response): Promise<voi
     }
 
     throw badRequest(errors.email ?? 'Please enter a valid email address.', errors);
+  }
+
+  // Phase 1 item 7 — see contact.controller.ts's own comment for the
+  // honeypot-then-Turnstile ordering rationale.
+  const turnstileOk = await verifyTurnstile(parsed.data.turnstile_token, req.ip);
+  if (!turnstileOk) {
+    throw badRequest('Verification failed. Please reload the page and try again.');
   }
 
   if (supabaseConfigured()) {

@@ -4,6 +4,7 @@ import { contactSchema, fieldErrors, CONTACT_REASON_LABELS } from '../validation
 import { sendContactNotification, resolveInboxEmail } from '../services/email.service.js';
 import { storeLead } from './leads.controller.js';
 import { logEmailMessage } from '../lib/mailLog.js';
+import { verifyTurnstile } from '../lib/turnstile.js';
 import { badRequest } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { supabaseConfigured } from '../lib/supabase.js';
@@ -54,6 +55,16 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
     }
 
     throw badRequest('Please correct the highlighted fields and try again.', errors);
+  }
+
+  // Phase 1 item 7: a real bot-detection layer on top of the honeypot
+  // above — the honeypot only catches bots naive enough to fill a hidden
+  // field; this catches ones sophisticated enough not to. Checked after
+  // the honeypot (so a bot that already failed that never reaches a real
+  // Cloudflare API call) and before any persistence/email work.
+  const turnstileOk = await verifyTurnstile(parsed.data.turnstile_token, req.ip);
+  if (!turnstileOk) {
+    throw badRequest('Verification failed. Please reload the page and try again.');
   }
 
   const referenceId = randomUUID().slice(0, 8).toUpperCase();
