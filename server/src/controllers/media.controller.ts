@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { getSupabase } from '../lib/supabase.js';
 import { badRequest } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
+import { writeAuditLog, recordLabel } from '../lib/audit.js';
+import type { AuthedRequest } from '../middleware/adminAuth.js';
 
 const BUCKET = 'media';
 
@@ -80,6 +82,15 @@ export async function handleMediaUpload(req: Request, res: Response): Promise<vo
     logger.error('media row insert failed', { reason: error.message });
     throw badRequest(error.message);
   }
+
+  const actor = (req as AuthedRequest).admin;
+  await writeAuditLog({
+    actor,
+    action: 'create',
+    resource: 'media',
+    resourceId: data?.id ? String(data.id) : null,
+    summary: `Uploaded media: ${recordLabel(data as Record<string, unknown>)}`,
+  });
 
   res.status(201).json({ success: true, data });
 }
