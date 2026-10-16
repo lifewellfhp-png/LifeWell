@@ -11,10 +11,14 @@ export type AdminUser = {
   permissions: string[];
 };
 
+export type LoginResult = { error: string | null; mfaRequired?: boolean; mfaToken?: string };
+
 type AuthState = {
   user: AdminUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<string | null>;
+  login: (email: string, password: string) => Promise<LoginResult>;
+  /** Step 2 of login when the account has MFA enabled — exactly one of code/recoveryCode. */
+  verifyMfa: (mfaToken: string, code?: string, recoveryCode?: string) => Promise<string | null>;
   logout: () => void;
   can: (module: string) => boolean;
 };
@@ -44,11 +48,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       async login(email, password) {
-        const res = await api<{ user: AdminUser }>('/api/admin/auth/login', {
+        const res = await api<{ user: AdminUser; mfaRequired?: boolean; mfaToken?: string }>(
+          '/api/admin/auth/login',
+          {
+            method: 'POST',
+            body: JSON.stringify({ email, password }),
+          }
+        );
+        if (!res.success || !res.data) return { error: res.message || 'Login failed' };
+        if (res.data.mfaRequired && res.data.mfaToken) {
+          return { error: null, mfaRequired: true, mfaToken: res.data.mfaToken };
+        }
+        setUser(res.data.user);
+        return { error: null };
+      },
+      async verifyMfa(mfaToken, code, recoveryCode) {
+        const res = await api<{ user: AdminUser }>('/api/admin/auth/mfa-verify', {
           method: 'POST',
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ mfa_token: mfaToken, code, recovery_code: recoveryCode }),
         });
-        if (!res.success || !res.data) return res.message || 'Login failed';
+        if (!res.success || !res.data) return res.message || 'Verification failed';
         setUser(res.data.user);
         return null;
       },

@@ -1,7 +1,20 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Eye, KeyRound, LoaderCircle, Lock, Mail, Plus, ShieldBan, ShieldCheck, Trash2, X } from 'lucide-react';
+import {
+  Eye,
+  KeyRound,
+  LoaderCircle,
+  Lock,
+  Mail,
+  Plus,
+  ShieldBan,
+  ShieldCheck,
+  ShieldPlus,
+  ShieldX,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { STAFF_ACCESS, STAFF_MODULES } from '@/lib/nav';
@@ -29,7 +42,9 @@ export default function UsersPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState<UserRow[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<'create' | 'view' | 'reset' | 'change-password' | null>(null);
+  const [mode, setMode] = useState<
+    'create' | 'view' | 'reset' | 'change-password' | 'mfa-setup' | 'mfa-disable' | null
+  >(null);
   const [selected, setSelected] = useState<UserRow | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [newPassword, setNewPassword] = useState('');
@@ -43,15 +58,39 @@ export default function UsersPage() {
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  // Phase 1 item 5 (MFA) — every admin manages their own, including staff
+  // (no requireSuperAdmin on the server routes this calls either).
+  const [mfaStatus, setMfaStatus] = useState<{ enabled: boolean; enrolledAt: string | null } | null>(null);
+  const [mfaSetup, setMfaSetup] = useState<{
+    secret: string;
+    qrCodeDataUri: string;
+    recoveryCodes: string[];
+  } | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaDisablePassword, setMfaDisablePassword] = useState('');
+  const [mfaCodesSaved, setMfaCodesSaved] = useState(false);
+
   async function load() {
     const res = await api<UserRow[]>('/api/admin/users');
     if (!res.success) setError(res.message || 'Failed to load users');
     else setRows(res.data || []);
   }
 
+  const isSuperAdmin = user?.role === 'super_admin';
+
+  async function loadMfaStatus() {
+    const res = await api<{ enabled: boolean; enrolledAt: string | null }>('/api/admin/auth/mfa');
+    if (res.success && res.data) setMfaStatus(res.data);
+  }
+
   useEffect(() => {
-    if (user?.role === 'super_admin') void load();
-  }, [user?.role]);
+    if (isSuperAdmin) void load();
+  }, [isSuperAdmin]);
+
+  useEffect(() => {
+    if (user) void loadMfaStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-runs only on identity change (user.id), matching load()'s own user?.role effect above, not on every user object re-render
+  }, [user?.id]);
 
   useEffect(() => {
     document.body.style.overflow = mode ? 'hidden' : '';
@@ -59,15 +98,6 @@ export default function UsersPage() {
       document.body.style.overflow = '';
     };
   }, [mode]);
-
-  if (user?.role !== 'super_admin') {
-    return (
-      <div className="card card-pad">
-        <h1 className="page-title">Staff</h1>
-        <p className="muted">Only the Super Admin can view accounts and create sub-admins.</p>
-      </div>
-    );
-  }
 
   function closeModal() {
     if (saving) return;
@@ -77,6 +107,12 @@ export default function UsersPage() {
     setOwnPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
     setFieldErrors({});
     setError(null);
+    // Recovery codes and the raw secret must never linger in memory once
+    // their one-time display is over.
+    setMfaSetup(null);
+    setMfaCode('');
+    setMfaDisablePassword('');
+    setMfaCodesSaved(false);
   }
 
   function togglePermission(module: string) {
@@ -163,6 +199,60 @@ export default function UsersPage() {
     setMessage('Your password was changed. Other signed-in sessions have been signed out.');
   }
 
+  async function onStartMfaSetup() {
+    setError(null);
+    setSaving(true);
+    const res = await api<{ secret: string; qrCodeDataUri: string; recoveryCodes: string[] }>(
+      '/api/admin/auth/mfa/setup',
+      { method: 'POST' }
+    );
+    setSaving(false);
+    if (!res.success || !res.data) {
+      setError(res.message || 'Could not start MFA setup.');
+      return;
+    }
+    setMfaSetup(res.data);
+    setMfaCode('');
+    setMfaCodesSaved(false);
+    setMode('mfa-setup');
+  }
+
+  async function onVerifyMfaSetup(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    const res = await api('/api/admin/auth/mfa/verify-setup', {
+      method: 'POST',
+      body: JSON.stringify({ code: mfaCode }),
+    });
+    setSaving(false);
+    if (!res.success) {
+      setError(res.message || 'That code is incorrect.');
+      return;
+    }
+    closeModal();
+    setMessage('Two-factor authentication is now enabled on your account.');
+    await loadMfaStatus();
+  }
+
+  async function onDisableMfa(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    const res = await api('/api/admin/auth/mfa/disable', {
+      method: 'POST',
+      body: JSON.stringify({ current_password: mfaDisablePassword }),
+    });
+    setSaving(false);
+    if (!res.success) {
+      setError(res.message || 'Could not disable MFA.');
+      return;
+    }
+    closeModal();
+    setMessage('Two-factor authentication has been disabled.');
+    await loadMfaStatus();
+  }
+
   async function onDelete(row: UserRow) {
     if (row.role === 'super_admin') return;
     if (!confirm(`Delete ${row.name}'s account? They will lose access immediately.`)) return;
@@ -205,21 +295,27 @@ export default function UsersPage() {
     <div>
       <div className="toolbar">
         <div>
-          <h1 className="page-title">Staff</h1>
-          <p className="page-sub">Only Super Admin can view accounts, reset passwords, block access, or email login details.</p>
+          <h1 className="page-title">{isSuperAdmin ? 'Staff' : 'My Account'}</h1>
+          <p className="page-sub">
+            {isSuperAdmin
+              ? 'Only Super Admin can view accounts, reset passwords, block access, or email login details.'
+              : 'Manage your own password and two-factor authentication.'}
+          </p>
         </div>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => {
-            setForm(emptyForm);
-            setError(null);
-            setMode('create');
-          }}
-        >
-          <Plus size={16} />
-          Add sub-admin
-        </button>
+        {isSuperAdmin ? (
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => {
+              setForm(emptyForm);
+              setError(null);
+              setMode('create');
+            }}
+          >
+            <Plus size={16} />
+            Add sub-admin
+          </button>
+        ) : null}
       </div>
 
       {error && !mode ? <div className="error-banner">{error}</div> : null}
@@ -249,10 +345,34 @@ export default function UsersPage() {
               <Lock size={15} />
               Change password
             </button>
+            {mfaStatus?.enabled ? (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  setError(null);
+                  setMfaDisablePassword('');
+                  setMode('mfa-disable');
+                }}
+              >
+                <ShieldX size={15} />
+                Disable two-factor
+              </button>
+            ) : (
+              <button type="button" className="btn btn-ghost" onClick={() => void onStartMfaSetup()}>
+                <ShieldPlus size={15} />
+                Set up two-factor
+              </button>
+            )}
           </div>
+          <p className="muted account-meta">
+            Two-factor authentication:{' '}
+            {mfaStatus === null ? '…' : mfaStatus.enabled ? 'Enabled' : 'Not enabled'}
+          </p>
         </article>
       ) : null}
 
+      {isSuperAdmin ? (
       <div className="account-grid">
         {rows.map((row) => (
           <article key={row.id} className="card card-pad account-card">
@@ -321,6 +441,7 @@ export default function UsersPage() {
           </article>
         ))}
       </div>
+      ) : null}
 
       {mode === 'create' ? (
         <div className="overlay modal-overlay">
@@ -606,6 +727,120 @@ export default function UsersPage() {
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? <LoaderCircle className="nav-spinner" size={16} /> : <Lock size={16} />}
                 {saving ? 'Saving…' : 'Change password'}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
+      {mode === 'mfa-setup' && mfaSetup ? (
+        <div className="overlay modal-overlay">
+          <form className="card card-pad modal-card" onSubmit={onVerifyMfaSetup}>
+            <div className="modal-head">
+              <div>
+                <p className="modal-kicker">Security</p>
+                <h2>Set up two-factor authentication</h2>
+              </div>
+              <button type="button" className="icon-btn" onClick={closeModal} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            {error ? <div className="error-banner">{error}</div> : null}
+
+            <p className="muted">
+              1. Scan this code with an authenticator app (Google Authenticator, Authy, 1Password, etc).
+            </p>
+            {/* eslint-disable-next-line @next/next/no-img-element -- a data: URI, not an optimizable remote image */}
+            <img
+              src={mfaSetup.qrCodeDataUri}
+              alt="Two-factor authentication QR code"
+              width={200}
+              height={200}
+              style={{ display: 'block', margin: '0.5rem 0' }}
+            />
+            <p className="muted">
+              Can&apos;t scan it? Enter this key manually: <code>{mfaSetup.secret}</code>
+            </p>
+
+            <p className="muted" style={{ marginTop: '1rem' }}>
+              2. Save these recovery codes somewhere safe. Each one can be used once, to sign in if you
+              lose access to your authenticator app. They will not be shown again.
+            </p>
+            <div className="recovery-codes-grid">
+              {mfaSetup.recoveryCodes.map((code) => (
+                <code key={code}>{code}</code>
+              ))}
+            </div>
+            <label className="access-tile full" style={{ marginTop: '0.5rem' }}>
+              <input
+                type="checkbox"
+                checked={mfaCodesSaved}
+                onChange={(e) => setMfaCodesSaved(e.target.checked)}
+              />
+              <span>I&apos;ve saved these recovery codes</span>
+            </label>
+
+            <div className="field" style={{ marginTop: '1rem' }}>
+              <label htmlFor="mfa-code">3. Enter the 6-digit code from your app to confirm</label>
+              <input
+                id="mfa-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                pattern="\d{6}"
+                maxLength={6}
+                placeholder="123456"
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value)}
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" className="btn btn-ghost" onClick={closeModal} disabled={saving}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={saving || !mfaCodesSaved}>
+                {saving ? <LoaderCircle className="nav-spinner" size={16} /> : <ShieldPlus size={16} />}
+                {saving ? 'Verifying…' : 'Enable two-factor'}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
+      {mode === 'mfa-disable' ? (
+        <div className="overlay modal-overlay">
+          <form className="card card-pad modal-card" onSubmit={onDisableMfa}>
+            <div className="modal-head">
+              <div>
+                <p className="modal-kicker">Security</p>
+                <h2>Disable two-factor authentication</h2>
+              </div>
+              <button type="button" className="icon-btn" onClick={closeModal} aria-label="Close">
+                <X size={18} />
+              </button>
+            </div>
+            {error ? <div className="error-banner">{error}</div> : null}
+            <p className="muted">Enter your password to confirm. Your saved recovery codes will stop working.</p>
+            <div className="field">
+              <label htmlFor="mfa-disable-password">Current password</label>
+              <input
+                id="mfa-disable-password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={mfaDisablePassword}
+                onChange={(e) => setMfaDisablePassword(e.target.value)}
+              />
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="btn btn-ghost" onClick={closeModal} disabled={saving}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-danger" disabled={saving}>
+                {saving ? <LoaderCircle className="nav-spinner" size={16} /> : <ShieldX size={16} />}
+                {saving ? 'Disabling…' : 'Disable two-factor'}
               </button>
             </div>
           </form>

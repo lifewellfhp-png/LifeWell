@@ -1,8 +1,9 @@
 /**
- * Regression tests for Phase 1 item 3's three dedicated auth route handlers
- * (app/api/admin/auth/{login,logout,change-password}/route.ts) — the only
- * places that ever see the raw JWT from Express, and the only places that
- * set/clear the httpOnly session cookie.
+ * Regression tests for Phase 1 item 3's dedicated auth route handlers
+ * (app/api/admin/auth/{login,logout,change-password}/route.ts) and Phase 1
+ * item 5's mfa-verify route — the only places that ever see the raw JWT
+ * from Express, and the only places that set/clear the httpOnly session
+ * cookie.
  *
  * globalThis.fetch is stubbed — no real network call is ever made, and
  * nothing hits the real Express API or Supabase.
@@ -15,6 +16,7 @@ import { NextRequest } from 'next/server';
 import { POST as login } from '../src/app/api/admin/auth/login/route.ts';
 import { POST as logout } from '../src/app/api/admin/auth/logout/route.ts';
 import { POST as changePassword } from '../src/app/api/admin/auth/change-password/route.ts';
+import { POST as mfaVerify } from '../src/app/api/admin/auth/mfa-verify/route.ts';
 import { SESSION_COOKIE } from '../src/lib/session.ts';
 
 const originalFetch = globalThis.fetch;
@@ -207,4 +209,81 @@ test('7. a failed change-password does not replace the cookie', async () => {
   const response = await changePassword(request);
   assert.equal(response.status, 401);
   assert.equal(getCookie(response, SESSION_COOKIE), undefined);
+});
+
+/* ---------------------------------------------- login: MFA passthrough --- */
+
+test('8. a login for an MFA-enabled account passes through mfaRequired/mfaToken without setting a session cookie', async () => {
+  stubFetch(async () =>
+    new Response(JSON.stringify({ success: true, data: { mfaRequired: true, mfaToken: 'pending-token' } }), {
+      status: 200,
+    })
+  );
+  const request = new NextRequest('https://lifewellfhp-admin.vercel.app/api/admin/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email: 'a@b.com', password: 'x' }),
+  });
+  const response = await login(request);
+  const json = await response.json();
+  assert.equal(json.data.mfaRequired, true);
+  assert.equal(json.data.mfaToken, 'pending-token');
+  assert.equal(getCookie(response, SESSION_COOKIE), undefined);
+});
+
+/* --------------------------------------------------------- mfa-verify --- */
+
+function mfaVerifyRequest(body) {
+  return new NextRequest('https://lifewellfhp-admin.vercel.app/api/admin/auth/mfa-verify', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+test('9. a successful mfa-verify sets the httpOnly session cookie and strips the token from the response body', async () => {
+  stubFetch(async () =>
+    new Response(
+      JSON.stringify({ success: true, data: { token: 'real-jwt-value', user: { id: '1', name: 'A' } } }),
+      { status: 200 }
+    )
+  );
+  const response = await mfaVerify(mfaVerifyRequest({ mfa_token: 'pending-token', code: '123456' }));
+  const json = await response.json();
+
+  assert.equal(json.success, true);
+  assert.equal('token' in (json.data || {}), false, 'token must never appear in the response body');
+  assert.deepEqual(json.data.user, { id: '1', name: 'A' });
+
+  const cookie = getCookie(response, SESSION_COOKIE);
+  assert.ok(cookie, 'session cookie must be set');
+  assert.match(cookie, /real-jwt-value/);
+  assert.match(cookie, /HttpOnly/i);
+});
+
+test('10. a failed mfa-verify (wrong code) sets no cookie and leaks no token', async () => {
+  stubFetch(async () => new Response(JSON.stringify({ success: false, message: 'That code is incorrect.' }), { status: 401 }));
+  const response = await mfaVerify(mfaVerifyRequest({ mfa_token: 'pending-token', code: '000000' }));
+  const json = await response.json();
+  assert.equal(response.status, 401);
+  assert.equal(json.success, false);
+  assert.equal(getCookie(response, SESSION_COOKIE), undefined);
+});
+
+test('11. mfa-verify forwards the request body to Express unchanged (mfa_token + code or recovery_code)', async () => {
+  let seenBody;
+  stubFetch(async (_url, init) => {
+    seenBody = JSON.parse(init.body);
+    return new Response(JSON.stringify({ success: false, message: 'nope' }), { status: 401 });
+  });
+  await mfaVerify(mfaVerifyRequest({ mfa_token: 'pending-token', recovery_code: 'ABCD-1234' }));
+  assert.deepEqual(seenBody, { mfa_token: 'pending-token', recovery_code: 'ABCD-1234' });
+});
+
+test('12. mfa-verify calls the correct upstream path', async () => {
+  let seenUrl;
+  stubFetch(async (url) => {
+    seenUrl = url;
+    return new Response(JSON.stringify({ success: false, message: 'nope' }), { status: 401 });
+  });
+  await mfaVerify(mfaVerifyRequest({ mfa_token: 'pending-token', code: '123456' }));
+  assert.match(String(seenUrl), /\/api\/admin\/auth\/mfa-verify$/);
 });
