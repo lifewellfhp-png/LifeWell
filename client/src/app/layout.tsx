@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Lora, Source_Sans_3 } from 'next/font/google';
+import { Lora, Inter } from 'next/font/google';
 import '@/styles/globals.css';
 
 import { site } from '@/data/site';
@@ -8,6 +8,7 @@ import { SkipLink } from '@/components/layout/SkipLink';
 import { NavigationProgress } from '@/components/layout/NavigationProgress';
 import { ThemeVars } from '@/components/layout/ThemeVars';
 import { SiteHeader } from '@/components/layout/SiteHeader';
+import { MobileBookCallBar } from '@/components/layout/MobileBookCallBar';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { AnalyticsBeacon } from '@/components/seo/AnalyticsBeacon';
 import { ChatAssistant } from '@/components/chat/ChatAssistant';
@@ -25,11 +26,13 @@ const lora = Lora({
   variable: '--font-lora',
 });
 
-const sourceSans = Source_Sans_3({
+/* Phase 23 premium redesign: Inter replaces Source Sans 3 as the body
+   typeface sitewide — see globals.css's --font-body token comment. */
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  weight: ['400', '600', '700'],
-  variable: '--font-source-sans',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
@@ -78,7 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cms = await getResolvedContent();
 
   return (
-    <html lang="en-US" className={`${lora.variable} ${sourceSans.variable}`}>
+    <html lang="en-US" className={`${lora.variable} ${inter.variable}`}>
       <body>
         <JsonLd data={homeGraph()} id="site-schema" />
         <ThemeVars />
@@ -89,6 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {children}
         </main>
         <Footer />
+        <MobileBookCallBar />
         <AnalyticsBeacon />
         <ChatAssistant psychiatricStatePricing={cms.fees.psychiatricStatePricing} bookingUrl={cms.booking.page} />
       </body>

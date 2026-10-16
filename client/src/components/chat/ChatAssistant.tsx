@@ -175,7 +175,10 @@ export function ChatAssistant(props: {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-[60] sm:bottom-6 sm:right-6">
+    // Phase 23: offset above the sticky mobile Book/Call bar (MobileBookCallBar.tsx)
+    // so the two fixed-position controls never overlap. The bar is sm:hidden, so
+    // the plain sm:bottom-6 override below is enough once it's gone.
+    <div className="fixed bottom-[calc(var(--mobile-book-bar-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[60] sm:bottom-6 sm:right-6">
       {open && (
         <div
           role="dialog"

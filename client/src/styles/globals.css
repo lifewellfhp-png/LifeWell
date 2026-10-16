@@ -63,6 +63,19 @@
      failure as the primary hue, so the hero heading uses this instead. */
   --color-brand-accent-on-dark: #a3e0b8;
 
+  /* ---- Sage (premium redesign, Phase 23) ----
+     A second, quieter accent alongside --color-brand-accent's kelly green —
+     used for soft decorative surfaces, badges and dividers where the redesign
+     calls for "calm" rather than the brand green's own higher saturation.
+     Both soft/strong are safe for dark text at this weight (sage-strong on
+     white text is NOT relied on anywhere — treat it as a border/icon tone,
+     not a text-background pair). Only applied to components actually
+     redesigned so far (header/footer/hero) — not a replacement for
+     --color-brand-accent, which existing unredesigned pages still use. */
+  --color-sage: #8ca68c;
+  --color-sage-soft: #eef2ea;
+  --color-sage-strong: #5f7a5e; /* white text -> 5.3:1 */
+
   /* ---- Text ---- */
   --color-text-primary: #374151;
   --color-text-secondary: #5b6675;
@@ -74,6 +87,13 @@
   --color-surface-raised: #ffffff;
   --color-surface-muted: #eef3f7;
   --color-surface-inverse: #2f6691;
+  /* Warm off-white (Phase 23 premium redesign) — a cream/ivory alternative
+     to the cooler blue-gray --color-surface-base above, for the specific
+     components the redesign has actually reached. Not swapped in as the
+     global `body` background yet; that would shift every not-yet-redesigned
+     page's tone ahead of its own checkpoint. */
+  --color-surface-warm: #faf7f2;
+  --color-surface-warm-muted: #f3eee5;
 
   /* ---- Border ----
      subtle/strong are decorative dividers (exempt from 1.4.11). Form control
@@ -92,7 +112,13 @@
 
   /* ---- Typography ---- */
   --font-heading: var(--font-lora), Georgia, 'Times New Roman', serif;
-  --font-body: var(--font-source-sans), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Phase 23 premium redesign: Inter replaces Source Sans 3 sitewide (a
+     global token, not scoped to one checkpoint's components — the two body
+     fonts can't coexist legibly on the same page, so this changes together
+     with the next/font loader in app/layout.tsx). Pure typography swap,
+     same font-size/line-height scale below — no layout, content, or URL
+     changes. */
+  --font-body: var(--font-inter), system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --text-xs: 0.8125rem; /* 13 */
   --text-sm: 1rem; /* 16 */
@@ -155,6 +181,13 @@
      page's body content, not just the header row. */
   --container-header: 87.5rem; /* 1400 */
 
+  /* Phase 23 premium redesign: the sticky mobile Book/Call bar's own height
+     (MobileBookCallBarClient.tsx's `min-h-14` = 56px), shared as a token so
+     anything needing to clear it (currently just ChatAssistant's floating
+     button) stays in sync with the bar's actual height rather than guessing
+     a second hardcoded number. */
+  --mobile-book-bar-height: 56px;
+
   /* ---- Breakpoints ----
      sm/md/lg/xl/2xl keep Tailwind's defaults (640/768/1024/1280/1536).
      `xs` is added for small handsets. */
@@ -195,6 +228,15 @@
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     overflow-wrap: break-word;
+  }
+
+  /* Phase 23: clears the sticky mobile Book/Call bar (sm:hidden in
+     MobileBookCallBarClient.tsx) so it never covers the footer's own
+     bottom content — matches that breakpoint exactly. */
+  @media (width < 640px) {
+    body {
+      padding-bottom: calc(var(--mobile-book-bar-height) + env(safe-area-inset-bottom));
+    }
   }
 
   h1,
@@ -440,4 +482,27 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ==========================================================================
+   Scroll reveal (Phase 23 premium redesign) — see components/ui/Reveal.tsx.
+   Progressive enhancement: content renders fully visible by default; the
+   Reveal component only adds .reveal-pending after mount (so there is never
+   a flash of invisible content if JS is slow or fails), then .reveal-visible
+   once the element scrolls into view. The catch-all reduced-motion block
+   above already collapses this transition's duration to ~0, so no separate
+   prefers-reduced-motion handling is needed here.
+   ========================================================================== */
+
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.reveal-pending.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--duration-slow) var(--ease-out-soft),
+    transform var(--duration-slow) var(--ease-out-soft);
 }

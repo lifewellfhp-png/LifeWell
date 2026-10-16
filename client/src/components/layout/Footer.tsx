@@ -27,7 +27,9 @@ export async function Footer() {
   const optimizableLogo = isOptimizableImageSrc(logo);
 
   return (
-    <footer className="bg-[#F4F7FA] pb-[env(safe-area-inset-bottom)]">
+    // Phase 23 premium redesign: warm off-white instead of the cool
+    // blue-gray base — the inner band (still solid brand blue) is unchanged.
+    <footer className="bg-[var(--color-surface-warm)] pb-[env(safe-area-inset-bottom)]">
       <div className="footer-band rounded-t-[30px] bg-[var(--lw-primary)] text-white sm:rounded-t-[40px]">
         <Container>
           <div className="flex flex-col gap-5 border-b border-white/30 py-10 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:py-12 lg:py-14">

@@ -54,7 +54,24 @@ export function Header({
       )}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <div className="mx-auto flex min-h-[72px] w-full max-w-header min-w-0 items-center gap-3 px-4 py-3 sm:min-h-[90px] sm:max-[1601px]:gap-4 sm:max-[1601px]:px-[30px] sm:max-[1601px]:py-5 lg:min-h-[110px] lg:max-[1601px]:gap-5 lg:max-[1601px]:px-10 lg:max-[1601px]:py-[22px] min-[1601px]:gap-[30px] min-[1601px]:px-[70px] min-[1601px]:py-[30px]">
+      {/*
+        Phase 23 premium redesign: the header now genuinely shrinks once
+        scrolled (min-height + vertical padding both step down), not just a
+        background-color swap — the transition on min-height/padding is
+        listed explicitly alongside the header's own background/shadow
+        transition above so both animate together. On non-home pages
+        `scrolled` is always true (no hero to sit over), so inner pages get
+        the compact header permanently, matching what a visitor would see
+        after scrolling the homepage anyway.
+      */}
+      <div
+        className={cn(
+          'mx-auto flex w-full max-w-header min-w-0 items-center gap-3 px-4 transition-[min-height,padding] duration-300 sm:max-[1601px]:gap-4 sm:max-[1601px]:px-[30px] lg:max-[1601px]:gap-5 lg:max-[1601px]:px-10 min-[1601px]:gap-[30px] min-[1601px]:px-[70px]',
+          scrolled
+            ? 'min-h-[64px] py-2 sm:min-h-[72px] sm:max-[1601px]:py-3 lg:min-h-[80px] lg:max-[1601px]:py-[14px] min-[1601px]:py-4'
+            : 'min-h-[72px] py-3 sm:min-h-[90px] sm:max-[1601px]:py-5 lg:min-h-[110px] lg:max-[1601px]:py-[22px] min-[1601px]:py-[30px]'
+        )}
+      >
         <Link
           href="/"
           prefetch
@@ -68,7 +85,10 @@ export function Header({
               width={945}
               height={191}
               priority
-              className="h-9 w-auto max-w-[min(11rem,46vw)] object-contain object-left sm:h-11 sm:max-w-none lg:h-[50px]"
+              className={cn(
+                'w-auto max-w-[min(11rem,46vw)] object-contain object-left transition-[height] duration-300 sm:max-w-none',
+                scrolled ? 'h-8 sm:h-9 lg:h-10' : 'h-9 sm:h-11 lg:h-[50px]'
+              )}
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
@@ -76,7 +96,10 @@ export function Header({
               src={logo}
               alt={site.name}
               fetchPriority="high"
-              className="h-9 w-auto max-w-[min(11rem,46vw)] object-contain object-left sm:h-11 sm:max-w-none lg:h-[50px]"
+              className={cn(
+                'w-auto max-w-[min(11rem,46vw)] object-contain object-left transition-[height] duration-300 sm:max-w-none',
+                scrolled ? 'h-8 sm:h-9 lg:h-10' : 'h-9 sm:h-11 lg:h-[50px]'
+              )}
             />
           )}
         </Link>

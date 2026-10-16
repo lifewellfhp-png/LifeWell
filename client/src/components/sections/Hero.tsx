@@ -3,12 +3,18 @@ import { site } from '@/data/site';
 import type { ResolvedHero, BookingProfiles } from '@/lib/cms-resolve';
 import { HeroMedia } from './HeroMedia';
 import { OutlineButton, SwapButton } from '@/components/ui/SwapButton';
+import { Reveal } from '@/components/ui/Reveal';
 import Link from 'next/link';
 
 /**
- * Homepage hero — tokens from the live Elementor kit:
- * Lora 400 italic 60px / 1.05, primary #3E7FB1 + secondary #5FAF6B,
- * Source Sans 18px body, swap-button hover to green, outline hover to blue.
+ * Homepage hero. Phase 23 premium redesign: non-italic Lora heading (the
+ * original site's italic treatment read as more decorative/ornate than the
+ * calm, modern brief calls for), a brand-blue-tinted dark overlay instead of
+ * pure black (warmer, stays in-palette, same contrast guarantee — see
+ * HeroMedia for the image itself, unchanged), and a subtle fade/rise-in on
+ * first paint (Reveal — respects prefers-reduced-motion via globals.css's
+ * sitewide catch-all). Content, data flow, and all hrefs are unchanged from
+ * before this phase — Inter now renders the body copy via --font-body.
  */
 export function Hero({
   hero: heroProp,
@@ -50,20 +56,20 @@ export function Hero({
 
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-gradient-to-r from-black/70 via-black/50 to-black/20"
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-[#162634]/82 via-[#1c3345]/56 to-[#1c3345]/16"
       />
 
       <div className="relative w-full px-4 pb-14 pt-[calc(88px+env(safe-area-inset-top))] sm:max-[1601px]:px-[30px] sm:max-[1601px]:pb-20 sm:max-[1601px]:pt-[calc(120px+env(safe-area-inset-top))] lg:max-[1601px]:px-[70px] lg:max-[1601px]:py-[100px] min-[1601px]:px-10 min-[1601px]:pb-[100px] min-[1601px]:pt-[200px]">
-        <div className="w-full max-w-[420px] md:w-1/2 md:max-desktop:max-w-none desktop:max-w-[760px]">
+        <Reveal className="w-full max-w-[420px] md:w-1/2 md:max-desktop:max-w-none desktop:max-w-[760px]">
           <h1
             id="hero-heading"
-            className="font-heading text-[30px] font-normal italic leading-[1.2] tracking-normal [text-wrap:wrap] md:max-desktop:text-[42px] desktop:text-[46px]"
+            className="font-heading text-[30px] font-normal leading-[1.15] tracking-normal [text-wrap:wrap] md:max-desktop:text-[42px] desktop:text-[46px]"
           >
             <span className="text-[var(--color-brand-primary-on-dark)]">{primary}{accent ? ' ' : ''}</span>
             {accent ? <span className="text-[var(--color-brand-accent-on-dark)]">{accent}</span> : null}
           </h1>
 
-          <p className="mt-6 text-[14px] font-normal leading-[1.45] text-white sm:max-desktop:text-[16px] desktop:text-[18px]">
+          <p className="mt-6 text-[14px] font-normal leading-[1.55] text-white sm:max-desktop:text-[16px] desktop:text-[18px]">
             {data.subheading}
           </p>
 
@@ -92,10 +98,11 @@ export function Hero({
             </p>
           )}
 
-          <p className="mt-8 text-[12px] font-light leading-[1.45] text-white sm:mt-10 sm:max-desktop:text-[14px] desktop:text-[16px]">
+          <p className="mt-8 inline-flex items-center gap-2 rounded-pill bg-white/10 px-4 py-2 text-[12px] font-medium leading-[1.45] text-white backdrop-blur-sm sm:mt-10 sm:max-desktop:text-[13px] desktop:text-[14px]">
+            <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--color-brand-accent-on-dark)]" />
             {data.badge}
           </p>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
