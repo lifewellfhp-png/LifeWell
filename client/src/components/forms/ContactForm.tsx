@@ -9,6 +9,7 @@ import { site } from '@/data/site';
 import { CONTACT_REASONS } from '@/data/contact';
 import { Button } from '@/components/ui/Button';
 import { TextField, SelectField, CheckboxField, Honeypot } from './Field';
+import { Turnstile } from './Turnstile';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -33,6 +34,8 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
   const uid = useId();
   const [values, setValues] = useState(EMPTY);
   const [company, setCompany] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<FormStatus>('idle');
   const [feedback, setFeedback] = useState('');
@@ -92,6 +95,7 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
       reason: values.reason,
       consent: compact ? true : values.consent,
       company,
+      turnstile_token: turnstileToken,
     });
 
     if (res.success) {
@@ -103,6 +107,10 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
       setStatus('error');
       setFeedback(res.message);
       if (res.errors) setErrors(res.errors as Errors);
+      // Turnstile tokens are single-use — remount to get a fresh widget/
+      // token for the retry, same as a 401 forces a fresh admin login.
+      setTurnstileToken('');
+      setTurnstileKey((k) => k + 1);
       statusRef.current?.focus();
     }
   }
@@ -219,6 +227,7 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
       )}
 
       <Honeypot value={company} onChange={setCompany} />
+      <Turnstile key={turnstileKey} onToken={setTurnstileToken} size={compact ? 'compact' : 'normal'} />
 
       <div
         ref={statusRef}

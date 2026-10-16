@@ -5,6 +5,7 @@ import { submitNewsletter } from '@/lib/api';
 import type { FormStatus } from '@/types/content';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { Turnstile } from './Turnstile';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -33,6 +34,8 @@ export function NewsletterForm({ variant = 'default' }: { variant?: 'default' | 
 
   const [email, setEmail] = useState('');
   const [company, setCompany] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const [status, setStatus] = useState<FormStatus>('idle');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -56,7 +59,7 @@ export function NewsletterForm({ variant = 'default' }: { variant?: 'default' | 
     }
 
     setStatus('submitting');
-    const res = await submitNewsletter({ email: value, company });
+    const res = await submitNewsletter({ email: value, company, turnstile_token: turnstileToken });
 
     if (res.success) {
       setStatus('success');
@@ -65,6 +68,9 @@ export function NewsletterForm({ variant = 'default' }: { variant?: 'default' | 
     } else {
       setStatus('error');
       setError(res.message);
+      // Turnstile tokens are single-use — remount for a fresh one on retry.
+      setTurnstileToken('');
+      setTurnstileKey((k) => k + 1);
     }
   }
 
@@ -151,6 +157,10 @@ export function NewsletterForm({ variant = 'default' }: { variant?: 'default' | 
             {busy ? 'Signing up…' : 'Sign Up'}
           </Button>
         )}
+      </div>
+
+      <div className="mt-3">
+        <Turnstile key={turnstileKey} onToken={setTurnstileToken} size="compact" />
       </div>
 
       <p aria-live="polite" className="min-h-6">

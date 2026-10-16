@@ -28,6 +28,9 @@ import { NextResponse } from 'next/server';
  *    (VideosSection.tsx / LazyEmbed.tsx).
  *  - The API origin (connect-src): first-party conversions/analytics beacon
  *    and the chat assistant both fetch() the Express API directly.
+ *  - challenges.cloudflare.com (script-src + frame-src): the Turnstile
+ *    widget on the contact/newsletter forms (Phase 1 item 7) — it loads a
+ *    script and renders its own challenge inside an iframe.
  *
  * Deliberately NOT included yet: the Google Ads domains. That work lives on
  * the unmerged feature/google-ads-conversion-tracking branch, still pending
@@ -41,12 +44,12 @@ export function middleware() {
 
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
     `connect-src 'self' ${apiOrigin}`,
-    'frame-src https://ehr.charmtracker.com https://www.youtube-nocookie.com https://player.vimeo.com',
+    'frame-src https://ehr.charmtracker.com https://www.youtube-nocookie.com https://player.vimeo.com https://challenges.cloudflare.com',
     "frame-ancestors 'self'",
     "object-src 'none'",
     "base-uri 'self'",

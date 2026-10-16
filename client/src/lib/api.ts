@@ -52,11 +52,13 @@ async function post(path: string, body: unknown): Promise<ApiResponse> {
 export interface ContactPayload extends ContactFormValues {
   /** Anti-spam honeypot; must stay empty. */
   company?: string;
+  /** Cloudflare Turnstile response token (Phase 1 item 7); empty when the widget isn't configured. */
+  turnstile_token?: string;
 }
 
 export const submitContact = (payload: ContactPayload) => post('/api/contact', payload);
 
-export const submitNewsletter = (payload: { email: string; company?: string }) =>
+export const submitNewsletter = (payload: { email: string; company?: string; turnstile_token?: string }) =>
   post('/api/newsletter', payload);
 
 export interface ChatHistoryEntry {
