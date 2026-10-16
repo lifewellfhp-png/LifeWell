@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
-import { SESSION_COOKIE } from '@/lib/session';
+import { SESSION_COOKIE, sessionCookieOptions } from '@/lib/session';
 
 /**
  * Nonce-based Content-Security-Policy header (P4-G3F; enforced — Stage 5 of
@@ -21,6 +21,12 @@ import { SESSION_COOKIE } from '@/lib/session';
  * AdminShell.tsx, which an unauthenticated request for the page HTML itself
  * never had to pass. Browser calls to the Express API no longer happen
  * directly (see app/api/[...path]/route.ts) — connect-src is 'self' only.
+ *
+ * Also refreshes the session cookie's idle timeout on every successful page
+ * load (Phase 1 item 4) — re-sets the same token with a fresh 30-minute
+ * Max-Age, sliding the idle window forward. The absolute 8h cap is enforced
+ * separately and cryptographically by the JWT's own exp claim, which this
+ * never touches or extends.
  *
  * Runs on the Edge Runtime, so nonce generation avoids Buffer (not present
  * in Next's compiled edge runtime) in favor of Web Crypto + btoa. jose is
@@ -50,16 +56,16 @@ const PUBLIC_PATHS = ['/login'];
  * data) until its signature-level expiry. Fails closed if ADMIN_JWT_SECRET
  * is missing.
  */
-async function hasValidSession(request: NextRequest): Promise<boolean> {
+async function validatedSessionToken(request: NextRequest): Promise<string | null> {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  if (!token) return false;
+  if (!token) return null;
   const secret = process.env.ADMIN_JWT_SECRET;
-  if (!secret) return false;
+  if (!secret) return null;
   try {
     await jwtVerify(token, new TextEncoder().encode(secret), { algorithms: ['HS256'] });
-    return true;
+    return token;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -84,11 +90,15 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  if (!isPublic && !(await hasValidSession(request))) {
-    const loginUrl = new URL('/login', request.url);
-    const response = NextResponse.redirect(loginUrl);
-    response.headers.set('Content-Security-Policy', csp);
-    return response;
+  let sessionToken: string | null = null;
+  if (!isPublic) {
+    sessionToken = await validatedSessionToken(request);
+    if (!sessionToken) {
+      const loginUrl = new URL('/login', request.url);
+      const response = NextResponse.redirect(loginUrl);
+      response.headers.set('Content-Security-Policy', csp);
+      return response;
+    }
   }
 
   // Set on the forwarded request so Next.js's SSR nonce parser can read it
@@ -102,6 +112,13 @@ export async function middleware(request: NextRequest) {
 
   // And on the response so the browser actually receives it.
   response.headers.set('Content-Security-Policy', csp);
+
+  // Idle-timeout slide: same token, fresh 30-minute Max-Age. Only on
+  // protected pages with a validated session — /login itself has none to
+  // refresh, and never-authenticated requests have nothing to slide.
+  if (sessionToken) {
+    response.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions());
+  }
 
   return response;
 }

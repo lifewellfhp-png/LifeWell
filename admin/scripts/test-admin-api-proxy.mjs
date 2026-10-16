@@ -202,3 +202,32 @@ test('12. without VERCEL_PROTECTION_BYPASS_SECRET set, no bypass header is sent 
   const sentHeaders = new Headers(calls[0].init.headers);
   assert.equal(sentHeaders.has('x-vercel-protection-bypass'), false);
 });
+
+/* --------------------------------------- Phase 1 item 4: idle timeout --- */
+
+function getCookie(response, name) {
+  const all = response.headers.getSetCookie ? response.headers.getSetCookie() : [response.headers.get('set-cookie')];
+  return all.find((c) => c && c.startsWith(`${name}=`));
+}
+
+test('13. a successful authenticated call refreshes the session cookie with a fresh ~30-minute Max-Age (API-only activity resets the idle clock, since middleware never runs for /api/*)', async () => {
+  stubFetch();
+  const response = await GET(req('/admin/users', { cookie: 'my-token' }), ctx('admin/users'));
+  const cookie = getCookie(response, SESSION_COOKIE);
+  assert.ok(cookie);
+  assert.match(cookie, /my-token/);
+  const maxAgeMatch = cookie.match(/Max-Age=(\d+)/i);
+  assert.equal(Number(maxAgeMatch[1]), 60 * 30);
+});
+
+test('14. a request with no session cookie gets no cookie refresh (nothing to slide)', async () => {
+  stubFetch();
+  const response = await GET(req('/admin/users'), ctx('admin/users'));
+  assert.equal(getCookie(response, SESSION_COOKIE), undefined);
+});
+
+test('15. a 401 from upstream (expired/revoked session) does NOT refresh the cookie — extending an already-invalid session would be pointless', async () => {
+  stubFetch(() => new Response(JSON.stringify({ success: false }), { status: 401 }));
+  const response = await GET(req('/admin/users', { cookie: 'stale-token' }), ctx('admin/users'));
+  assert.equal(getCookie(response, SESSION_COOKIE), undefined);
+});

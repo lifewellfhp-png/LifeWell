@@ -1,5 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { EXPRESS_API_URL, SESSION_COOKIE, trustedClientIpHeaders, protectionBypassHeaders } from '@/lib/session';
+import {
+  EXPRESS_API_URL,
+  SESSION_COOKIE,
+  trustedClientIpHeaders,
+  protectionBypassHeaders,
+  sessionCookieOptions,
+} from '@/lib/session';
 
 /**
  * Generic reverse proxy for every admin API call this app doesn't give its
@@ -65,10 +71,21 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const cacheControl = upstream.headers.get('cache-control');
   if (cacheControl) responseHeaders.set('Cache-Control', cacheControl);
 
-  return new NextResponse(upstream.body, {
+  const response = new NextResponse(upstream.body, {
     status: upstream.status,
     headers: responseHeaders,
   });
+
+  // Idle-timeout slide (Phase 1 item 4): API-only activity (no intervening
+  // page load) would otherwise never reset the idle clock, since middleware
+  // never runs for /api/* paths at all. Only on an authenticated request
+  // that actually succeeded — a 401 means the session is already invalid
+  // (expired or revoked), and extending its cookie would be pointless.
+  if (token && upstream.status !== 401) {
+    response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
+  }
+
+  return response;
 }
 
 export const GET = proxy;

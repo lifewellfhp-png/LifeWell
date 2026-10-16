@@ -92,6 +92,49 @@ export async function handleAdminMe(req: Request, res: Response): Promise<void> 
 }
 
 /**
+ * Server-side session invalidation (Phase 1 item 4) — bumps token_version,
+ * the same mechanism handleChangePassword already uses, so the JWT that was
+ * just used to call this (and any other outstanding JWT for this account)
+ * stops passing requireAdmin immediately, not just on the client that called
+ * logout. Deliberately account-wide, not per-device: this project's existing
+ * posture (see handleChangePassword's own comment) treats "logout" as a
+ * clean break rather than a scoped, per-session revocation, and there's no
+ * per-session identifier in the token to scope it to even if that were
+ * wanted. The admin app's logout route still always clears its local cookie
+ * even if this call fails, so the browser-visible behavior degrades
+ * gracefully if Supabase is briefly unreachable.
+ */
+export async function handleAdminLogout(req: Request, res: Response): Promise<void> {
+  const admin = (req as AuthedRequest).admin;
+  if (!admin) throw unauthorized('Sign in required.');
+
+  const { data: user, error } = await getSupabase()
+    .from('admin_users')
+    .select('token_version')
+    .eq('id', admin.sub)
+    .maybeSingle();
+  if (error) throw badRequest(error.message);
+
+  const nextTokenVersion = ((user?.token_version as number | null) ?? 0) + 1;
+  const { error: updateError } = await getSupabase()
+    .from('admin_users')
+    .update({ token_version: nextTokenVersion })
+    .eq('id', admin.sub);
+  if (updateError) throw badRequest(updateError.message);
+
+  logger.info('admin logout', { role: admin.role });
+  await writeAuditLog({
+    actor: admin,
+    action: 'logout',
+    resource: 'auth',
+    resourceId: admin.sub,
+    summary: `${admin.email} signed out`,
+  });
+
+  res.json({ success: true });
+}
+
+/**
  * Self-service password change for the currently signed-in admin. Verifies
  * the current password, hashes and stores the new one, and bumps
  * token_version so every other JWT for this account (other tabs/devices,

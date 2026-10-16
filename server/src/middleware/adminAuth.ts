@@ -57,8 +57,17 @@ const ALL_MODULES = [
 
 export type AdminModule = (typeof ALL_MODULES)[number];
 
+/**
+ * 8-hour absolute lifetime (Phase 1 item 4) — this exp claim is never
+ * extended once issued; it's what actually enforces "logged out no later
+ * than 8h after login" regardless of activity. The separate 30-minute idle
+ * timeout is enforced one layer up, by the admin app's own httpOnly cookie
+ * Max-Age sliding on each request (see admin/src/lib/session.ts) — a token
+ * that's still within its 8h window but whose cookie expired client-side
+ * simply never gets sent again. Was '30d'.
+ */
 export function signAdminToken(payload: AdminTokenPayload): string {
-  return jwt.sign(payload, env.ADMIN_JWT_SECRET, { algorithm: 'HS256', expiresIn: '30d' });
+  return jwt.sign(payload, env.ADMIN_JWT_SECRET, { algorithm: 'HS256', expiresIn: '8h' });
 }
 
 export function verifyAdminToken(token: string): AdminTokenPayload {

@@ -11,13 +11,28 @@ export const SESSION_COOKIE = 'lw_admin_session';
 export const EXPRESS_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://lifewellfhp-server.vercel.app';
 
 /**
- * Matches the JWT's own expiresIn ('30d', server/src/middleware/adminAuth.ts)
- * so the cookie never outlives the token it holds. Phase 1 item 4 will
- * shorten both together (8h absolute / 30min idle) in a separate commit.
+ * Idle timeout (Phase 1 item 4) — the cookie's own Max-Age, refreshed back
+ * to this value on every authenticated request (middleware.ts for page
+ * loads, app/api/[...path]/route.ts for API-only activity). This is what
+ * actually enforces "logged out after 30 minutes of no activity": once 30
+ * minutes pass with no request, the browser simply stops sending the
+ * cookie, independent of whether the underlying JWT is still valid.
  */
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+export const SESSION_IDLE_MAX_AGE_SECONDS = 60 * 30;
 
-export function sessionCookieOptions(maxAge: number = SESSION_MAX_AGE_SECONDS) {
+/**
+ * Absolute lifetime (Phase 1 item 4) — matches the JWT's own expiresIn
+ * ('8h', server/src/middleware/adminAuth.ts's signAdminToken). This is
+ * never used to extend the cookie on refresh (only SESSION_IDLE_MAX_AGE_
+ * SECONDS is) — it exists so sessionCookieOptions() never sets a Max-Age
+ * longer than the token could possibly be valid for, even at login. The
+ * real absolute enforcement is the JWT's own exp claim, cryptographically
+ * checked by both middleware's jwtVerify and Express's requireAdmin — no
+ * amount of idle-refreshing the cookie can make a token outlive it.
+ */
+export const SESSION_ABSOLUTE_MAX_AGE_SECONDS = 60 * 60 * 8;
+
+export function sessionCookieOptions(maxAge: number = SESSION_IDLE_MAX_AGE_SECONDS) {
   return {
     httpOnly: true,
     // Secure cookies are refused by browsers over plain http://localhost —

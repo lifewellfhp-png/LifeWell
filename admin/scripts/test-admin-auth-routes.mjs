@@ -113,11 +113,53 @@ test('3b. with ADMIN_PROXY_SECRET set, login forwards the client IP via the priv
 
 /* ------------------------------------------------------------- logout --- */
 
+function logoutRequest(cookie) {
+  const headers = cookie ? { cookie: `${SESSION_COOKIE}=${cookie}` } : {};
+  return new NextRequest('https://lifewellfhp-admin.vercel.app/api/admin/auth/logout', {
+    method: 'POST',
+    headers,
+  });
+}
+
 test('4. logout clears the session cookie', async () => {
-  const response = await logout();
+  stubFetch(async () => new Response('{"success":true}', { status: 200 }));
+  const response = await logout(logoutRequest('some-token'));
   const cookie = getCookie(response, SESSION_COOKIE);
   assert.ok(cookie, 'a Set-Cookie clearing the session must be present');
   assert.match(cookie, new RegExp(`${SESSION_COOKIE}=;`));
+});
+
+test('4b. logout with a session calls Express to revoke it server-side (token_version bump), forwarding the token as Authorization', async () => {
+  let seenUrl, seenHeaders;
+  stubFetch(async (url, init) => {
+    seenUrl = url;
+    seenHeaders = new Headers(init.headers);
+    return new Response('{"success":true}', { status: 200 });
+  });
+  await logout(logoutRequest('real-token-value'));
+  assert.match(String(seenUrl), /\/api\/admin\/auth\/logout$/);
+  assert.equal(seenHeaders.get('Authorization'), 'Bearer real-token-value');
+});
+
+test('4c. logout with NO session cookie never calls Express at all', async () => {
+  let called = false;
+  stubFetch(async () => {
+    called = true;
+    return new Response('{"success":true}', { status: 200 });
+  });
+  const response = await logout(logoutRequest());
+  assert.equal(called, false);
+  assert.ok(getCookie(response, SESSION_COOKIE), 'the cookie is still cleared even with nothing to revoke');
+});
+
+test('4d. logout still clears the local cookie even if the Express revocation call fails (best-effort, never blocks the visible logout)', async () => {
+  stubFetch(async () => {
+    throw new Error('network down');
+  });
+  const response = await logout(logoutRequest('some-token'));
+  const json = await response.json();
+  assert.equal(json.success, true);
+  assert.ok(getCookie(response, SESSION_COOKIE));
 });
 
 /* --------------------------------------------------- change-password --- */

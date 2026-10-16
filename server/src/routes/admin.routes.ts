@@ -11,6 +11,7 @@ import { createCrudRouter } from './crudFactory.js';
 import {
   handleAdminLogin,
   handleAdminMe,
+  handleAdminLogout,
   handleChangePassword,
   listAdminUsers,
   createAdminUser,
@@ -140,6 +141,7 @@ adminRouter.use((_req, res, next) => {
 
 adminRouter.post('/auth/login', adminLoginLimiter, asyncHandler(handleAdminLogin));
 adminRouter.get('/auth/me', requireAdmin, asyncHandler(handleAdminMe));
+adminRouter.post('/auth/logout', requireAdmin, asyncHandler(handleAdminLogout));
 adminRouter.post(
   '/auth/change-password',
   requireAdmin,

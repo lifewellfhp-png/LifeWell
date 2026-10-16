@@ -177,12 +177,18 @@ test('19. report-uri remains /api/csp-report', async () => {
   assert.equal(directive(csp, 'report-uri'), 'report-uri /api/csp-report');
 });
 
-test('20/21/22. the nonce is never logged, persisted outside the request/response, or placed in cookies/storage', () => {
+test('20/21/22. the nonce specifically is never logged, persisted outside the request/response, or placed in cookies/storage', () => {
   assert.doesNotMatch(middlewareSource, /console\.|logger\./);
-  // The session cookie is read (.cookies.get), never written, by this
-  // middleware — only the dedicated login/logout route handlers (Node
-  // runtime) ever set it.
-  assert.doesNotMatch(middlewareSource, /\.cookies\.set/);
+  // Phase 1 item 4: middleware DOES call response.cookies.set() now, but
+  // only to refresh the SESSION cookie's idle-timeout Max-Age (the same
+  // token value already in the request) — never the nonce. Scoped to the
+  // nonce variable specifically, not a blanket "no cookies.set anywhere"
+  // rule, which would no longer be this file's actual invariant.
+  const cookiesSetCalls = middlewareSource.match(/response\.cookies\.set\([^)]*\)/g) || [];
+  assert.ok(cookiesSetCalls.length >= 1, 'expected the session-cookie refresh call to be present');
+  for (const call of cookiesSetCalls) {
+    assert.doesNotMatch(call, /\bnonce\b/);
+  }
   assert.doesNotMatch(middlewareSource, /localStorage|sessionStorage/);
   assert.doesNotMatch(middlewareSource, /supabase|\.from\(/i);
 });

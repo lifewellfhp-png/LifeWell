@@ -75,7 +75,7 @@ export async function writeAuditLog(input: AuditInput): Promise<void> {
       meta: input.meta ?? {},
     });
     if (error) logger.info('audit skip', { message: error.message });
-    if (input.action !== 'login' && input.actor?.role === 'staff') {
+    if (input.action !== 'login' && input.action !== 'logout' && input.actor?.role === 'staff') {
       await writeNotification({
         type: 'staff_action',
         audience: 'super_admin',

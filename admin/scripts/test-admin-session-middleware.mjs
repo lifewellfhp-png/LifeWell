@@ -121,3 +121,33 @@ test('11. the check rejects an algorithm other than HS256 (defense against algor
   const src = readFileSync(join(__dirname, '..', 'src', 'middleware.ts'), 'utf8');
   assert.match(src, /algorithms:\s*\['HS256'\]/);
 });
+
+/* --------------------------------------- Phase 1 item 4: idle timeout --- */
+
+function getCookie(response, name) {
+  const all = response.headers.getSetCookie ? response.headers.getSetCookie() : [response.headers.get('set-cookie')];
+  return all.find((c) => c && c.startsWith(`${name}=`));
+}
+
+test('12. a valid session on a protected page gets its cookie refreshed with a fresh ~30-minute Max-Age (idle timeout slide)', async () => {
+  const token = await signToken(VALID_PAYLOAD);
+  const response = await invoke('/leads', { cookie: token });
+  const cookie = getCookie(response, SESSION_COOKIE);
+  assert.ok(cookie, 'the cookie must be re-set on a successful page load');
+  assert.match(cookie, new RegExp(`${SESSION_COOKIE}=${token}`), 'the SAME token is re-sent, never re-signed');
+  const maxAgeMatch = cookie.match(/Max-Age=(\d+)/i);
+  assert.ok(maxAgeMatch, 'Max-Age must be present');
+  assert.equal(Number(maxAgeMatch[1]), 60 * 30);
+});
+
+test('13. /login itself never gets a session-cookie refresh (nothing valid to slide)', async () => {
+  const response = await invoke('/login');
+  assert.equal(getCookie(response, SESSION_COOKIE), undefined);
+});
+
+test('14. the redirect-to-login response (invalid/expired session) never refreshes a cookie either', async () => {
+  const token = await signToken(VALID_PAYLOAD, { alreadyExpired: true });
+  const response = await invoke('/leads', { cookie: token });
+  assert.equal(response.status, 307);
+  assert.equal(getCookie(response, SESSION_COOKIE), undefined);
+});
