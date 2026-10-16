@@ -193,7 +193,31 @@ export async function handleMfaLoginVerify(req: Request, res: Response): Promise
   let verified = false;
   let usedRecoveryCode = false;
   if (parsed.data.code) {
-    const secret = decryptMfaSecret(user.mfa_secret_encrypted as string);
+    // decryptMfaSecret throws if MFA_ENCRYPTION_KEY is missing, has changed
+    // since enrollment, or the stored value is corrupted — a server
+    // configuration problem, not the admin's fault. Left uncaught, this
+    // would surface as a generic 500 with no indication of what's actually
+    // wrong. Caught here so the account's owner (and whoever's checking
+    // Logs) gets a clear signal instead — see README.md's "Locked out of
+    // admin" section for the manual recovery path.
+    let secret: string;
+    try {
+      secret = decryptMfaSecret(user.mfa_secret_encrypted as string);
+    } catch (err) {
+      logger.error('mfa secret decryption failed', { reason: err instanceof Error ? err.message : 'unknown' });
+      await writeAuditLog({
+        actor: { sub: user.id, email: user.email, name: user.name, role: user.role as AdminRole },
+        action: 'mfa_decryption_failed',
+        resource: 'auth',
+        resourceId: user.id,
+        summary: `MFA secret decryption failed for ${user.email} — MFA_ENCRYPTION_KEY may be missing or changed since enrollment`,
+      });
+      throw new AppError(
+        'Two-factor verification is temporarily unavailable due to a server configuration issue. Please contact an administrator.',
+        503,
+        { expose: true }
+      );
+    }
     verified = verifyTotpCode(secret, parsed.data.code);
   } else if (parsed.data.recovery_code) {
     const { data: codes, error: codesError } = await sb

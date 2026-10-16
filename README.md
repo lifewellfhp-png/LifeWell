@@ -360,3 +360,30 @@ rather than a major-version jump, because `npm audit fix --force` wanted to move
 
 If the site was deployed and publicly reachable on the vulnerable version, rotate any secrets it
 held, per Vercel's advisory.
+
+### Locked out of admin (lost/changed MFA_ENCRYPTION_KEY)
+
+Admin accounts can enroll in TOTP two-factor authentication (`server/src/controllers/
+mfa.controller.ts`). The TOTP secret is encrypted at rest with `MFA_ENCRYPTION_KEY` and must be
+decrypted on every login — if that key is ever lost or changed after an account has enrolled,
+there is no self-service way back in: `handleAdminLogin` always routes an `mfa_enabled` account
+through the verify step, and that step can't complete without decrypting the secret.
+
+This does **not** require knowing or restoring the lost key. Run this in the Supabase SQL editor
+against the one email that's locked out — it clears that account's MFA state the same way the
+app's own "Disable two-factor" button does, without needing to decrypt anything:
+
+```sql
+update admin_users
+set mfa_enabled = false,
+    mfa_secret_encrypted = null,
+    mfa_enrolled_at = null
+where email = 'admin@example.com';
+
+delete from admin_mfa_recovery_codes
+where admin_user_id = (select id from admin_users where email = 'admin@example.com');
+```
+
+Replace `admin@example.com` with the real address. The account can sign in with just their
+password afterward, and re-enroll in MFA (with a fresh secret) once the underlying key problem is
+resolved.
