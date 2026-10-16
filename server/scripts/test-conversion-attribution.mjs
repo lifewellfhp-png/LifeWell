@@ -80,7 +80,14 @@ test('4. a documented manual rollback (drop column) exists, matching this schema
 
 test('5. no destructive statement (DROP TABLE, DROP COLUMN outside the documented rollback comment, TRUNCATE, DELETE) touches conversions', () => {
   const conversionsSectionStart = opsSql.indexOf('Phase 8 P3-1');
-  const section = opsSql.slice(conversionsSectionStart);
+  // Bounded to just this section's own closing `notify pgrst` — NOT to end
+  // of file. ops.sql is append-only (new sections are added after this one
+  // over time, e.g. Phase 1 item 5's MFA migration), so an unbounded slice
+  // would eventually start asserting about later, unrelated sections' own
+  // rollback comments too.
+  const NOTIFY_STATEMENT = "notify pgrst, 'reload schema';";
+  const sectionEnd = opsSql.indexOf(NOTIFY_STATEMENT, conversionsSectionStart) + NOTIFY_STATEMENT.length;
+  const section = opsSql.slice(conversionsSectionStart, sectionEnd);
   assert.doesNotMatch(section, /drop table/i);
   assert.doesNotMatch(section, /truncate/i);
   assert.doesNotMatch(section, /delete from conversions/i);

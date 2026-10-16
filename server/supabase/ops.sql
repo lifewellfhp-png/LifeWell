@@ -654,3 +654,51 @@ alter table marketing_campaigns add column if not exists subject_fallback text;
 --   alter table marketing_campaigns drop column if exists subject_fallback;
 
 notify pgrst, 'reload schema';
+
+-- Admin MFA: TOTP + one-time recovery codes (Phase 1 item 5). Opt-in,
+-- then mandatory per account — every existing admin_users row gets
+-- mfa_enabled=false by this migration alone; nothing here forces anyone
+-- into anything. An account only flips to mfa_enabled=true once it
+-- completes enrollment by submitting one valid TOTP code back (see
+-- handleMfaSetupVerify in server/src/controllers/mfa.controller.ts, the
+-- only code path that ever sets this column true). Once true, the admin
+-- login flow (handleAdminLogin) requires a second step for that account
+-- on every future login.
+--
+-- mfa_secret_encrypted: the TOTP secret, AES-256-GCM encrypted
+-- (server/src/lib/mfaCrypto.ts) with MFA_ENCRYPTION_KEY before storage —
+-- unlike password_hash, this must stay decryptable, since verifying a
+-- TOTP code requires the raw secret, so it cannot be one-way hashed.
+alter table admin_users add column if not exists mfa_secret_encrypted text;
+alter table admin_users add column if not exists mfa_enabled boolean not null default false;
+alter table admin_users add column if not exists mfa_enrolled_at timestamptz;
+
+-- One-time recovery codes shown once at enrollment, for use if the admin
+-- loses their authenticator device. Each row is a single code's bcrypt
+-- hash (same algorithm as admin_users.password_hash) — never stored or
+-- displayed again after generation, and never decryptable, since a
+-- recovery code is only ever compared, not re-shown.
+create table if not exists admin_mfa_recovery_codes (
+  id uuid primary key default gen_random_uuid(),
+  admin_user_id uuid not null references admin_users(id) on delete cascade,
+  code_hash text not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists admin_mfa_recovery_codes_user_idx
+  on admin_mfa_recovery_codes (admin_user_id);
+
+-- RLS enabled, no policies — matching every other table in this schema;
+-- only the service-role key (used exclusively server-side) ever reads or
+-- writes this table.
+alter table admin_mfa_recovery_codes enable row level security;
+
+-- Rollback (manual — see the note above; this schema has no automated
+-- down-migration tooling):
+--   drop table if exists admin_mfa_recovery_codes;
+--   alter table admin_users drop column if exists mfa_secret_encrypted;
+--   alter table admin_users drop column if exists mfa_enabled;
+--   alter table admin_users drop column if exists mfa_enrolled_at;
+
+notify pgrst, 'reload schema';

@@ -106,6 +106,19 @@ export const changePasswordLimiter = limiter(
 );
 
 /**
+ * Admin MFA login-verify (Phase 1 item 5). Same window/threshold as login —
+ * a 6-digit TOTP code is brute-forceable (1 in 1,000,000 per guess) without
+ * a tight limiter, and this is reached only after already knowing a valid
+ * email/password, so it's the same stolen-credential brute-force surface
+ * change-password guards.
+ */
+export const mfaVerifyLimiter = limiter(
+  15 * 60 * 1000,
+  env.RATE_LIMIT_ADMIN_LOGIN,
+  'Too many verification attempts. Please wait a few minutes and try again.'
+);
+
+/**
  * Public analytics beacon (P4-G2). Unauthenticated and previously
  * unprotected — a single page load fires at most one of these, so this
  * threshold is generous relative to real browsing while still bounding a

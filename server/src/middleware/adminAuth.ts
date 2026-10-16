@@ -26,6 +26,19 @@ export type AuthedRequest = Request & {
   admin?: AdminTokenPayload;
 };
 
+/**
+ * Phase 1 item 5 (MFA): issued after a correct email/password but before the
+ * TOTP/recovery-code step completes. Deliberately a DIFFERENT shape from
+ * AdminTokenPayload (no role/permissions/tv) and a very short lifetime, so
+ * it can never be mistaken for, or silently accepted as, a real session —
+ * requireAdmin below explicitly rejects any token carrying this `purpose`
+ * marker, rather than relying only on the shape difference.
+ */
+export type MfaPendingTokenPayload = {
+  sub: string;
+  purpose: 'mfa-pending';
+};
+
 const ALL_MODULES = [
   'leads',
   'announcements',
@@ -78,6 +91,28 @@ export function verifyAdminToken(token: string): AdminTokenPayload {
 }
 
 /**
+ * 5-minute lifetime — just long enough to type a 6-digit code, short enough
+ * that a leaked/logged value is worthless shortly after. Signed with the
+ * same secret as a real session token (no separate secret is needed: the
+ * `purpose` marker plus requireAdmin's explicit rejection of it is what
+ * keeps the two token kinds from ever being confused with each other).
+ */
+export function signMfaPendingToken(sub: string): string {
+  return jwt.sign({ sub, purpose: 'mfa-pending' }, env.ADMIN_JWT_SECRET, {
+    algorithm: 'HS256',
+    expiresIn: '5m',
+  });
+}
+
+export function verifyMfaPendingToken(token: string): MfaPendingTokenPayload {
+  const payload = jwt.verify(token, env.ADMIN_JWT_SECRET, { algorithms: ['HS256'] }) as Record<string, unknown>;
+  if (payload.purpose !== 'mfa-pending' || typeof payload.sub !== 'string') {
+    throw new Error('Not an MFA-pending token.');
+  }
+  return payload as unknown as MfaPendingTokenPayload;
+}
+
+/**
  * The actual revocation decision, pulled out as a pure function so it can be
  * tested directly against synthetic lookup results without a live Supabase
  * connection (P4-G4A) — requireAdmin below calls this with its real query
@@ -105,6 +140,16 @@ export const requireAdmin: RequestHandler = (req, _res, next) => {
   try {
     payload = verifyAdminToken(header.slice(7));
   } catch {
+    next(unauthorized('Session expired. Please sign in again.'));
+    return;
+  }
+
+  // An MFA-pending token (Phase 1 item 5) must never be usable as a real
+  // session, regardless of what its tv/role/permissions fields look like —
+  // checked explicitly here rather than relying only on it lacking those
+  // fields (which, for an account still on token_version 0, would otherwise
+  // slip past the revocation check below).
+  if ((payload as unknown as { purpose?: string }).purpose === 'mfa-pending') {
     next(unauthorized('Session expired. Please sign in again.'));
     return;
   }

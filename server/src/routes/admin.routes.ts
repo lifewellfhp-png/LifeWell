@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { asyncHandler, adminLoginLimiter, changePasswordLimiter, marketingCampaignTestSendLimiter } from '../middleware/index.js';
+import {
+  asyncHandler,
+  adminLoginLimiter,
+  changePasswordLimiter,
+  mfaVerifyLimiter,
+  marketingCampaignTestSendLimiter,
+} from '../middleware/index.js';
 import {
   requireAdmin,
   requirePermission,
@@ -20,6 +26,13 @@ import {
   sendStaffCredentials,
   listAuditLogs,
 } from '../controllers/adminAuth.controller.js';
+import {
+  handleMfaStatus,
+  handleMfaSetupStart,
+  handleMfaSetupVerify,
+  handleMfaDisable,
+  handleMfaLoginVerify,
+} from '../controllers/mfa.controller.js';
 import {
   listLeads,
   getLead,
@@ -140,6 +153,7 @@ adminRouter.use((_req, res, next) => {
 });
 
 adminRouter.post('/auth/login', adminLoginLimiter, asyncHandler(handleAdminLogin));
+adminRouter.post('/auth/mfa-verify', mfaVerifyLimiter, asyncHandler(handleMfaLoginVerify));
 adminRouter.get('/auth/me', requireAdmin, asyncHandler(handleAdminMe));
 adminRouter.post('/auth/logout', requireAdmin, asyncHandler(handleAdminLogout));
 adminRouter.post(
@@ -148,6 +162,17 @@ adminRouter.post(
   changePasswordLimiter,
   asyncHandler(handleChangePassword)
 );
+
+/**
+ * Admin MFA self-service (Phase 1 item 5). All four require an existing
+ * session — enrollment/disablement is something an admin does to their OWN
+ * account, never to another admin's. No separate permission module: every
+ * admin, staff or super_admin, manages their own MFA.
+ */
+adminRouter.get('/auth/mfa', requireAdmin, asyncHandler(handleMfaStatus));
+adminRouter.post('/auth/mfa/setup', requireAdmin, asyncHandler(handleMfaSetupStart));
+adminRouter.post('/auth/mfa/verify-setup', requireAdmin, asyncHandler(handleMfaSetupVerify));
+adminRouter.post('/auth/mfa/disable', requireAdmin, asyncHandler(handleMfaDisable));
 
 /**
  * Phase 8 P1-1: friendly display labels for the Dashboard's "Booking Intent

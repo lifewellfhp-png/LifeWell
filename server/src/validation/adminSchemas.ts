@@ -481,6 +481,33 @@ export const changePasswordSchema = z
     path: ['confirm_password'],
   });
 
+// ---------------------------------------------------------------------------
+// Admin MFA (Phase 1 item 5). TOTP code is a plain 6-digit string — zod only
+// bounds its shape; the real check is verifyTotpCode() against the
+// account's decrypted secret. mfaLoginVerifySchema requires exactly one of
+// code/recovery_code, never both and never neither, so the controller never
+// has to guess which path the caller intended.
+// ---------------------------------------------------------------------------
+
+export const mfaSetupVerifySchema = z.object({
+  code: z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit code from your authenticator app.'),
+});
+
+export const mfaDisableSchema = z.object({
+  current_password: z.string().min(1, 'Current password is required.'),
+});
+
+export const mfaLoginVerifySchema = z
+  .object({
+    mfa_token: z.string().min(1),
+    code: z.string().trim().regex(/^\d{6}$/).optional(),
+    recovery_code: z.string().trim().min(1).max(20).optional(),
+  })
+  .refine((data) => Boolean(data.code) !== Boolean(data.recovery_code), {
+    message: 'Provide exactly one of a 6-digit code or a recovery code.',
+    path: ['code'],
+  });
+
 export const sendCredentialsSchema = z.object({
   password: z.string().min(10).max(128).optional(),
   admin_url: z.string().url().optional(),

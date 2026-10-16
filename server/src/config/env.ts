@@ -95,6 +95,18 @@ const schema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('CONFIRM-BEFORE-DEPLOY'),
   RATE_LIMIT_CHAT: z.coerce.number().int().positive().default(10),
+
+  /**
+   * Phase 1 item 5: AES-256-GCM key (base64-encoded, 32 raw bytes — generate
+   * with `openssl rand -base64 32`) used to encrypt each admin's TOTP secret
+   * at rest. A TOTP secret must stay decryptable for login verification,
+   * unlike password_hash/recovery-code hashes, so it can't be one-way
+   * hashed like those. Optional, same degrade-gracefully posture as SMTP/
+   * Gemini above: until this is set, MFA setup is blocked with a clear
+   * error rather than crashing at boot — see mfaConfigured below and
+   * handleMfaSetupStart in controllers/mfa.controller.ts.
+   */
+  MFA_ENCRYPTION_KEY: z.string().optional(),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -120,5 +132,8 @@ export const mailConfigured = Boolean(
 
 /** True once a Gemini API key is present; otherwise /api/chat answers with a clear "not configured" error. */
 export const geminiConfigured = Boolean(env.GEMINI_API_KEY);
+
+/** True once MFA_ENCRYPTION_KEY is set; otherwise MFA setup is blocked with a clear error. */
+export const mfaConfigured = Boolean(env.MFA_ENCRYPTION_KEY);
 
 export const isProduction = env.NODE_ENV === 'production';

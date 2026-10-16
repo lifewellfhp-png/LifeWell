@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { getSupabase } from '../lib/supabase.js';
 import {
   signAdminToken,
+  signMfaPendingToken,
   type AdminRole,
   type AuthedRequest,
 } from '../middleware/adminAuth.js';
@@ -37,6 +38,21 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<voi
 
   const ok = await bcrypt.compare(parsed.data.password, user.password_hash);
   if (!ok) throw unauthorized('Invalid email or password.');
+
+  /**
+   * Phase 1 item 5 (MFA): an account with mfa_enabled stops here — the real
+   * session token is never issued from this handler for it. The client gets
+   * a short-lived mfa-pending token instead and must complete
+   * POST /auth/mfa-verify with a TOTP/recovery code before a real session
+   * exists. last_login_at and the 'login' audit entry are deliberately NOT
+   * written yet — those happen once sign-in actually completes, in
+   * handleMfaLoginVerify (mfa.controller.ts).
+   */
+  if (user.mfa_enabled) {
+    const mfaToken = signMfaPendingToken(user.id);
+    res.json({ success: true, data: { mfaRequired: true, mfaToken } });
+    return;
+  }
 
   const token = signAdminToken({
     sub: user.id,
