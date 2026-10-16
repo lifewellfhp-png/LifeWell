@@ -191,6 +191,7 @@ export async function handleMfaLoginVerify(req: Request, res: Response): Promise
   }
 
   let verified = false;
+  let usedRecoveryCode = false;
   if (parsed.data.code) {
     const secret = decryptMfaSecret(user.mfa_secret_encrypted as string);
     verified = verifyTotpCode(secret, parsed.data.code);
@@ -204,10 +205,25 @@ export async function handleMfaLoginVerify(req: Request, res: Response): Promise
     if (matchedId) {
       await sb.from('admin_mfa_recovery_codes').update({ used_at: new Date().toISOString() }).eq('id', matchedId);
       verified = true;
+      usedRecoveryCode = true;
     }
   }
 
-  if (!verified) throw unauthorized('That code is incorrect.');
+  if (!verified) {
+    // Never records the submitted code/recovery_code value — only which
+    // method was attempted. Excluded from the staff-action notification
+    // spam (writeAuditLog's own filter) — same "routine, high-frequency,
+    // already rate-limited by mfaVerifyLimiter" reasoning as login_failed.
+    await writeAuditLog({
+      actor: { sub: user.id, email: user.email, name: user.name, role: user.role as AdminRole },
+      action: 'mfa_verify_failed',
+      resource: 'auth',
+      resourceId: user.id,
+      summary: `Failed MFA verification attempt for ${user.email}`,
+      meta: { method: parsed.data.recovery_code ? 'recovery_code' : 'totp' },
+    });
+    throw unauthorized('That code is incorrect.');
+  }
 
   const token = signAdminToken({
     sub: user.id,
@@ -219,13 +235,20 @@ export async function handleMfaLoginVerify(req: Request, res: Response): Promise
 
   await sb.from('admin_users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id);
 
-  logger.info('admin login', { role: user.role });
+  /**
+   * A recovery-code login gets its own distinct action — recovery codes are
+   * single-use, emergency-only credentials, so this account having just used
+   * one is itself worth flagging (e.g. the authenticator device may be
+   * lost), not just folded silently into a generic 'login' entry. A normal
+   * TOTP-completed login still records as plain 'login', unchanged.
+   */
+  logger.info('admin login', { role: user.role, via: usedRecoveryCode ? 'recovery_code' : 'totp' });
   await writeAuditLog({
     actor: { sub: user.id, email: user.email, name: user.name },
-    action: 'login',
+    action: usedRecoveryCode ? 'mfa_recovery_code_used' : 'login',
     resource: 'auth',
     resourceId: user.id,
-    summary: `${user.name} signed in`,
+    summary: usedRecoveryCode ? `${user.name} signed in using a recovery code` : `${user.name} signed in`,
   });
 
   res.json({

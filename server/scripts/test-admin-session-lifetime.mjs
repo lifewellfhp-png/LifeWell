@@ -77,5 +77,13 @@ test('F. POST /auth/logout is wired with requireAdmin', () => {
 });
 
 test('G. a "logout" audit action is excluded from the staff-action notification spam, same as "login" (both are routine session events, not content changes)', () => {
-  assert.match(auditSource, /input\.action !== 'login' && input\.action !== 'logout'/);
+  // Phase 1 item 6: refactored from inline !== chains to a named Set
+  // (ROUTINE_SESSION_ACTIONS) when login_failed/mfa_verify_failed joined
+  // the same exclusion — same invariant, checked against the Set's
+  // membership rather than the old literal expression.
+  assert.match(auditSource, /const ROUTINE_SESSION_ACTIONS = new Set\(\[([^\]]*)\]\);/);
+  const [, listSource] = auditSource.match(/const ROUTINE_SESSION_ACTIONS = new Set\(\[([^\]]*)\]\);/);
+  assert.match(listSource, /'login'/);
+  assert.match(listSource, /'logout'/);
+  assert.match(auditSource, /!ROUTINE_SESSION_ACTIONS\.has\(input\.action\)/);
 });

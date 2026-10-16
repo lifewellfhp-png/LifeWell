@@ -34,10 +34,34 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<voi
     .maybeSingle();
 
   if (error) throw badRequest(error.message);
-  if (!user || !user.active) throw unauthorized('Invalid email or password.');
+  if (!user || !user.active) {
+    // No real account to attribute this to (unknown email) or a blocked
+    // one (inactive) — either way, never log the submitted password, only
+    // the attempted email and which case it was. Excluded from the
+    // staff-action notification spam below (same reasoning as login/
+    // logout: high-frequency, often a typo, already rate-limited by
+    // adminLoginLimiter).
+    await writeAuditLog({
+      action: 'login_failed',
+      resource: 'auth',
+      summary: `Failed sign-in attempt for ${email}`,
+      meta: { attempted_email: email, reason: user ? 'inactive_account' : 'unknown_email' },
+    });
+    throw unauthorized('Invalid email or password.');
+  }
 
   const ok = await bcrypt.compare(parsed.data.password, user.password_hash);
-  if (!ok) throw unauthorized('Invalid email or password.');
+  if (!ok) {
+    await writeAuditLog({
+      actor: { sub: user.id, email: user.email, name: user.name, role: user.role as AdminRole },
+      action: 'login_failed',
+      resource: 'auth',
+      resourceId: user.id,
+      summary: `Failed sign-in attempt for ${user.email}`,
+      meta: { reason: 'wrong_password' },
+    });
+    throw unauthorized('Invalid email or password.');
+  }
 
   /**
    * Phase 1 item 5 (MFA): an account with mfa_enabled stops here — the real

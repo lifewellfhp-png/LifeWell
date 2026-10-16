@@ -13,6 +13,19 @@ export type AuditInput = {
 };
 
 /**
+ * Routine, high-frequency session events — excluded from the staff-action
+ * notification spam below (though still written to admin_audit_logs
+ * itself, which is the durable record a security review checks). Both
+ * login_failed and mfa_verify_failed are already bounded by a rate limiter
+ * (adminLoginLimiter / mfaVerifyLimiter) and are at least as often a typo
+ * as an actual attack, so a live push notification per occurrence would be
+ * noise, not signal. mfa_recovery_code_used is deliberately NOT in this
+ * set — a staff account using an emergency, single-use recovery code is
+ * exactly the kind of notable event this notification path exists for.
+ */
+const ROUTINE_SESSION_ACTIONS = new Set(['login', 'logout', 'login_failed', 'mfa_verify_failed']);
+
+/**
  * Field names that must never be copied into audit metadata, regardless of
  * which table they come from — a defensive net for any current or future
  * CRUD resource, not a list tied to today's known schemas.
@@ -75,7 +88,7 @@ export async function writeAuditLog(input: AuditInput): Promise<void> {
       meta: input.meta ?? {},
     });
     if (error) logger.info('audit skip', { message: error.message });
-    if (input.action !== 'login' && input.action !== 'logout' && input.actor?.role === 'staff') {
+    if (!ROUTINE_SESSION_ACTIONS.has(input.action) && input.actor?.role === 'staff') {
       await writeNotification({
         type: 'staff_action',
         audience: 'super_admin',
