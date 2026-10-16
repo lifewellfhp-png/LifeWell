@@ -23,6 +23,7 @@ test('when TURNSTILE_SECRET_KEY is unset, verifyTurnstile passes everything with
   };
   const result = await verifyTurnstile('any-token-or-even-empty');
   globalThis.fetch = originalFetch;
-  assert.equal(result, true);
+  assert.equal(result.ok, true);
+  assert.equal(result.misconfigured, undefined, 'not-configured is a different case from misconfigured — no audit entry should fire for it');
   assert.equal(called, false, 'must not call Cloudflare at all when unconfigured');
 });

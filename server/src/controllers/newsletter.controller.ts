@@ -3,6 +3,7 @@ import { newsletterSchema, fieldErrors } from '../validation/schemas.js';
 import { subscribe } from '../services/newsletter.service.js';
 import { storeLead } from './leads.controller.js';
 import { verifyTurnstile } from '../lib/turnstile.js';
+import { writeAuditLog } from '../lib/audit.js';
 import { badRequest } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { supabaseConfigured } from '../lib/supabase.js';
@@ -23,9 +24,19 @@ export async function handleNewsletter(req: Request, res: Response): Promise<voi
   }
 
   // Phase 1 item 7 — see contact.controller.ts's own comment for the
-  // honeypot-then-Turnstile ordering rationale.
-  const turnstileOk = await verifyTurnstile(parsed.data.turnstile_token, req.ip);
-  if (!turnstileOk) {
+  // honeypot-then-Turnstile ordering rationale, and for why a misconfigured
+  // secret gets its own audit log entry rather than being folded silently
+  // into "verification passed."
+  const turnstile = await verifyTurnstile(parsed.data.turnstile_token, req.ip);
+  if (turnstile.misconfigured) {
+    await writeAuditLog({
+      action: 'turnstile_misconfigured',
+      resource: 'turnstile',
+      summary: 'Cloudflare Turnstile rejected a newsletter signup because the server secret is invalid — submissions are being accepted unverified until TURNSTILE_SECRET_KEY is fixed.',
+      meta: { errorCodes: turnstile.errorCodes },
+    });
+  }
+  if (!turnstile.ok) {
     throw badRequest('Verification failed. Please reload the page and try again.');
   }
 

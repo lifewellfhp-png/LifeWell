@@ -5,6 +5,7 @@ import { sendContactNotification, resolveInboxEmail } from '../services/email.se
 import { storeLead } from './leads.controller.js';
 import { logEmailMessage } from '../lib/mailLog.js';
 import { verifyTurnstile } from '../lib/turnstile.js';
+import { writeAuditLog } from '../lib/audit.js';
 import { badRequest } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { supabaseConfigured } from '../lib/supabase.js';
@@ -62,8 +63,20 @@ export async function handleContact(req: Request, res: Response): Promise<void> 
   // field; this catches ones sophisticated enough not to. Checked after
   // the honeypot (so a bot that already failed that never reaches a real
   // Cloudflare API call) and before any persistence/email work.
-  const turnstileOk = await verifyTurnstile(parsed.data.turnstile_token, req.ip);
-  if (!turnstileOk) {
+  const turnstile = await verifyTurnstile(parsed.data.turnstile_token, req.ip);
+  if (turnstile.misconfigured) {
+    // Our secret is wrong, not the visitor's fault — the submission still
+    // proceeds (turnstile.ok is true), but this needs an operator's
+    // attention, so it's written to admin_audit_logs where someone will
+    // actually see it, not just the server log.
+    await writeAuditLog({
+      action: 'turnstile_misconfigured',
+      resource: 'turnstile',
+      summary: 'Cloudflare Turnstile rejected a contact submission because the server secret is invalid — submissions are being accepted unverified until TURNSTILE_SECRET_KEY is fixed.',
+      meta: { errorCodes: turnstile.errorCodes },
+    });
+  }
+  if (!turnstile.ok) {
     throw badRequest('Verification failed. Please reload the page and try again.');
   }
 

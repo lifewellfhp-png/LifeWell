@@ -71,7 +71,7 @@ test('5. handleContact rejects with badRequest when verifyTurnstile returns fals
   assert.ok(turnstileIndex < storeLeadIndex);
   assert.ok(turnstileIndex < sendIndex);
   const branch = contactSource.slice(turnstileIndex, storeLeadIndex);
-  assert.match(branch, /if \(!turnstileOk\)/);
+  assert.match(branch, /if \(!turnstile\.ok\)/);
   assert.match(branch, /throw badRequest\(/);
 });
 
@@ -96,6 +96,6 @@ test('8. handleNewsletter rejects with badRequest when verifyTurnstile returns f
   assert.ok(turnstileIndex < storeLeadIndex);
   assert.ok(turnstileIndex < subscribeIndex);
   const branch = newsletterSource.slice(turnstileIndex, storeLeadIndex);
-  assert.match(branch, /if \(!turnstileOk\)/);
+  assert.match(branch, /if \(!turnstile\.ok\)/);
   assert.match(branch, /throw badRequest\(/);
 });
