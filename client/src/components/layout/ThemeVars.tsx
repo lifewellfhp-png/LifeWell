@@ -17,12 +17,18 @@ export async function ThemeVars() {
   const heading = HEADING_STACKS[settings.headingFont] || HEADING_STACKS.Lora;
   const body = BODY_STACKS[settings.bodyFont] || BODY_STACKS['Source Sans 3'];
 
+  // Phase 24 homepage reorg: primary/accent color injection removed —
+  // the live Admin Appearance settings had a custom primary_color
+  // (#3e7698, not even the original #3E7FB1 default) stored in Supabase,
+  // which was silently overriding globals.css's new logo-matched navy/
+  // green tokens (--lw-primary/--lw-accent) on every page load. Per
+  // explicit instruction, the new brand colors must win regardless of
+  // what's stored there — this stops reading settings.primaryColor/
+  // accentColor into CSS entirely, rather than relying on database state
+  // this code has no way to verify or control. Font injection (heading/
+  // body) is untouched; only the two color lines are gone.
   const css = `
 :root {
-  --lw-primary: ${settings.primaryColor};
-  --lw-accent: ${settings.accentColor};
-  --color-brand-primary: ${settings.primaryColor};
-  --color-brand-accent: ${settings.accentColor};
   --font-heading: ${heading};
   --font-body: ${body};
 }

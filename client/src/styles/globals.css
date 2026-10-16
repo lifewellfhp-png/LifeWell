@@ -60,19 +60,10 @@
   --color-brand-primary-solid: var(--lw-primary); /* white text -> 13.84:1 */
   --color-brand-primary-hover: #001a52; /* white text -> 16.54:1 */
   --color-brand-primary-soft: #eef2fa; /* light navy tint, alternating section backgrounds */
-  /* Hero heading text over the navy-tinted hero overlay (HeroMedia.tsx) —
-     white reads cleanly at 15.73:1 against the overlay's darkest point;
-     the old lightened-blue-tint trick #3E7FB1 needed isn't necessary once
-     the brand color itself is this dark. */
-  --color-brand-primary-on-dark: #ffffff;
   --color-brand-accent: var(--lw-accent); /* decorative fills, large/bold button text — not small/fine text, see note above */
   --color-brand-accent-strong: #02750f; /* white text -> 5.91:1; use for small/fine white-on-green text */
   --color-brand-accent-hover: #02750f;
   --color-brand-accent-soft: #eaf6ec; /* light green tint — crisis bar background */
-  /* Hero accent span (the heading's second clause) over the navy overlay —
-     light green, relates to the new green accent, 10.94:1 against the
-     overlay's darkest point. */
-  --color-brand-accent-on-dark: #a8e6b0;
 
   /* ---- Text ---- */
   --color-text-primary: #374151;
