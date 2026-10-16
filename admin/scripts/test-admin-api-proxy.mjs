@@ -182,3 +182,23 @@ test('10. the browser-sent Cookie header is never forwarded upstream (only the e
   assert.equal(sentHeaders.has('Cookie'), false);
   assert.equal(sentHeaders.has('cookie'), false);
 });
+
+test('11. with VERCEL_PROTECTION_BYPASS_SECRET set, the proxy sends x-vercel-protection-bypass upstream (lets this app reach a Deployment-Protected Express preview)', async () => {
+  const before = process.env.VERCEL_PROTECTION_BYPASS_SECRET;
+  process.env.VERCEL_PROTECTION_BYPASS_SECRET = 'bypass-secret-value';
+  stubFetch();
+  await GET(req('/admin/users'), ctx('admin/users'));
+  process.env.VERCEL_PROTECTION_BYPASS_SECRET = before;
+  const sentHeaders = new Headers(calls[0].init.headers);
+  assert.equal(sentHeaders.get('x-vercel-protection-bypass'), 'bypass-secret-value');
+});
+
+test('12. without VERCEL_PROTECTION_BYPASS_SECRET set, no bypass header is sent (production\'s unprotected API needs none)', async () => {
+  const before = process.env.VERCEL_PROTECTION_BYPASS_SECRET;
+  delete process.env.VERCEL_PROTECTION_BYPASS_SECRET;
+  stubFetch();
+  await GET(req('/admin/users'), ctx('admin/users'));
+  process.env.VERCEL_PROTECTION_BYPASS_SECRET = before;
+  const sentHeaders = new Headers(calls[0].init.headers);
+  assert.equal(sentHeaders.has('x-vercel-protection-bypass'), false);
+});

@@ -86,3 +86,19 @@ export function trustedClientIpHeaders(request: Request): HeadersInit {
     [PROXY_SECRET_HEADER]: secret,
   };
 }
+
+/**
+ * Lets this proxy's own server-to-server calls reach a Deployment-Protected
+ * Express preview — Vercel's SSO wall blocks ALL incoming requests to a
+ * protected deployment, including ones from this app's own backend, not
+ * just outside browsers. Vercel's standard mechanism for exactly this case
+ * ("Protection Bypass for Automation"): a secret configured on the Express
+ * project, sent back as this one header. No-op in production, where
+ * EXPRESS_API_URL points at the public, unprotected production API and no
+ * bypass is configured or needed.
+ */
+export function protectionBypassHeaders(): HeadersInit {
+  const secret = process.env.VERCEL_PROTECTION_BYPASS_SECRET;
+  if (!secret) return {};
+  return { 'x-vercel-protection-bypass': secret };
+}

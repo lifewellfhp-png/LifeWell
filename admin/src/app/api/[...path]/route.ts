@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { EXPRESS_API_URL, SESSION_COOKIE, trustedClientIpHeaders } from '@/lib/session';
+import { EXPRESS_API_URL, SESSION_COOKIE, trustedClientIpHeaders, protectionBypassHeaders } from '@/lib/session';
 
 /**
  * Generic reverse proxy for every admin API call this app doesn't give its
@@ -41,7 +41,7 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
-  const upstreamHeaders = new Headers(trustedClientIpHeaders(request));
+  const upstreamHeaders = new Headers({ ...trustedClientIpHeaders(request), ...protectionBypassHeaders() });
   const contentType = request.headers.get('content-type');
   if (contentType) upstreamHeaders.set('Content-Type', contentType);
   if (token) upstreamHeaders.set('Authorization', `Bearer ${token}`);
