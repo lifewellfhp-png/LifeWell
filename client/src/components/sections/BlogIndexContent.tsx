@@ -182,7 +182,9 @@ function FeaturedPostCard({ post }: { post: BlogCardPost }) {
         )}
       </div>
       <div className="flex flex-1 flex-col justify-center p-7 sm:p-10">
-        <span className="mb-3 w-fit rounded-[7px] bg-[#EEF3F7] px-3 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)]">
+        {/* Diagnostic: #028815 on this #EEF3F7 background is 4.14:1
+            (needs 4.5:1) at this size — text-brand-accent-strong clears it. */}
+        <span className="mb-3 w-fit rounded-[7px] bg-[#EEF3F7] px-3 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-brand-accent-strong">
           {post.category || 'Latest'}
         </span>
         <h2 className="font-heading text-[26px] font-normal leading-[1.2] text-[var(--lw-primary)] sm:text-[32px]">

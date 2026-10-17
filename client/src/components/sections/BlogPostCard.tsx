@@ -44,7 +44,9 @@ export function BlogPostCard({ post }: { post: BlogCardPost }) {
       </div>
       <div className="flex flex-1 flex-col p-6">
         {post.category && (
-          <span className="mb-2.5 w-fit rounded-[7px] bg-[#EEF3F7] px-3 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)]">
+          // Diagnostic: #028815 on this #EEF3F7 background is 4.14:1
+          // (needs 4.5:1) at this size — text-brand-accent-strong clears it.
+          <span className="mb-2.5 w-fit rounded-[7px] bg-[#EEF3F7] px-3 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-brand-accent-strong">
             {post.category}
           </span>
         )}
