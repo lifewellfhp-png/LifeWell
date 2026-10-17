@@ -3,10 +3,10 @@ import { OutlineButton, SwapButton } from '@/components/ui/SwapButton';
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 
 const PRECEPTORSHIP_IMAGE = {
-  src: '/images/preceptorship/student-mentor-education.svg',
-  alt: 'Advanced practice nursing student receiving clinical mentorship in a professional healthcare setting',
-  width: 1200,
-  height: 900,
+  src: '/images/preceptorship/preceptorship-clinic-consultation.jpg',
+  alt: 'An advanced practice nursing student taking notes during a clinic consultation under preceptor supervision',
+  width: 2816,
+  height: 1536,
 };
 
 const steps = [
