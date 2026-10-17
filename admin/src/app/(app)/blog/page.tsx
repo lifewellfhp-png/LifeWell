@@ -65,6 +65,12 @@ export default function Page() {
           options: [{ value: '', label: '— None —' }, ...CATEGORIES.map((c) => ({ value: c, label: c }))],
         },
         { key: 'author_name', label: 'Author' },
+        {
+          key: 'published_at',
+          label: 'Published date',
+          type: 'date',
+          hint: () => 'The date shown on /blog and the article page.',
+        },
         { key: 'cover_image_url', label: 'Cover image URL', type: 'url', full: true },
         { key: 'excerpt', label: 'Excerpt', type: 'textarea', full: true },
         { key: 'body', label: 'Article body', type: 'textarea', full: true },

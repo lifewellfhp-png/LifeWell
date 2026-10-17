@@ -9,7 +9,7 @@ import { PreviewShell } from '@/components/PreviewShell';
 type Field = {
   key: string;
   label: string;
-  type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'url' | 'json' | 'stars';
+  type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'url' | 'json' | 'stars' | 'date';
   options?: { value: string; label: string }[];
   full?: boolean;
   /**
@@ -164,6 +164,13 @@ export function ResourceManager({
       if (field.type === 'json' && next[field.key] != null && typeof next[field.key] !== 'string') {
         next[field.key] = JSON.stringify(next[field.key], null, 2);
       }
+      // A stored ISO timestamp ("2026-09-12T02:35:53.045+00:00") won't
+      // populate a native <input type="date">, which requires exactly
+      // "YYYY-MM-DD" — slice it down for display; onSubmit converts back.
+      if (field.type === 'date' && typeof next[field.key] === 'string') {
+        const d = new Date(next[field.key] as string);
+        next[field.key] = Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+      }
     }
     setForm(next);
   }
@@ -179,6 +186,9 @@ export function ResourceManager({
       let value = form[field.key];
       if (field.type === 'checkbox') value = Boolean(value);
       if (field.type === 'number' || field.type === 'stars') value = value === '' || value == null ? null : Number(value);
+      if (field.type === 'date') {
+        value = value && typeof value === 'string' && value.trim() ? `${value}T00:00:00.000Z` : null;
+      }
       if (field.type === 'json') {
         try {
           if (typeof value === 'string') {
@@ -415,7 +425,15 @@ export function ResourceManager({
                     ) : (
                       <input
                         id={field.key}
-                        type={field.type === 'number' ? 'number' : field.type === 'url' ? 'url' : 'text'}
+                        type={
+                          field.type === 'number'
+                            ? 'number'
+                            : field.type === 'url'
+                              ? 'url'
+                              : field.type === 'date'
+                                ? 'date'
+                                : 'text'
+                        }
                         value={String(form[field.key] ?? '')}
                         onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
                       />
