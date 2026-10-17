@@ -39,12 +39,11 @@ export default async function FeesInsurancePage() {
       />
       <FeesPageContent
         carriers={cms.insurance}
-        faqs={cms.feesFaqs}
         bookingUrl={cms.booking.page}
         introHeading={cms.fees.introHeading}
         introBody={cms.fees.introBody}
-        selfPayBody={cms.fees.selfPayBody}
         psychiatricStatePricing={cms.fees.psychiatricStatePricing}
+        otherSelfPayPricing={cms.fees.otherSelfPayPricing}
         insuranceDisclaimer={cms.fees.insuranceDisclaimer}
       />
     </>

@@ -7,7 +7,11 @@ import type { PricingTier, PricingPackage, PsychiatricStatePricing } from '@/typ
 
 export const feesIntro = {
   heading: 'Transparent Mental Health Fees and Insurance Plans',
-  body: 'Explore our clear and structured mental health fees and insurance options designed to support adults age 18 and older. We provide transparent pricing and accepted insurance details to help you plan your care with confidence — all while receiving professional support from the comfort of your own home.',
+  // Phase 25 (/fees-insurance reorg): shortened to one sentence per
+  // explicit instruction — the intro section is now just this sentence
+  // plus two buttons, no photo card. Admin-editable (Fees page text ->
+  // Intro body), so this is only the default.
+  body: 'Clear, upfront pricing for self-pay care and accepted insurance plans, so you can plan your visit with confidence.',
   image: {
     src: '/images/sections/Fees.avif',
     width: 1180,

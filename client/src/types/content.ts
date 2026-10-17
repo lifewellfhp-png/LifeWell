@@ -131,6 +131,8 @@ export interface Testimonial {
   /** Null when the source provides no verified attribution. */
   author: string | null;
   rating: number | null;
+  /** Where the review came from (e.g. "Google", "Zocdoc", "Direct"). Null when unspecified. */
+  source: string | null;
 }
 
 export interface Faq {

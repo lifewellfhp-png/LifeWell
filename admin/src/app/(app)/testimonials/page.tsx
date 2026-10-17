@@ -21,8 +21,15 @@ export default function Page() {
       fields={[
         { key: 'author_name', label: 'Author name' },
         { key: 'author_role', label: 'Author label' },
-        { key: 'quote', label: 'Quote', type: 'textarea', full: true },
-        { key: 'rating', label: 'Rating (1-5)', type: 'number' },
+        {
+          key: 'quote',
+          label: 'Quote',
+          type: 'textarea',
+          full: true,
+          hint: () => "Only publish real reviews, word for word, with the patient's permission.",
+        },
+        { key: 'rating', label: 'Rating', type: 'stars' },
+        { key: 'source', label: 'Source (e.g. Google, Zocdoc, Direct)' },
         { key: 'sort_order', label: 'Sort order', type: 'number' },
         { key: 'consent_confirmed', label: 'Written consent confirmed', type: 'checkbox' },
         { key: 'published', label: 'Published', type: 'checkbox' },

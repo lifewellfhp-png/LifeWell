@@ -41,3 +41,24 @@ export const PROTECTED_PSYCHIATRIC_PRICING: readonly ProtectedPsychiatricPricing
   { state: 'Massachusetts', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 350, followUpFee: 175 },
   { state: 'Arizona', selfPayOnly: true, slidingScaleAvailable: true, initialFee: 325, followUpFee: 165 },
 ];
+
+/**
+ * Same governed-pricing-authority pattern as PROTECTED_PSYCHIATRIC_PRICING
+ * above, for the two non-psychiatric self-pay tiers shown on the
+ * /fees-insurance reorg (client/src/lib/cms-resolve.ts's
+ * resolveOtherSelfPayPricing()). Only `initialFee`/`followUpFee` are ever
+ * owner-editable here — name and duration are fixed facts, mirroring
+ * client/src/data/pricing.ts's pricingTiers by number.
+ */
+export type ProtectedOtherSelfPayPricing = {
+  name: string;
+  initialFee: number;
+  initialDuration: string;
+  followUpFee: number;
+  followUpDuration: string;
+};
+
+export const PROTECTED_OTHER_SELF_PAY_PRICING: readonly ProtectedOtherSelfPayPricing[] = [
+  { name: 'Primary Care', initialFee: 135, initialDuration: '60 minutes', followUpFee: 85, followUpDuration: '30 minutes' },
+  { name: 'Weight Management', initialFee: 125, initialDuration: '60 minutes', followUpFee: 85, followUpDuration: '30 minutes' },
+];

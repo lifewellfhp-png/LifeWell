@@ -62,14 +62,21 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
             onFocusCapture={() => setPaused(true)}
             onBlurCapture={() => setPaused(false)}
           >
+            {current.rating !== null && <Rating value={current.rating} className="mb-5" />}
             <blockquote>
               <p className="font-heading text-[20px] font-normal leading-[1.55] text-[var(--lw-accent)] sm:max-desktop:text-[24px] desktop:text-[28px]">
                 {current.quote}
               </p>
             </blockquote>
+
             {current.author && (
               <figcaption className="mt-8 font-body text-[13px] font-semibold uppercase tracking-[2px] text-[#8A94A0]">
                 {current.author}
+                {current.source && (
+                  <span className="block normal-case tracking-normal text-[12px] font-normal text-[#8A94A0]">
+                    via {current.source}
+                  </span>
+                )}
               </figcaption>
             )}
 
@@ -137,16 +144,22 @@ export function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
               .slice(0, 2)
               .join('')}
           </span>
-          <span className="text-sm font-semibold text-text-primary">{testimonial.author}</span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-text-primary">{testimonial.author}</span>
+            {testimonial.source && (
+              <span className="block text-xs text-text-secondary">via {testimonial.source}</span>
+            )}
+          </span>
         </figcaption>
       )}
     </figure>
   );
 }
 
-function Rating({ value }: { value: number }) {
+/** Logo green (#028815) star rating, shown above a testimonial's quote. */
+export function Rating({ value, className }: { value: number; className?: string }) {
   return (
-    <p className="flex items-center gap-1" aria-label={`Rated ${value} out of 5`}>
+    <p className={cn('flex items-center gap-1', className)} aria-label={`Rated ${value} out of 5`}>
       {Array.from({ length: 5 }, (_, i) => (
         <StarIcon key={i} filled={i < value} />
       ))}
@@ -162,7 +175,7 @@ function StarIcon({ filled }: { filled: boolean }) {
       width="16"
       height="16"
       viewBox="0 0 20 20"
-      className={filled ? 'text-brand-accent-strong' : 'text-border-strong'}
+      className={filled ? 'text-[var(--lw-accent)]' : 'text-border-strong'}
       fill="currentColor"
     >
       <path d="M10 1.8l2.4 5 5.5.8-4 3.9.95 5.5L10 14.4l-4.9 2.6.95-5.5-4-3.9 5.5-.8L10 1.8Z" />

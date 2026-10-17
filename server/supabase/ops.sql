@@ -702,3 +702,13 @@ alter table admin_mfa_recovery_codes enable row level security;
 --   alter table admin_users drop column if exists mfa_enrolled_at;
 
 notify pgrst, 'reload schema';
+
+-- Testimonials: review source (e.g. "Google", "Zocdoc", "Direct"), shown
+-- under the author's name in small text on the public site. `rating`
+-- already existed; this adds the companion field requested alongside it.
+alter table testimonials add column if not exists source text;
+
+-- Rollback:
+--   alter table testimonials drop column if exists source;
+
+notify pgrst, 'reload schema';

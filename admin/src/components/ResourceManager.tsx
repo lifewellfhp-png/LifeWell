@@ -9,7 +9,7 @@ import { PreviewShell } from '@/components/PreviewShell';
 type Field = {
   key: string;
   label: string;
-  type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'url' | 'json';
+  type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'url' | 'json' | 'stars';
   options?: { value: string; label: string }[];
   full?: boolean;
   /**
@@ -178,7 +178,7 @@ export function ResourceManager({
     for (const field of fields) {
       let value = form[field.key];
       if (field.type === 'checkbox') value = Boolean(value);
-      if (field.type === 'number') value = value === '' || value == null ? null : Number(value);
+      if (field.type === 'number' || field.type === 'stars') value = value === '' || value == null ? null : Number(value);
       if (field.type === 'json') {
         try {
           if (typeof value === 'string') {
@@ -394,6 +394,12 @@ export function ResourceManager({
                         />
                         Enabled
                       </label>
+                    ) : field.type === 'stars' ? (
+                      <StarPicker
+                        id={field.key}
+                        value={form[field.key] == null || form[field.key] === '' ? null : Number(form[field.key])}
+                        onChange={(next) => setForm((f) => ({ ...f, [field.key]: next }))}
+                      />
                     ) : field.type === 'select' ? (
                       <select
                         id={field.key}
@@ -453,6 +459,60 @@ export function ResourceManager({
           {preview.render(previewRow, rows)}
         </PreviewShell>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * 1-5 star picker, used for `type: 'stars'` fields (e.g. testimonial
+ * ratings). Clicking the currently-selected star again clears it back to
+ * no rating, rather than being stuck at a minimum of 1 — an optional
+ * rating must be able to go back to "unset".
+ */
+function StarPicker({
+  id,
+  value,
+  onChange,
+}: {
+  id: string;
+  value: number | null;
+  onChange: (next: number | null) => void;
+}) {
+  return (
+    <div id={id} role="group" aria-label="Rating, 1 to 5 stars" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          aria-label={value === n ? `${n} star${n === 1 ? '' : 's'} — click to clear` : `Set rating to ${n} star${n === 1 ? '' : 's'}`}
+          aria-pressed={value !== null && n <= value}
+          onClick={() => onChange(value === n ? null : n)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.15rem', lineHeight: 0 }}
+        >
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            width="22"
+            height="22"
+            viewBox="0 0 20 20"
+            fill={value !== null && n <= value ? '#028815' : 'none'}
+            stroke={value !== null && n <= value ? '#028815' : '#9AA6B2'}
+            strokeWidth="1.3"
+          >
+            <path d="M10 1.8l2.4 5 5.5.8-4 3.9.95 5.5L10 14.4l-4.9 2.6.95-5.5-4-3.9 5.5-.8L10 1.8Z" />
+          </svg>
+        </button>
+      ))}
+      {value !== null && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="btn btn-ghost"
+          style={{ marginLeft: '0.5rem', padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
+        >
+          Clear
+        </button>
+      )}
     </div>
   );
 }

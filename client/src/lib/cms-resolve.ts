@@ -19,6 +19,7 @@ import {
   feesFaqs as staticFeesFaqs,
   feesIntro as staticFeesIntro,
   psychiatricStatePricing as staticPsychiatricStatePricing,
+  pricingTiers as staticPricingTiers,
   selfPay as staticSelfPay,
 } from '@/data/pricing';
 import {
@@ -125,6 +126,7 @@ export type ResolvedContent = {
     selfPayBody: string[];
     insuranceDisclaimer: string;
     psychiatricStatePricing: typeof staticPsychiatricStatePricing;
+    otherSelfPayPricing: typeof staticPricingTiers;
   };
   serviceDetails: {
     slug: string;
@@ -222,6 +224,7 @@ export function mapTestimonials(cms: PublicCmsPayload | null, live: boolean): Te
     published?: unknown;
     consent_confirmed?: unknown;
     rating?: number | null;
+    source?: string | null;
   }[];
   const mapped = rows
     .filter((r) => r.quote && r.author_name && isCmsTestimonialPubliclyVisible(r))
@@ -234,6 +237,7 @@ export function mapTestimonials(cms: PublicCmsPayload | null, live: boolean): Te
       // nullable 1-5 integer; this preserves that distinction rather than
       // fabricating a value.
       rating: typeof r.rating === 'number' ? r.rating : null,
+      source: typeof r.source === 'string' && r.source.trim() ? r.source.trim() : null,
     }));
   if (live) return mapped;
   return mapped.length ? mapped : staticTestimonials;
@@ -1014,6 +1018,38 @@ export function resolvePsychiatricStatePricing(raw: unknown): typeof staticPsych
   return PSYCHIATRIC_PRICING_STATE_ORDER.map((state) => byState.get(state)!);
 }
 
+/**
+ * Governed CMS pricing authority for the two non-psychiatric self-pay
+ * tiers (Primary Care, Weight Management), mirroring
+ * resolvePsychiatricStatePricing() above: a CMS `otherSelfPayPricing`
+ * collection only ever overrides `initialFee`/`followUpFee`, and only when
+ * it is an exact, fully valid 2-entry match by name — name, duration, and
+ * the includes/freeConsult fields always come from the protected static
+ * dataset (client/src/data/pricing.ts's pricingTiers), never from CMS.
+ * Any single failure rejects the whole collection, falling back to the
+ * complete static dataset — never a partial mix.
+ */
+export function resolveOtherSelfPayPricing(raw: unknown): typeof staticPricingTiers {
+  if (!Array.isArray(raw) || raw.length !== staticPricingTiers.length) return staticPricingTiers;
+  const byName = new Map<string, { initialFee: number; followUpFee: number }>();
+  for (const item of raw) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return staticPricingTiers;
+    const row = item as Record<string, unknown>;
+    const name = row.name;
+    if (typeof name !== 'string' || !staticPricingTiers.some((t) => t.name === name) || byName.has(name)) {
+      return staticPricingTiers;
+    }
+    if (!isValidPricingFee(row.initialFee) || !isValidPricingFee(row.followUpFee)) return staticPricingTiers;
+    byName.set(name, { initialFee: row.initialFee, followUpFee: row.followUpFee });
+  }
+  if (byName.size !== staticPricingTiers.length) return staticPricingTiers;
+  return staticPricingTiers.map((tier) => ({
+    ...tier,
+    initialFee: byName.get(tier.name)!.initialFee,
+    followUpFee: byName.get(tier.name)!.followUpFee,
+  }));
+}
+
 export function mapFees(cms: PublicCmsPayload | null) {
   const intro = sectionContent(cms, 'fees', 'intro') ?? {};
   const selfPay = sectionContent(cms, 'fees', 'self_pay') ?? {};
@@ -1055,6 +1091,7 @@ export function mapFees(cms: PublicCmsPayload | null) {
      * regardless, as does every other field returned by this function.
      */
     psychiatricStatePricing: resolvePsychiatricStatePricing(selfPay.psychiatricStatePricing),
+    otherSelfPayPricing: resolveOtherSelfPayPricing(selfPay.otherSelfPayPricing),
   };
 }
 export const getResolvedContent = cache(async (): Promise<ResolvedContent> => {

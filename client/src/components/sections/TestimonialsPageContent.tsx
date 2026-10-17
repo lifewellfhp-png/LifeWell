@@ -1,6 +1,7 @@
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { JourneyCta } from '@/components/sections/JourneyCta';
 import { PatientTrustSection } from '@/components/sections/BookingProfiles';
+import { Rating } from '@/components/sections/Testimonials';
 import {
   testimonials as staticTestimonials,
   testimonialsCta,
@@ -64,13 +65,17 @@ export function TestimonialsPageContent({
                 key={item.author ?? item.quote.slice(0, 24)}
                 className="rounded-[15px] bg-[#F4F7FA] p-7 sm:p-8"
               >
-                <p className="text-center text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
+                {item.rating !== null && <Rating value={item.rating} className="justify-center" />}
+                <p className="mt-4 text-center text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
                   {item.quote}
                 </p>
                 {item.author && (
                   <p className="mt-6 text-center text-[14px] font-bold text-[#374151] sm:text-[16px]">
                     {item.author}
                   </p>
+                )}
+                {item.source && (
+                  <p className="mt-1 text-center text-[12px] text-[#6B7280]">via {item.source}</p>
                 )}
               </li>
             ))}

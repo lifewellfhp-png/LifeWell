@@ -86,6 +86,7 @@ const testimonialBase = z.object({
   author_name: z.string().min(1).max(120),
   author_role: z.string().max(120).optional().nullable(),
   rating: z.number().int().min(1).max(5).optional().nullable(),
+  source: z.string().max(60).optional().nullable(),
   published: z.boolean().default(false),
   consent_confirmed: z.boolean().default(false),
   sort_order: z.number().int().default(0),
@@ -361,6 +362,40 @@ export function validatePsychiatricStatePricingShape(content: unknown): string |
   return null;
 }
 
+/**
+ * Companion guard to validatePsychiatricStatePricingShape, for the two
+ * non-psychiatric self-pay tiers (Primary Care, Weight Management) added
+ * alongside the /fees-insurance reorg. Same narrow scope (only inspects a
+ * `content` object that actually has an `otherSelfPayPricing` key) and same
+ * shape/sanity validation, not the specific approved figures.
+ */
+export const PROTECTED_OTHER_SELF_PAY_NAMES = ['Primary Care', 'Weight Management'] as const;
+
+export function validateOtherSelfPayPricingShape(content: unknown): string | null {
+  if (!content || typeof content !== 'object' || Array.isArray(content)) return null;
+  const pricing = (content as Record<string, unknown>).otherSelfPayPricing;
+  if (pricing === undefined) return null; // this payload doesn't touch pricing at all
+  if (!Array.isArray(pricing)) return 'otherSelfPayPricing must be a list of pricing entries.';
+  for (const entry of pricing) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return 'Each pricing entry must be an object with name, initialFee, and followUpFee.';
+    }
+    const { name, initialFee, followUpFee } = entry as Record<string, unknown>;
+    if (typeof name !== 'string' || !(PROTECTED_OTHER_SELF_PAY_NAMES as readonly string[]).includes(name)) {
+      return `Each pricing entry's name must be one of: ${PROTECTED_OTHER_SELF_PAY_NAMES.join(', ')}.`;
+    }
+    for (const [label, fee] of [
+      ['initialFee', initialFee],
+      ['followUpFee', followUpFee],
+    ] as const) {
+      if (typeof fee !== 'number' || !Number.isFinite(fee) || fee <= 0 || fee > PRICING_SANITY_CEILING) {
+        return `${name} ${label} must be a positive dollar amount no greater than $${PRICING_SANITY_CEILING}.`;
+      }
+    }
+  }
+  return null;
+}
+
 const sectionBase = z.object({
   page_key: z.string().min(1).max(80),
   section_key: z.string().min(1).max(80),
@@ -372,7 +407,7 @@ const sectionBase = z.object({
 function withPricingGuard<T extends z.ZodTypeAny>(schema: T) {
   return schema.superRefine((data, ctx) => {
     const content = (data as { content?: unknown }).content;
-    const error = validatePsychiatricStatePricingShape(content);
+    const error = validatePsychiatricStatePricingShape(content) || validateOtherSelfPayPricingShape(content);
     if (error) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: error, path: ['content'] });
     }
