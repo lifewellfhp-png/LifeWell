@@ -1,15 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { isOptimizableImageSrc } from '@/lib/site-asset';
 
 /**
  * Hero background media.
  *
- * A CMS image takes precedence when available. Otherwise the static poster is
- * rendered as the LCP element and the 1.1 MB loop is layered on top only once
- * it can play, with reduced-motion visitors staying on the poster.
+ * A CMS image takes precedence when available. Otherwise the <video>
+ * (showing its own `poster` image) is the LCP element from first paint —
+ * it used to be conditionally mounted only after a client-side
+ * matchMedia effect ran, which meant the real first paint was a separate
+ * <Image> showing the same poster, and the video mounting moments later
+ * registered as a *second*, larger-or-equal LCP candidate at the same
+ * spot. Chrome's LCP metric keeps replacing its recorded candidate with
+ * any later same-or-larger paint, so that second element (appearing only
+ * after hydration + an effect) was resetting LCP to a much later
+ * timestamp — found via Lighthouse's lcp-discovery-insight audit
+ * ("Request is discoverable in initial document: false") on an otherwise
+ * well-optimized poster image. Now the <video poster> is always in the
+ * initial markup (poster images need no JS to paint, same as an <img>),
+ * so there's only ever one element at that position; motion preference
+ * only controls whether `.play()` is called, via a ref, not whether the
+ * element exists.
  */
 export function HeroMedia({
   image,
@@ -18,19 +31,26 @@ export function HeroMedia({
   image?: { src: string; alt: string };
   hasCmsImage?: boolean;
 }) {
-  const [allowMotion, setAllowMotion] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const cmsImage = hasCmsImage && image && isUsableImageSrc(image.src) ? image : null;
 
   useEffect(() => {
+    if (cmsImage) return;
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const apply = () => setAllowMotion(!query.matches);
+    const apply = () => {
+      if (query.matches) {
+        videoRef.current?.pause();
+      } else {
+        void videoRef.current?.play();
+      }
+    };
     apply();
     query.addEventListener('change', apply);
     return () => query.removeEventListener('change', apply);
-  }, []);
+  }, [cmsImage]);
 
-  const heroImage = cmsImage ? (
-    isOptimizableImageSrc(cmsImage.src) ? (
+  if (cmsImage) {
+    return isOptimizableImageSrc(cmsImage.src) ? (
       <Image
         src={cmsImage.src}
         alt={cmsImage.alt}
@@ -48,40 +68,27 @@ export function HeroMedia({
         fetchPriority="high"
         className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
       />
-    )
-  ) : (
-    <Image
-      src="/images/sections/home-hero-poster.jpg"
-      alt=""
-      fill
-      priority
-      fetchPriority="high"
-      sizes="100vw"
-      className="-z-20 object-cover object-[80%_center]"
-    />
-  );
+    );
+  }
 
   return (
-    <>
-      {heroImage}
-
-      {!cmsImage && allowMotion && (
-        <video
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
-          poster="/images/sections/home-hero-poster.jpg"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-          // Decorative; the heading carries the meaning.
-          aria-hidden="true"
-          tabIndex={-1}
-        >
-          <source src="/video/home-hero.mp4" type="video/mp4" />
-        </video>
-      )}
-    </>
+    <video
+      ref={videoRef}
+      className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
+      poster="/images/sections/home-hero-poster.jpg"
+      // React's DOM typings don't model fetchPriority on <video> yet (it's
+      // valid HTML/supported by Chrome) — spread it in as a plain attribute.
+      {...{ fetchpriority: 'high' }}
+      muted
+      loop
+      playsInline
+      preload="none"
+      // Decorative; the heading carries the meaning.
+      aria-hidden="true"
+      tabIndex={-1}
+    >
+      <source src="/video/home-hero.mp4" type="video/mp4" />
+    </video>
   );
 }
 
