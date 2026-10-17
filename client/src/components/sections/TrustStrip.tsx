@@ -1,24 +1,32 @@
 import type { TelehealthState } from '@/data/telehealth-states';
 import Link from 'next/link';
+import { provider as staticProvider } from '@/data/provider';
 import { site } from '@/data/site';
 import { Container } from '@/components/ui/Section';
 
+type Provider = {
+  name: string;
+  credentials: string;
+} | null;
+
 /**
  * Four quick cards, overlapping the bottom of the Hero (Phase 24 homepage
- * reorg). Previously a plain bordered strip sitting below the Hero with a
- * "Your provider" item first — that item is gone entirely (no provider
- * information anywhere on the homepage, per the brief) and replaced with a
- * "Psychiatric care" card; the other three (telehealth/location/pricing)
- * are unchanged in content.
+ * reorg). The "Your provider" card was briefly replaced with a "Psychiatric
+ * care" card during that reorg, then restored per explicit follow-up
+ * request — provider info is back on the homepage; the other three
+ * (telehealth/location/pricing) are unchanged throughout.
  */
-export function TrustStrip({ states }: { states: TelehealthState[] }) {
+export function TrustStrip({ provider = staticProvider, states }: { provider?: Provider; states: TelehealthState[] }) {
+  const providerName = provider?.name || staticProvider.name;
+  const credentials = provider?.credentials || staticProvider.credentials;
+  const credentialLabel = credentials.includes('PMHNP-BC') ? 'PMHNP-BC' : credentials;
   const stateCodes = states.map((state) => state.code).join(', ');
   const items = [
     {
-      type: 'psychiatric' as const,
-      label: 'Psychiatric care',
-      value: 'Evaluations & medication management',
-      href: '/our-services',
+      type: 'provider' as const,
+      label: 'Your provider',
+      value: `${providerName}, ${credentialLabel}`,
+      href: '/bio',
     },
     {
       type: 'telehealth' as const,
@@ -58,7 +66,7 @@ export function TrustStrip({ states }: { states: TelehealthState[] }) {
 function TrustCard({
   item,
 }: {
-  item: { type: 'psychiatric' | 'telehealth' | 'location' | 'pricing'; label: string; value: string; href?: string };
+  item: { type: 'provider' | 'telehealth' | 'location' | 'pricing'; label: string; value: string; href?: string };
 }) {
   const content = (
     <>
@@ -86,9 +94,9 @@ function TrustCard({
   return <div className={className}>{content}</div>;
 }
 
-function TrustIcon({ type }: { type: 'psychiatric' | 'telehealth' | 'location' | 'pricing' }) {
+function TrustIcon({ type }: { type: 'provider' | 'telehealth' | 'location' | 'pricing' }) {
   const paths = {
-    psychiatric: <><circle cx="12" cy="8" r="3" /><path d="M5 20c.7-3.2 3-5 7-5s6.3 1.8 7 5" /></>,
+    provider: <><circle cx="12" cy="8" r="3" /><path d="M5 20c.7-3.2 3-5 7-5s6.3 1.8 7 5" /></>,
     telehealth: <><path d="M4 5h16v11H4z" /><path d="M8 20h8M12 16v4" /></>,
     location: <><path d="M20 10c0 5-8 10-8 10S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
     pricing: <><path d="M5 4h14v16H5z" /><path d="M8 8h8M8 12h8M8 16h5" /></>,

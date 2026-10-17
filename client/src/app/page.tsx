@@ -8,6 +8,7 @@ import { HowItWorks } from '@/components/sections/HowItWorks';
 import { VideosSection } from '@/components/sections/VideosSection';
 import { TrustStrip } from '@/components/sections/TrustStrip';
 import { WelcomeAndBenefits } from '@/components/sections/WelcomeAndBenefits';
+import { provider as staticProvider } from '@/data/provider';
 
 // Below-the-fold, interactive-only sections — code-split out of the main
 // bundle (SSR stays on, so content/markup and SEO are unaffected; only the
@@ -37,11 +38,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * header; the newsletter band is Footer.tsx's own top band) rather than
  * homepage-specific sections.
  *
- * No provider information renders on this page (TrustStrip's old "Your
- * provider" card is gone; see TrustStrip.tsx) and neither Stats
- * ("A Foundation of Experience") nor Testimonials render here anymore —
- * both are outside the reorg's explicit 12-item homepage order. Neither
- * component was deleted; this page just no longer renders them.
+ * TrustStrip's "Your provider" card was restored per explicit follow-up
+ * request after the reorg briefly dropped it. Neither Stats ("A Foundation
+ * of Experience") nor Testimonials render here — both are outside the
+ * reorg's explicit 12-item homepage order. Neither component was deleted;
+ * this page just no longer renders them.
  *
  * Content prefers live CMS values when present, otherwise the static rebuild data.
  */
@@ -56,7 +57,7 @@ export default async function HomePage() {
         bookingLabel={cms.booking.label}
         bookingProfiles={cms.bookingProfiles}
       />
-      <TrustStrip states={cms.telehealthStates} />
+      <TrustStrip provider={cms.provider ?? staticProvider} states={cms.telehealthStates} />
 
       <Section tone="raised" aria-labelledby="services-heading">
         <Container>
