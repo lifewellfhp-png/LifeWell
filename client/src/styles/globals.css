@@ -327,43 +327,6 @@
     color: #ffffff;
   }
 
-  /* Services mega menu — Elementor template 77 tokens */
-  .services-mega .mega-card {
-    background: #eef3f7;
-  }
-  .services-mega .mega-heading {
-    font-family: var(--font-body);
-    font-size: 12.5px;
-    font-weight: 700;
-    font-style: normal;
-    line-height: 1.35;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #3d7a47;
-    text-wrap: wrap;
-    text-decoration: none;
-    transition: color 0.3s;
-  }
-  .services-mega a.mega-link {
-    font-family: var(--font-body);
-    font-size: 15px;
-    font-weight: 400;
-    font-style: normal;
-    line-height: 1.4;
-    letter-spacing: 0;
-    color: var(--lw-accent);
-    text-decoration: none;
-    border-radius: 7px;
-    transition: color 0.3s, background-color 0.3s;
-  }
-  .services-mega a.mega-heading:hover {
-    color: var(--lw-primary);
-  }
-  .services-mega a.mega-link:hover {
-    color: #ffffff;
-    background-color: var(--lw-primary);
-  }
-
   ::selection {
     background: var(--color-brand-primary);
     color: #ffffff;

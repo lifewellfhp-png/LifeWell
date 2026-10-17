@@ -187,6 +187,8 @@ export interface NavLink {
   href: string;
   /** Present on links that leave the site. */
   external?: boolean;
+  /** Short one-line description shown under the label in the Services mega menu's Mental Health column only. */
+  description?: string;
 }
 
 export interface NavGroup {

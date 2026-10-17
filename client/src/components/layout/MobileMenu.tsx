@@ -5,10 +5,12 @@ import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { NavItem, NavLink } from '@/types/content';
+import type { NavItem, NavLink, NavGroup } from '@/types/content';
 import { site } from '@/data/site';
+import { preceptorshipLink } from '@/data/navigation';
 import { cn } from '@/lib/utils';
 import { HeaderCta } from './HeaderCta';
+import { MENTAL_HEALTH_ICONS } from './navMenuIcons';
 
 const SiteSearch = dynamic(() => import('./SiteSearch').then((mod) => mod.SiteSearch), {
   ssr: false,
@@ -203,36 +205,29 @@ function Accordion({ item, pathname }: { item: NavItem; pathname: string }) {
       </button>
 
       <div id={panelId} hidden={!open} className="pb-4 pl-2">
-        {item.groups?.map((group) => (
-          <div key={group.label} className="mt-4">
-            <Link
-              href={item.href}
-              prefetch
-              className="mb-3 block px-4 font-heading text-[18px] font-medium leading-snug text-[var(--lw-accent)] no-underline"
-            >
-              {group.label}
-            </Link>
-            <ul className="flex flex-col gap-1">
-              {group.links.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    prefetch
-                    aria-current={pathname === link.href ? 'page' : undefined}
-                    className={cn(
-                      'flex min-h-11 items-center rounded-sm px-4 py-2 text-[15px] leading-snug no-underline transition-colors duration-quick',
-                      pathname === link.href
-                        ? 'font-semibold text-[var(--lw-primary)]'
-                        : 'text-[var(--lw-accent)] hover:bg-[#F7FAFC] hover:text-[var(--lw-primary)]'
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {item.groups && (
+          <>
+            {item.groups.map((group) => (
+              <GroupAccordion key={group.label} group={group} pathname={pathname} />
+            ))}
+            <div className="mt-3 flex flex-col gap-1 border-t border-border-subtle pt-3">
+              <Link
+                href={preceptorshipLink.href}
+                prefetch
+                className="flex min-h-11 items-center rounded-sm px-4 py-2 text-[14px] font-semibold leading-snug text-[var(--lw-primary)] no-underline hover:bg-[#F7FAFC]"
+              >
+                For nursing students: {preceptorshipLink.label} <span aria-hidden="true">&nbsp;→</span>
+              </Link>
+              <Link
+                href={item.href}
+                prefetch
+                className="flex min-h-11 items-center rounded-sm px-4 py-2 text-[14px] font-semibold leading-snug text-[var(--lw-primary)] no-underline hover:bg-[#F7FAFC]"
+              >
+                View all services <span aria-hidden="true">&nbsp;→</span>
+              </Link>
+            </div>
+          </>
+        )}
 
         {item.flat ? (
           <ul className="mt-2 flex flex-col gap-1">
@@ -243,10 +238,8 @@ function Accordion({ item, pathname }: { item: NavItem; pathname: string }) {
                   prefetch
                   aria-current={pathname === link.href ? 'page' : undefined}
                   className={cn(
-                    'flex min-h-11 items-center rounded-sm px-4 py-2 text-[15px] leading-snug no-underline transition-colors duration-quick',
-                    pathname === link.href
-                      ? 'font-semibold text-[var(--lw-primary)]'
-                      : 'text-[var(--lw-accent)] hover:bg-[#F7FAFC] hover:text-[var(--lw-primary)]'
+                    'flex min-h-11 items-center rounded-sm px-4 py-2 text-[15px] font-semibold leading-snug text-[var(--lw-primary)] no-underline transition-colors duration-quick',
+                    pathname === link.href ? 'bg-[#F7FAFC] text-[var(--lw-accent)]' : 'hover:bg-[#F7FAFC] hover:text-[var(--lw-accent)]'
                   )}
                 >
                   {link.label}
@@ -257,6 +250,60 @@ function Accordion({ item, pathname }: { item: NavItem; pathname: string }) {
         ) : null}
       </div>
     </>
+  );
+}
+
+/**
+ * Mental Health and Primary Care each expand independently inside the
+ * Services accordion — this is one of those two sub-sections, not the
+ * outer "Services" toggle.
+ */
+function GroupAccordion({ group, pathname }: { group: NavGroup; pathname: string }) {
+  const [open, setOpen] = useState(() => group.links.some((l) => pathname === l.href));
+  const panelId = `mg-${group.label.replace(/\s+/g, '-').toLowerCase()}`;
+  const isMentalHealth = group.label === 'Mental Health';
+
+  return (
+    <div className="mt-3 first:mt-0">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-sm px-4 text-left font-heading text-[16px] font-medium leading-snug text-[var(--lw-primary)] transition-colors duration-quick hover:bg-surface-muted"
+      >
+        {group.label}
+        <ChevronIcon className={cn('transition-transform duration-quick', open && 'rotate-180')} />
+      </button>
+
+      <ul id={panelId} hidden={!open} className="flex flex-col gap-1 pb-2 pt-1">
+        {group.links.map((link, i) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              prefetch
+              aria-current={pathname === link.href ? 'page' : undefined}
+              className={cn(
+                'flex items-start gap-2.5 rounded-sm px-4 py-2 no-underline transition-colors duration-quick',
+                pathname === link.href ? 'bg-[#F7FAFC]' : 'hover:bg-[#F7FAFC]'
+              )}
+            >
+              {isMentalHealth && (
+                <span className="mt-0.5 shrink-0 text-[var(--lw-accent)]">{MENTAL_HEALTH_ICONS[i]?.()}</span>
+              )}
+              <span className="min-w-0">
+                <span className="block text-[15px] font-semibold leading-snug text-[var(--lw-primary)]">
+                  {link.label}
+                </span>
+                {link.description && (
+                  <span className="mt-0.5 block text-[13px] leading-snug text-[#6B7280]">{link.description}</span>
+                )}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

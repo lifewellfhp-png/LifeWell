@@ -1,6 +1,58 @@
 import type { NavItem, NavLink, ServiceSummary } from '@/types/content';
-import { serviceCategories, summariesByCategory } from './service-catalog';
+import { summariesByCategory, getServiceSummary } from './service-catalog';
 import { telehealthStates } from './telehealth-states';
+
+/** Resolves a service's real href from the catalog by slug — URLs are never duplicated/hardcoded here. */
+const hrefFor = (slug: string): string => getServiceSummary(slug)!.href;
+
+/**
+ * Services mega menu content (Phase 27 reorg). Deliberately hand-curated
+ * labels/descriptions here, distinct from both the real page title/SEO
+ * title (untouched) and service-catalog.ts's own CARD_LABEL_OVERRIDES
+ * (similar intent, different — shorter — wording for this specific menu).
+ * hrefs are always resolved from the catalog by slug via hrefFor(), never
+ * duplicated as literal strings, so a route change only needs updating in
+ * one place.
+ */
+const mentalHealthMenuLinks: NavLink[] = [
+  {
+    label: 'Psychiatric Evaluations',
+    href: hrefFor('psychiatric-evaluations'),
+    description: 'A thorough first visit and personalized plan',
+  },
+  {
+    label: 'Medication Management',
+    href: hrefFor('medication-management'),
+    description: 'Ongoing, careful medication adjustments',
+  },
+  {
+    label: 'Conditions We Treat',
+    href: hrefFor('treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd'),
+    description: 'Depression, anxiety, ADHD, bipolar disorder, PTSD',
+  },
+  {
+    label: 'Follow-Up Care',
+    href: hrefFor('psychiatric-follow-up-visits-telehealth'),
+    description: 'Regular check-ins to track your progress',
+  },
+];
+
+/** No description lines, per the brief — keeps this longer column compact. */
+const primaryCareMenuLinks: NavLink[] = [
+  { label: 'Annual Physicals & Screenings', href: hrefFor('annual-physical-exam-telehealth') },
+  { label: 'Chronic Disease Management', href: hrefFor('chronic-disease-management-telehealth') },
+  { label: 'Preventive Care', href: hrefFor('preventive-care-telehealth') },
+  { label: 'Sick Visits (Adults 18+)', href: hrefFor('telehealth-sick-visits-primary-care') },
+  { label: 'Weight Management', href: hrefFor('weight-management-telehealth') },
+  { label: 'Wellness & Lifestyle Counseling', href: hrefFor('wellness-and-lifestyle-counseling-telehealth') },
+  { label: 'Lab Testing Coordination', href: hrefFor('lab-testing-coordination-telehealth') },
+];
+
+/** Bottom-strip link in the Services mega menu, not one of the two main columns. */
+export const preceptorshipLink: NavLink = {
+  label: 'Preceptorship Program',
+  href: hrefFor('preceptorship-program'),
+};
 
 /**
  * Header navigation, mirroring the source site's structure.
@@ -25,18 +77,8 @@ export const headerNav: NavItem[] = [
     label: 'Services',
     href: '/our-services',
     groups: [
-      {
-        label: serviceCategories.psychiatric.label,
-        links: summariesByCategory('psychiatric').map((s) => ({ label: s.title, href: s.href })),
-      },
-      {
-        label: serviceCategories['primary-care'].label,
-        links: summariesByCategory('primary-care').map((s) => ({ label: s.title, href: s.href })),
-      },
-      {
-        label: serviceCategories['professional-education'].label,
-        links: summariesByCategory('professional-education').map((s) => ({ label: s.title, href: s.href })),
-      },
+      { label: 'Mental Health', links: mentalHealthMenuLinks },
+      { label: 'Primary Care', links: primaryCareMenuLinks },
     ],
   },
   { label: 'Provider', href: '/bio' },
