@@ -445,7 +445,7 @@ export const generatedLegalPages: LegalPage[] = [
       }
     ],
     "seoTitle": "Telehealth Mental Health Accessibility Statement: 5 Accessibility Commitments",
-    "seoDescription": "Read our telehealth mental health accessibility statement and learn how we ensure accessible, inclusive, and user-friendly online mental health services.",
+    "seoDescription": "Read our mental health telehealth accessibility statement and learn how we ensure accessible, inclusive, user-friendly online care.",
     "updatedAt": "2026-09-01T00:00:00Z",
     "wpId": 51022
   },
