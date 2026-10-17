@@ -107,14 +107,24 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
             </address>
           </div>
 
-          <div className="min-h-[320px] overflow-hidden rounded-[20px] sm:min-h-[420px] lg:min-h-[520px]">
-            <iframe
-              title={`${street}, ${cityLine}`}
-              src={mapSrc}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="h-full min-h-[320px] w-full border-0 sm:min-h-[420px] lg:min-h-[520px]"
-            />
+          <div>
+            <div className="min-h-[320px] overflow-hidden rounded-[20px] sm:min-h-[420px] lg:min-h-[500px]">
+              <iframe
+                title={`${street}, ${cityLine}`}
+                src={mapSrc}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="h-full min-h-[320px] w-full border-0 sm:min-h-[420px] lg:min-h-[500px]"
+              />
+            </div>
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${street}, ${cityLine}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--lw-primary)] no-underline hover:underline"
+            >
+              Get directions
+            </a>
           </div>
         </div>
       </section>

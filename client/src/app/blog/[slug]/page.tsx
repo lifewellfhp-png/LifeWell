@@ -7,14 +7,18 @@ import { Container, Section } from '@/components/ui/Section';
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { Breadcrumbs } from '@/components/sections/PageHero';
 import { ArticleDisclaimer } from '@/components/sections/ArticleDisclaimer';
+import { BlogPostCard } from '@/components/sections/BlogPostCard';
+import { SwapButton } from '@/components/ui/SwapButton';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { CmsCta } from '@/components/CmsCta';
 import { pageMetadata } from '@/lib/seo';
 import { articleGraph } from '@/lib/schema';
 import { fetchPublicBlogPost } from '@/lib/cms';
+import { getResolvedContent } from '@/lib/cms-resolve';
 import { getServiceSummary } from '@/data/service-catalog';
-import { formatDate, isoDate } from '@/lib/utils';
+import { site } from '@/data/site';
+import { formatDate, isoDate, estimateReadingTime } from '@/lib/utils';
 import { isOptimizableImageSrc } from '@/lib/site-asset';
+import { BLOG_AUTHOR_BYLINE } from '@/lib/blog';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -140,18 +144,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await fetchPublicBlogPost(slug);
+  const [post, cms] = await Promise.all([fetchPublicBlogPost(slug), getResolvedContent()]);
   if (!post) notFound();
 
   const title = String(post.title || 'Article');
   const body = typeof post.body === 'string' ? post.body : '';
   const excerpt = typeof post.excerpt === 'string' ? post.excerpt : '';
-  const authorName = str(post.author_name);
   const publishedAt = str(post.published_at);
   const coverImage = str(post.cover_image_url);
   const category = str(post.category);
+  const readingTime = estimateReadingTime(body);
   const relatedServiceSlug = str(post.related_service_slug);
   const relatedService = relatedServiceSlug ? getServiceSummary(relatedServiceSlug) : undefined;
+
+  // Related articles: same category first, then other recent posts, up to
+  // 3, always excluding the current post.
+  const otherPosts = cms.posts.filter((p) => p.slug !== slug);
+  const sameCategory = category ? otherPosts.filter((p) => p.category === category) : [];
+  const relatedPosts = [...sameCategory, ...otherPosts.filter((p) => !sameCategory.includes(p))].slice(0, 3);
 
   const crumbs = [
     { name: 'Home', href: '/' },
@@ -170,7 +180,7 @@ export default async function BlogPostPage({ params }: Props) {
           image: socialImage(post) ? { url: socialImage(post) as string } : null,
           publishedAt,
           modifiedAt: str(post.updated_at),
-          authorName,
+          authorName: BLOG_AUTHOR_BYLINE,
           breadcrumb: crumbs,
         })}
         id={`blog-post-${slug}-schema`}
@@ -187,17 +197,19 @@ export default async function BlogPostPage({ params }: Props) {
             </p>
           )}
 
-          {(authorName || publishedAt) && (
-            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-border-subtle py-5 text-sm text-text-secondary">
-              {authorName && <span>By {authorName}</span>}
-              {authorName && publishedAt && (
-                <span aria-hidden="true" className="text-border-strong">
-                  •
-                </span>
-              )}
-              {publishedAt && <time dateTime={isoDate(publishedAt)}>{formatDate(publishedAt)}</time>}
-            </div>
-          )}
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-border-subtle py-5 text-sm text-text-secondary">
+            <span>By {BLOG_AUTHOR_BYLINE}</span>
+            {publishedAt && (
+              <span aria-hidden="true" className="text-border-strong">
+                •
+              </span>
+            )}
+            {publishedAt && <time dateTime={isoDate(publishedAt)}>{formatDate(publishedAt)}</time>}
+            <span aria-hidden="true" className="text-border-strong">
+              •
+            </span>
+            <span>{readingTime} min read</span>
+          </div>
 
           {coverImage && (
             <div className="mt-8 overflow-hidden rounded-md border border-border-subtle bg-surface-muted">
@@ -218,11 +230,11 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           )}
 
-          <article className="mx-auto mt-9 max-w-[70ch] text-[16px] leading-[1.7] text-[#374151] sm:text-[18px]">
+          <article className="mx-auto mt-9 max-w-[700px] text-[17px] leading-[1.75] text-[#374151] sm:text-[19px]">
             {body ? renderBody(body) : excerpt || 'This article is being prepared.'}
           </article>
 
-          <div className="mx-auto max-w-[70ch]">
+          <div className="mx-auto max-w-[700px]">
             <ArticleDisclaimer />
 
             {relatedService && (
@@ -238,8 +250,7 @@ export default async function BlogPostPage({ params }: Props) {
             )}
 
             {/* Universal next-step links, not per-article CMS data — every
-                article benefits from a path to new-patient info and pricing;
-                booking itself is already covered by <CmsCta /> below. */}
+                article benefits from a path to new-patient info and pricing. */}
             <p className="mt-3 text-[15px] leading-[1.5] text-[#374151]">
               <Link href="/new-patients" className="font-semibold text-[var(--lw-accent)] underline-offset-2 hover:underline">
                 What to Expect as a New Patient
@@ -249,10 +260,50 @@ export default async function BlogPostPage({ params }: Props) {
                 Fees &amp; Insurance
               </Link>
             </p>
+
+            <div className="mt-10 rounded-[20px] border-t-4 border-[var(--lw-accent)] bg-[#EEF2FA] p-7 text-center sm:p-10">
+              <h2 className="font-heading text-[22px] font-normal text-[var(--lw-primary)] sm:text-[26px]">
+                Ready to take the next step?
+              </h2>
+              <p className="mx-auto mt-3 max-w-[48ch] text-[14px] leading-[1.5] text-[#374151] sm:text-[15px]">
+                Book a secure telehealth or in-person appointment with LifeWell Family Health &amp; Psychiatry.
+              </p>
+              <div className="mt-6 flex justify-center">
+                <SwapButton href={site.booking.page} tone="accent" trackAs="booking_click">
+                  Book an Appointment
+                </SwapButton>
+              </div>
+            </div>
           </div>
         </Container>
       </Section>
-      <CmsCta />
+
+      {relatedPosts.length > 0 && (
+        <Section tone="muted">
+          <Container>
+            <h2 className="text-center font-heading text-[26px] font-normal text-[var(--lw-primary)] sm:text-[32px]">
+              Related Articles
+            </h2>
+            <ul className="mt-10 grid list-none gap-8 md:grid-cols-3">
+              {relatedPosts.map((p) => (
+                <li key={p.slug}>
+                  <BlogPostCard
+                    post={{
+                      slug: p.slug,
+                      title: p.title,
+                      excerpt: p.excerpt ?? null,
+                      category: p.category ?? null,
+                      coverImageUrl: p.coverImageUrl ?? null,
+                      publishedAt: p.publishedAt ?? null,
+                      body: p.body ?? null,
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </Section>
+      )}
     </>
   );
 }

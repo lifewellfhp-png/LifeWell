@@ -712,3 +712,41 @@ alter table testimonials add column if not exists source text;
 --   alter table testimonials drop column if exists source;
 
 notify pgrst, 'reload schema';
+
+-- Premium /blog reorg: all 6 real blog_posts rows displayed date set to
+-- October 16, 2026, and categorized into the new filter-chip taxonomy
+-- (Getting Started / Medication Management / Anxiety / ADHD). Keyed by
+-- slug, safe to re-run. `category` and `cover_image_url` columns already
+-- existed on blog_posts (schema.sql) — this only updates row data, no
+-- schema change.
+update blog_posts set published_at = '2026-10-16T00:00:00Z'
+where slug in (
+  'how-to-prepare-for-a-telehealth-psychiatry-appointment',
+  'is-a-psychiatric-evaluation-right-for-you',
+  'what-happens-during-a-psychiatric-evaluation',
+  'medication-management-follow-up-visits-explained',
+  'understanding-anxiety-symptoms-and-when-to-seek-help',
+  'adult-adhd-what-to-know-about-evaluation-and-treatment'
+);
+
+update blog_posts set category = 'Getting Started'
+where slug in (
+  'how-to-prepare-for-a-telehealth-psychiatry-appointment',
+  'is-a-psychiatric-evaluation-right-for-you',
+  'what-happens-during-a-psychiatric-evaluation'
+);
+
+update blog_posts set category = 'Medication Management'
+where slug = 'medication-management-follow-up-visits-explained';
+
+update blog_posts set category = 'Anxiety'
+where slug = 'understanding-anxiety-symptoms-and-when-to-seek-help';
+
+update blog_posts set category = 'ADHD'
+where slug = 'adult-adhd-what-to-know-about-evaluation-and-treatment';
+
+-- Rollback: these are data updates, not schema changes — there is no
+-- automated rollback. Prior published_at/category values would need to be
+-- restored manually from a backup if ever needed.
+
+notify pgrst, 'reload schema';

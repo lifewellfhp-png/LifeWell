@@ -70,7 +70,14 @@ export async function getPublicContent(_req: Request, res: Response): Promise<vo
       'blog_posts',
       sb
         .from('blog_posts')
-        .select('id, slug, title, excerpt, cover_image_url, author_name, published_at, seo_title, seo_description')
+        // Phase 26 (premium /blog reorg): added `category` (the filter-chip
+        // taxonomy — previously selected on the server but silently dropped
+        // here, so the chips could never actually work) and `body` (reading-
+        // time estimate on the listing/featured cards — article bodies are a
+        // few KB each, not worth a separate endpoint for 6-ish posts).
+        .select(
+          'id, slug, title, excerpt, cover_image_url, author_name, category, body, published_at, seo_title, seo_description'
+        )
         .eq('published', true)
         .order('published_at', { ascending: false })
     ),

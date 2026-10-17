@@ -2,13 +2,20 @@
 
 import { ResourceManager } from '@/components/ResourceManager';
 
-/** Kept in sync with client/src/data/telehealth-states.ts style taxonomy notes — see P2B plan. */
+/**
+ * Kept in sync with client/src/data/telehealth-states.ts style taxonomy
+ * notes — see P2B plan. "Getting Started" and "Medication Management"
+ * (renamed from "Medication & Treatment") are the premium /blog reorg's
+ * filter-chip categories (client/src/app/blog/page.tsx) — keep their
+ * spelling exactly in sync with BLOG_FILTER_CATEGORIES there.
+ */
 const CATEGORIES = [
+  'Getting Started',
   'Anxiety',
   'Depression',
   'ADHD',
   'Psychiatric Care & Evaluations',
-  'Medication & Treatment',
+  'Medication Management',
   'Sleep & Wellness',
   'Trauma & Stress',
   'Whole-Person Wellness',

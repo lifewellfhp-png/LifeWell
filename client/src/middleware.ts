@@ -31,6 +31,9 @@ import { NextResponse } from 'next/server';
  *  - challenges.cloudflare.com (script-src + frame-src): the Turnstile
  *    widget on the contact/newsletter forms (Phase 1 item 7) — it loads a
  *    script and renders its own challenge inside an iframe.
+ *  - www.google.com/maps/ and maps.google.com (frame-src only): the office
+ *    location embed on the contact page (ContactPageContent.tsx). Narrowly
+ *    scoped to just these two Maps embed hosts, not all of google.com.
  *
  * Deliberately NOT included yet: the Google Ads domains. That work lives on
  * the unmerged feature/google-ads-conversion-tracking branch, still pending
@@ -49,7 +52,7 @@ export function middleware() {
     "img-src 'self' data:",
     "font-src 'self'",
     `connect-src 'self' ${apiOrigin}`,
-    'frame-src https://ehr.charmtracker.com https://www.youtube-nocookie.com https://player.vimeo.com https://challenges.cloudflare.com',
+    'frame-src https://ehr.charmtracker.com https://www.youtube-nocookie.com https://player.vimeo.com https://challenges.cloudflare.com https://www.google.com/maps/ https://maps.google.com',
     "frame-ancestors 'self'",
     "object-src 'none'",
     "base-uri 'self'",

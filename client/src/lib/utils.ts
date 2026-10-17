@@ -28,6 +28,13 @@ export function isoDate(iso: string | null): string {
   return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
 }
 
+/** Estimated reading time in whole minutes, ~200 words/minute, minimum 1. */
+export function estimateReadingTime(body: string | null | undefined): number {
+  if (!body) return 1;
+  const words = body.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
 /** Formats a whole-dollar amount without trailing zeros. */
 export function formatPrice(amount: number): string {
   return new Intl.NumberFormat('en-US', {

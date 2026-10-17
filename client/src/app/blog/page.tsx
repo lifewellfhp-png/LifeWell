@@ -1,19 +1,17 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { Container, Section } from '@/components/ui/Section';
 import { Button } from '@/components/ui/Button';
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
+import { BlogIndexContent } from '@/components/sections/BlogIndexContent';
 import { JsonLd } from '@/components/seo/JsonLd';
 
 import { serviceSummaries } from '@/data/service-catalog';
-import { formatDate, isoDate } from '@/lib/utils';
 import { cmsMetadata } from '@/lib/cms-seo';
 import { pageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 import { CmsCta } from '@/components/CmsCta';
-import { isOptimizableImageSrc } from '@/lib/site-asset';
 
 const DESCRIPTION =
   'The LifeWell Wellness Resource Hub — practical, evidence-informed guidance on anxiety, depression, ADHD, sleep, and whole-person mental health from LifeWell Family Health & Psychiatry.';
@@ -28,17 +26,23 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-/** Lists published CMS articles from the API — never static placeholder posts. */
+/**
+ * Premium /blog reorg: hero (unchanged heading/lead) -> search + category
+ * chips -> featured newest post -> 3-column grid, paginated past 9 -> the
+ * existing bottom CTA band (CmsCta: "Start Your Mental Wellness Journey
+ * Today") and global newsletter band (Footer.tsx) are untouched. Lists
+ * published CMS articles from the API — never static placeholder posts.
+ */
 export default async function BlogIndexPage() {
   const cms = await getResolvedContent();
   const posts = cms.posts.map((post) => ({
     slug: post.slug,
     title: post.title,
-    excerpt: post.excerpt || '',
+    excerpt: post.excerpt || null,
     category: post.category ?? null,
-    image: post.coverImageUrl,
-    publishedAt: post.publishedAt,
-    href: `/blog/${post.slug}`,
+    coverImageUrl: post.coverImageUrl ?? null,
+    publishedAt: post.publishedAt ?? null,
+    body: post.body ?? null,
   }));
 
   return (
@@ -58,71 +62,15 @@ export default async function BlogIndexPage() {
         leadSize="subhead"
       />
 
-      <Section tone="base">
-        <Container>
-          {posts.length > 0 ? (
-            <ul className="grid list-none gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post) => (
-                <li key={post.slug} className="flex">
-                  <article className="group flex w-full flex-col overflow-hidden rounded-md border border-border-subtle bg-surface-raised transition-shadow duration-fast hover:shadow-md">
-                    {post.image && (
-                      <div className="relative aspect-[16/9] overflow-hidden bg-surface-muted">
-                        {isOptimizableImageSrc(post.image) ? (
-                          <Image
-                            src={post.image}
-                            alt=""
-                            fill
-                            loading="lazy"
-                            sizes="(min-width: 1024px) 30vw, (min-width: 768px) 45vw, 92vw"
-                            className="object-cover"
-                          />
-                        ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={post.image}
-                            alt=""
-                            loading="lazy"
-                            className="absolute inset-0 h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
-                    )}
-                    <div className="flex flex-1 flex-col p-6">
-                      {post.category && (
-                        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.1em] text-brand-primary-solid">
-                          {post.category}
-                        </p>
-                      )}
-                      <h2 className="text-h5">
-                        <Link
-                          href={post.href}
-                          className="text-text-primary no-underline after:absolute after:inset-0 after:content-[''] group-hover:text-brand-primary-solid"
-                        >
-                          {post.title}
-                        </Link>
-                      </h2>
-                      {post.excerpt && (
-                        <p className="mt-3 flex-1 text-sm leading-relaxed text-text-secondary">
-                          {post.excerpt}
-                        </p>
-                      )}
-                      {post.publishedAt && (
-                        <p className="mt-5 text-xs text-text-secondary">
-                          <time dateTime={isoDate(post.publishedAt)}>
-                            {formatDate(post.publishedAt)}
-                          </time>
-                        </p>
-                      )}
-                    </div>
-                  </article>
-                </li>
-              ))}
-            </ul>
-          ) : (
+      {posts.length > 0 ? (
+        <BlogIndexContent posts={posts} />
+      ) : (
+        <Section tone="base">
+          <Container>
             <EmptyState />
-          )}
-        </Container>
-      </Section>
+          </Container>
+        </Section>
+      )}
 
       <CmsCta />
     </>

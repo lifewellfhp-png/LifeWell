@@ -161,3 +161,11 @@ test('5. /videos loads with no CSP violation', { timeout: TEST_TIMEOUT }, async 
   await page.waitForTimeout(500);
   assertNoNewViolations(before_, '/videos');
 });
+
+test('6. contact page (Google Maps embed) loads with no CSP violation', { timeout: TEST_TIMEOUT }, async () => {
+  const before_ = violations.length;
+  await page.goto(`${BASE_URL}/contact-telehealth-mental-health-provider`, { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForTimeout(500);
+  assertNoNewViolations(before_, '/contact-telehealth-mental-health-provider');
+});
