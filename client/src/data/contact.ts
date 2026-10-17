@@ -25,10 +25,10 @@ export const contactPage = {
   formBody:
     'Have a question or need more information? Fill out the form below, and you will receive a confidential response shortly.',
   heroImage: {
-    src: '/images/sections/Contact-Information.avif',
-    width: 1180,
-    height: 990,
-    alt: 'Contact a telehealth mental health provider',
+    src: '/images/sections/Contact-Hero-Therapy-Session.jpg',
+    width: 2816,
+    height: 1536,
+    alt: 'A patient and provider during a confidential telehealth mental health session',
   },
   formImage: {
     src: '/images/sections/Contact-Telehealth-Mental-Health-Provider.avif',
