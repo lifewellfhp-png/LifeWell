@@ -146,11 +146,18 @@ export async function Footer() {
             </div>
           </div>
 
-          {/* Copyright */}
-          <div className="border-t border-white/20 py-6 text-center">
+          {/*
+            Bottom row: copyright left, credit right — a two-column flex
+            row (stacked, centered on mobile) rather than one centered
+            block. No crisis-line repeat here: the CrisisBar at the very
+            top of every page already covers that, so this row stays
+            legal/attribution only.
+          */}
+          <div className="flex flex-col items-center gap-2 border-t border-white/20 py-6 text-center sm:flex-row sm:items-baseline sm:justify-between sm:text-left">
             <p className="font-body text-[12px] leading-relaxed text-white/70 sm:text-[13px]">
               © 2026 {site.shortName}. All Rights Reserved.
-              <br />
+            </p>
+            <p className="font-body text-[12px] leading-relaxed text-white/70 sm:text-[13px]">
               Designed &amp; Engineered by Wesly Chachoute
             </p>
           </div>
