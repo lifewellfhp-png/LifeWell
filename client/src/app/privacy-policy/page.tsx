@@ -9,7 +9,7 @@ const page = getLegalPage(SLUG);
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Privacy Policy — How We Protect Your Information',
+    title: 'Privacy Policy | LifeWell Mental Health Practice FHP',
     description:
       page?.seoDescription ??
       page?.intro[0]?.slice(0, 158) ??

@@ -100,7 +100,9 @@ export function Eyebrow({
     return (
       <p
         className={cn(
-          'mb-2.5 w-fit rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]',
+          // Diagnostic: #028815 on this light tint was 4.14:1 (needs 4.5:1)
+          // at this small size — text-brand-accent-strong (#02750f) clears it.
+          'mb-2.5 w-fit rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-brand-accent-strong sm:max-desktop:text-[12px] desktop:text-[13px]',
           className
         )}
       >

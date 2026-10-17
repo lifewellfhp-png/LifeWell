@@ -44,7 +44,9 @@ export function TestimonialsPageContent({
       >
         <div className="relative mx-auto max-w-[1840px]">
           <div className="mx-auto max-w-[40rem] text-center">
-            <p className="mx-auto w-fit rounded-[7px] bg-[#EEF3F7] px-4 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[12px] desktop:text-[13px]">
+            {/* Diagnostic: #028815 on this #EEF3F7 background is 4.14:1
+                (needs 4.5:1) at this size. */}
+            <p className="mx-auto w-fit rounded-[7px] bg-[#EEF3F7] px-4 py-1 text-[11px] font-semibold uppercase tracking-[1px] text-brand-accent-strong sm:max-desktop:text-[12px] desktop:text-[13px]">
               {testimonialsSection.eyebrow}
             </p>
             <h2

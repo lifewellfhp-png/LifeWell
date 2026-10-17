@@ -34,10 +34,14 @@ const sendDialogSource = pageSource.slice(pageSource.indexOf('{sending ? ('));
 
 // 1/2. Send action exists only for draft campaigns.
 test('1/2. Send is offered only for draft campaigns (desktop and mobile) — never for archived', () => {
+  // Send's gate moved from an inline ternary to a `canSend` variable
+  // (also now requiring !locked, not just draft status).
+  const canSendDefCount = (pageSource.match(/const canSend = row\.status === 'draft' && !locked;/g) || []).length;
+  assert.equal(canSendDefCount, 2, 'expected a canSend gate (desktop and mobile) requiring draft status and not delivery-locked');
   const sendGuardCount = (
-    pageSource.match(/row\.status === 'draft' \? \(\s*<button type="button" className="btn btn-primary" onClick=\{\(\) => openSend\(row\)\}/g) || []
+    pageSource.match(/\{canSend \? \(\s*<button type="button" className="btn btn-primary" onClick=\{\(\) => openSend\(row\)\}>/g) || []
   ).length;
-  assert.equal(sendGuardCount, 2, 'expected the draft-only guard on both desktop and mobile Send buttons');
+  assert.equal(sendGuardCount, 2, 'expected the canSend guard on both desktop and mobile Send buttons');
   assert.doesNotMatch(pageSource, /row\.status !== 'archived'[\s\S]{0,80}Send/);
 });
 

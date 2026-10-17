@@ -34,9 +34,20 @@ export const CHAT_NAP = {
   phoneHref: 'tel:+14076031717',
   email: 'contact@lifewellfhp.com',
   address: '3680 Avalon Park E Blvd, Suite 310, Orlando, FL 32828',
-  hours: [
-    'Monday – Friday: 8:00 AM – 10:00 PM EST',
-    'Saturday – Sunday: 7:00 AM – 10:00 PM EST',
+  // Genuinely separate schedules — see client/src/data/site.ts's own
+  // "do not merge the two" warning (the original site conflated them,
+  // which is exactly the accuracy defect that comment exists to prevent).
+  officeHours: [
+    'Monday: Closed',
+    'Tuesday – Friday: 10:00 AM – 4:00 PM EST',
+    'Saturday: Closed',
+    'Sunday: Closed',
+  ],
+  telehealthHours: [
+    'Monday – Thursday: 6:30 PM – 8:30 PM EST',
+    'Friday: 10:00 AM – 5:00 PM EST',
+    'Saturday: 10:00 AM – 5:00 PM EST',
+    'Sunday: Closed',
   ],
   crisisLine: '988 Suicide & Crisis Lifeline',
   crisisPhone: '988',

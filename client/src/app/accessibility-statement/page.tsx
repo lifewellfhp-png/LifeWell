@@ -9,7 +9,7 @@ const page = getLegalPage(SLUG);
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Accessibility Statement — Our Commitment to Access',
+    title: 'Accessibility Statement | LifeWell Mental Health FHP',
     description:
       page?.seoDescription ??
       page?.intro[0]?.slice(0, 158) ??

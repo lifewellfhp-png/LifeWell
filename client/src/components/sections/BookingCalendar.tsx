@@ -20,7 +20,9 @@ export function BookingCalendar({ src = site.booking.url }: { src?: string }) {
     >
       <Container>
         <div className="mx-auto max-w-[52rem] text-center">
-          <p className="mb-2.5 inline-flex rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:text-[12px]">
+          {/* Diagnostic: #028815 on this #EEF3F7 background is 4.14:1
+              (needs 4.5:1) at this size. */}
+          <p className="mb-2.5 inline-flex rounded-[7px] bg-[#EEF3F7] px-[15px] pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-brand-accent-strong sm:text-[12px]">
             CharmHealth scheduling
           </p>
           <h2

@@ -7,12 +7,12 @@ import { pageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
 const DESCRIPTION =
-  'Read authentic telehealth mental health testimonials from individuals who have experienced compassionate, professional, and confidential online mental health support.';
+  'Read authentic telehealth mental health testimonials from patients who found compassionate, confidential, and professional online psychiatric care.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Patient Testimonials — Telehealth Mental Health Care',
+    title: 'Mental Health Telehealth Patient Testimonials | LifeWell',
     description: DESCRIPTION,
     path: '/telehealth-mental-health-testimonials',
     image: {

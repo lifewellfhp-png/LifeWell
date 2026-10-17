@@ -11,12 +11,12 @@ import { pageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
 const DESCRIPTION =
-  'Watch and learn with educational videos from LifeWell Family Health & Psychiatry — practical mental health guidance from a board-certified PMHNP.';
+  'Watch educational videos on mental health from LifeWell Family Health & Psychiatry — practical guidance from a board-certified psychiatric nurse practitioner.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Videos — Mental Health Education',
+    title: 'Mental Health Education Videos | LifeWell Family Health',
     description: DESCRIPTION,
     path: '/videos',
     noIndex: cms.videos.length === 0,

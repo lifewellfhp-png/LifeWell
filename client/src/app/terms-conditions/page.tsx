@@ -9,7 +9,7 @@ const page = getLegalPage(SLUG);
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Terms & Conditions — Website and Telehealth Use',
+    title: 'Terms & Conditions | LifeWell Mental Health Practice',
     description:
       page?.seoDescription ??
       page?.intro[0]?.slice(0, 158) ??

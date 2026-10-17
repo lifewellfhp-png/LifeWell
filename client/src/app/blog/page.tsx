@@ -14,12 +14,12 @@ import { getResolvedContent } from '@/lib/cms-resolve';
 import { CmsCta } from '@/components/CmsCta';
 
 const DESCRIPTION =
-  'The LifeWell Wellness Resource Hub — practical, evidence-informed guidance on anxiety, depression, ADHD, sleep, and whole-person mental health from LifeWell Family Health & Psychiatry.';
+  'The LifeWell Wellness Resource Hub — practical, evidence-informed guidance on anxiety, depression, ADHD, sleep, and whole-person mental health.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Wellness Resource Hub — Mental Health & Wellness Insights',
+    title: 'Mental Health & Wellness Resource Hub | LifeWell FHP',
     description: DESCRIPTION,
     path: '/blog',
     noIndex: cms.posts.length === 0,

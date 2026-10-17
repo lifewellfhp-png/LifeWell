@@ -75,7 +75,11 @@ test('4. psychiatricStatePricing (the real FL/MA/AZ psychiatric self-pay source 
 test('5. FeesPageContent no longer carries the now-unnecessary "Mental Health" filter (dead code removed alongside the data)', () => {
   const text = src('components/sections/FeesPageContent.tsx');
   assert.doesNotMatch(text, /filter\(\(tier\) => tier\.name !== 'Mental Health'\)/);
-  assert.match(text, /\{pricingTiers\.map\(\(tier\) => \(/);
+  // Phase 26 reorg: the static `pricingTiers` import was renamed to the
+  // CMS-governed `otherSelfPayPricing` prop (see resolveOtherSelfPayPricing
+  // in cms-resolve.ts) — same two tiers (Primary Care, Weight Management),
+  // no Mental Health filter either way.
+  assert.match(text, /\{otherSelfPayPricing\.map\(\(tier\) => \(/);
 });
 
 /* ------------------------------------------------- /our-services contextual link --- */

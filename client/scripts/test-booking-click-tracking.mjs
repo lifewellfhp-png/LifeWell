@@ -131,10 +131,21 @@ test('3b. all three telehealth states still point primaryCta at the same booking
 /* ---------------------------------------------- 4. coverage (source-level) --- */
 
 const expectedCoverage = [
-  ['components/sections/Hero.tsx', 1],
+  // Phase 24 (homepage reorg, predates Phase 26): the Hero's Book button
+  // was extracted into its own HeroBookButton.tsx Client Component (an RSC-
+  // boundary requirement — Hero.tsx itself is a Server Component and can't
+  // carry an onClick), which calls trackConversion('booking_click', ...)
+  // directly rather than going through a shared component's trackAs prop.
+  // So Hero.tsx itself no longer contains the trackAs="booking_click"
+  // string at all — see the dedicated HeroBookButton assertion below.
+  ['components/sections/Hero.tsx', 0],
   ['components/sections/HowItWorks.tsx', 1],
   ['components/sections/CTASection.tsx', 2],
-  ['components/sections/FeesPageContent.tsx', 3],
+  // Phase 26 (/fees-insurance reorg): was 3 (one per psychiatric state
+  // card, each with its own Book button) — the reorg explicitly removed
+  // every individual price card's Book button in favor of a single bottom
+  // CTA, so this is now 2 (the intro button + the bottom CTA).
+  ['components/sections/FeesPageContent.tsx', 2],
   ['components/sections/NewPatientsPageContent.tsx', 2],
   ['components/sections/BioPageContent.tsx', 1],
   ['components/sections/ContactPageContent.tsx', 1],
@@ -159,6 +170,11 @@ test('4. every confirmed legitimate booking CTA carries trackAs="booking_click"'
       `${file}: expected ${expectedCount} trackAs="booking_click" occurrence(s), found ${matches.length}`
     );
   }
+});
+
+test('4a. HeroBookButton carries the Hero\'s booking tracking directly (trackConversion call, not a trackAs prop)', () => {
+  const text = src('components/sections/HeroBookButton.tsx');
+  assert.match(text, /trackConversion\('booking_click',/);
 });
 
 test('4b. BioPageContent no longer references TrackedBookingLink, and the component file was removed rather than left as orphaned dead code', () => {

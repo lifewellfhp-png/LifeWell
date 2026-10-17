@@ -11,7 +11,13 @@ export const feesIntro = {
   // explicit instruction — the intro section is now just this sentence
   // plus two buttons, no photo card. Admin-editable (Fees page text ->
   // Intro body), so this is only the default.
-  body: 'Clear, upfront pricing for self-pay care and accepted insurance plans, so you can plan your visit with confidence.',
+  //
+  // Owner-confirmed (prelaunch accuracy audit): both psychiatric and
+  // primary care services are scoped to adults age 18 and older — the
+  // same wording already used for psychiatric evaluations in
+  // data/generated/services.ts, reused here rather than inventing new
+  // restriction language.
+  body: 'Clear, upfront pricing for self-pay care and accepted insurance plans, so you can plan your visit with confidence. Our services are for adults age 18 and older.',
   image: {
     src: '/images/sections/Fees.avif',
     width: 1180,

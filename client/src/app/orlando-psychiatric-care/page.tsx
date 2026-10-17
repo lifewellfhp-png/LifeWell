@@ -7,12 +7,12 @@ import { pageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
 const DESCRIPTION =
-  'Psychiatric evaluations and medication management in Orlando, FL — in person at our Avalon Park office or by secure telehealth. Accepting new patients.';
+  'Psychiatric evaluations and medication management in Orlando, FL — in person at our Avalon Park office or by secure telehealth. New patients welcome.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Psychiatric Care in Orlando, FL — In Person or Telehealth',
+    title: 'Psychiatric Care in Orlando & Telehealth | LifeWell',
     description: DESCRIPTION,
     path: '/orlando-psychiatric-care',
   });

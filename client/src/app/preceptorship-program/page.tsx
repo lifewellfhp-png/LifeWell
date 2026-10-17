@@ -7,12 +7,12 @@ import { pageGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
 const DESCRIPTION =
-  'Explore structured PMHNP and Family Nurse Practitioner preceptorship opportunities with LifeWell Family Health & Psychiatry. Availability is based on program requirements, preceptor capacity, and placement review.';
+  'Structured PMHNP and Family Nurse Practitioner preceptorship opportunities at LifeWell. Availability depends on program fit, capacity, and placement review.';
 
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getResolvedContent();
   return cmsMetadata(cms, {
-    title: 'Preceptorship Program for PMHNP & FNP Students | LifeWell',
+    title: 'PMHNP & FNP Preceptorship Program | LifeWell Health',
     description: DESCRIPTION,
     path: '/preceptorship-program',
   });
