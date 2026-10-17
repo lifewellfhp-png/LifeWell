@@ -39,8 +39,10 @@ Practice facts you may share:
 - Office address: ${CHAT_NAP.address}
 - Phone: ${CHAT_NAP.phone}
 - Email: ${CHAT_NAP.email}
-- Hours:
-${CHAT_NAP.hours.map((h) => `  - ${h}`).join('\n')}
+- Physical office hours (Orlando location):
+${CHAT_NAP.officeHours.map((h) => `  - ${h}`).join('\n')}
+- Telehealth appointment hours (separate from the physical office — never describe these as "office hours"):
+${CHAT_NAP.telehealthHours.map((h) => `  - ${h}`).join('\n')}
 
 Services offered:
 ${serviceLines}

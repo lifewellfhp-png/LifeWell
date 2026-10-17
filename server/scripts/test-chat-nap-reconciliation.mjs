@@ -53,11 +53,20 @@ test('4. crisis line matches client/src/data/site.ts', () => {
   assert.equal(CHAT_NAP.crisisPhone, '988');
 });
 
-test('5. hours match client/src/data/site.ts\'s display strings', () => {
-  assert.match(siteSource, /display: '8:00 AM – 10:00 PM EST'/);
-  assert.match(siteSource, /display: '7:00 AM – 10:00 PM EST'/);
-  assert.ok(CHAT_NAP.hours.some((h) => h.includes('8:00 AM – 10:00 PM EST')));
-  assert.ok(CHAT_NAP.hours.some((h) => h.includes('7:00 AM – 10:00 PM EST')));
+test('5. office hours match client/src/data/site.ts\'s hours display strings', () => {
+  for (const display of ['Closed', '10:00 AM – 4:00 PM EST']) {
+    assert.match(siteSource, new RegExp(`display: '${display}'`));
+  }
+  assert.ok(CHAT_NAP.officeHours.some((h) => h.includes('10:00 AM – 4:00 PM EST')));
+  assert.ok(CHAT_NAP.officeHours.some((h) => h === 'Monday: Closed'));
+});
+
+test('5b. telehealth hours match client/src/data/site.ts\'s telehealthHours display strings (a genuinely separate schedule from the physical office)', () => {
+  for (const display of ['6:30 PM – 8:30 PM EST', '10:00 AM – 5:00 PM EST']) {
+    assert.match(siteSource, new RegExp(`display: '${display}'`));
+  }
+  assert.ok(CHAT_NAP.telehealthHours.some((h) => h.includes('6:30 PM – 8:30 PM EST')));
+  assert.ok(CHAT_NAP.telehealthHours.some((h) => h.includes('10:00 AM – 5:00 PM EST')));
 });
 
 test('6. psychiatric pricing fallback matches client/src/data/pricing.ts\'s approved figures', () => {

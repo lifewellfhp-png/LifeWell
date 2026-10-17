@@ -53,7 +53,7 @@ test('4. NAP facts (phone, address, hours) are present', () => {
   const prompt = buildPrompt();
   assert.match(prompt, new RegExp(CHAT_NAP.phone.replace(/[()]/g, '\\$&')));
   assert.match(prompt, new RegExp(CHAT_NAP.address));
-  for (const hour of CHAT_NAP.hours) {
+  for (const hour of [...CHAT_NAP.officeHours, ...CHAT_NAP.telehealthHours]) {
     assert.match(prompt, new RegExp(hour.replace(/[().]/g, '\\$&')));
   }
 });
