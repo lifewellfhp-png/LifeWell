@@ -1,7 +1,8 @@
+import { preload } from 'react-dom';
 import { hero } from '@/data/marketing';
 import { site } from '@/data/site';
 import type { ResolvedHero, BookingProfiles } from '@/lib/cms-resolve';
-import { HeroMedia } from './HeroMedia';
+import { HeroMedia, HERO_POSTER_SRC, isUsableImageSrc } from './HeroMedia';
 import { OutlineButton } from '@/components/ui/SwapButton';
 import { HeroBookButton } from './HeroBookButton';
 
@@ -25,6 +26,20 @@ export function Hero({
   bookingProfiles?: BookingProfiles;
 } = {}) {
   const data: ResolvedHero = heroProp ?? { ...hero };
+
+  // Advance discovery of the LCP element's image as early as possible —
+  // without this, the browser only finds it once it parses as far as the
+  // <video poster>/<img> tag itself, costing a measurable resourceLoadDelay
+  // under Lighthouse's throttled-mobile simulation. Only the static poster
+  // path is preloaded (it's the exact URL <video poster> will request); a
+  // CMS image goes through next/image's own resized/optimized URL, which
+  // this early hint can't predict, so it's left to next/image's own
+  // priority loading instead of a (potentially mismatched) preload.
+  const usingStaticPoster = !(data.hasCmsImage && data.image && isUsableImageSrc(data.image.src));
+  if (usingStaticPoster) {
+    preload(HERO_POSTER_SRC, { as: 'image', fetchPriority: 'high' });
+  }
+
   const rawPrimary = data.headingPrimary || data.heading;
   const rawAccent = data.headingAccent || '';
 

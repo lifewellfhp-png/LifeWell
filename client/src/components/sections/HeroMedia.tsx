@@ -24,6 +24,8 @@ import { isOptimizableImageSrc } from '@/lib/site-asset';
  * only controls whether `.play()` is called, via a ref, not whether the
  * element exists.
  */
+export const HERO_POSTER_SRC = '/images/sections/home-hero-poster.jpg';
+
 export function HeroMedia({
   image,
   hasCmsImage,
@@ -75,7 +77,7 @@ export function HeroMedia({
     <video
       ref={videoRef}
       className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
-      poster="/images/sections/home-hero-poster.jpg"
+      poster={HERO_POSTER_SRC}
       // React's DOM typings don't model fetchPriority on <video> yet (it's
       // valid HTML/supported by Chrome) — spread it in as a plain attribute.
       {...{ fetchpriority: 'high' }}
@@ -92,7 +94,7 @@ export function HeroMedia({
   );
 }
 
-function isUsableImageSrc(src: string): boolean {
+export function isUsableImageSrc(src: string): boolean {
   if (!src || /^(data:|blob:|\/\/)/i.test(src)) return false;
   if (src.startsWith('/')) return src.length > 1;
   try {
