@@ -69,8 +69,13 @@ test('6. no invented deposit/refund/payment-method/late-payment-penalty language
 });
 
 test('7. the short pricing-card sliding-scale statement (a separate string in FeesPageContent.tsx) is untouched by this change', () => {
+  // Phase 26 reorg (unrelated to this file's own change): replaced the
+  // per-card capitalized label with one shared, lowercase summary line —
+  // see test-sliding-scale-wording.mjs's APPROVED_WORDING for the full
+  // rationale. Same fact (sliding scale available, contact to ask), new
+  // exact wording/location.
   const text = readFileSync(join(root, 'src/components/sections/FeesPageContent.tsx'), 'utf8');
-  assert.match(text, /Sliding Scale Available — Contact us to ask about eligibility and availability\./);
+  assert.match(text, /Sliding scale available — contact us to ask about eligibility and availability\./);
 });
 
 test('8. approved FL/MA/AZ psychiatric self-pay pricing reflects the current approved figures', () => {

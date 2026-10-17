@@ -104,18 +104,24 @@ test("TestimonialCard's null-safe rendering guard is still intact (source check 
   assert.match(source, /testimonial\.rating !== null && <Rating value=\{testimonial\.rating\} \/>/);
 });
 
-test('homepage testimonials component still renders no rating/star UI (unchanged by this phase)', () => {
+test('homepage testimonials component renders rating/star UI, gated on rating !== null', () => {
+  // Phase 25 (star ratings): the homepage slider now shows green
+  // (--lw-accent) stars above the quote when a rating is set, and nothing
+  // when it isn't — never fabricated. This reverses the old "no rating UI"
+  // assertion, which predates that phase.
   const source = readFileSync(join(root, 'src/components/sections/Testimonials.tsx'), 'utf8');
   const homepageFn = source.slice(
     source.indexOf('export function Testimonials('),
     source.indexOf('export function TestimonialCard(')
   );
-  assert.doesNotMatch(homepageFn, /<Rating|StarIcon|rating/);
+  assert.match(homepageFn, /current\.rating !== null && <Rating value=\{current\.rating\}/);
 });
 
-test('testimonials-page content still renders no rating/star UI (unchanged by this phase)', () => {
+test('testimonials-page content renders rating/star UI, gated on rating !== null', () => {
+  // Phase 25 (star ratings): the /telehealth-mental-health-testimonials
+  // grid cards now show stars the same way, same null-guard.
   const source = readFileSync(join(root, 'src/components/sections/TestimonialsPageContent.tsx'), 'utf8');
-  assert.doesNotMatch(source, /<Rating|StarIcon|\brating\b/);
+  assert.match(source, /item\.rating !== null && <Rating value=\{item\.rating\}/);
 });
 
 test('no Review/AggregateRating structured data was introduced for testimonials', () => {

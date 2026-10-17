@@ -24,17 +24,22 @@ import { telehealthStates, getTelehealthState } from '../src/data/telehealth-sta
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const feesSource = readFileSync(join(__dirname, '../src/components/sections/FeesPageContent.tsx'), 'utf8');
 
-const APPROVED_WORDING = 'Sliding Scale Available — Contact us to ask about eligibility and availability.';
+// Phase 26 (/fees-insurance reorg): the per-state-card "Sliding Scale
+// Available — Contact us..." label (capitalized, one per card) was
+// replaced by a single shared summary line below the self-pay table —
+// lowercase "scale"/"contact", and gated on there being at least one
+// self-pay-only or sliding-scale state across the whole collection,
+// not a single card's own flag.
+const APPROVED_WORDING = 'Sliding scale available — contact us to ask about eligibility and availability.';
 
 /* ------------------------------------------------------- 1. exact wording --- */
 
 test('1. the exact approved sliding-scale wording appears in the Fees & Insurance pricing presentation', () => {
-  assert.match(feesSource, /Sliding Scale Available — Contact us to ask about eligibility and availability\./);
-  // Confirm it's still gated by the same per-state flag as before, not a
-  // standalone/duplicated block.
+  assert.match(feesSource, /Sliding scale available — contact us to ask about eligibility and availability\./);
+  // Confirm it's still conditionally shown, not a hardcoded permanent line.
   const idx = feesSource.indexOf(APPROVED_WORDING);
-  const before = feesSource.slice(Math.max(0, idx - 200), idx);
-  assert.match(before, /pricing\.slidingScaleAvailable \? \(/);
+  const before = feesSource.slice(Math.max(0, idx - 300), idx);
+  assert.match(before, /\(selfPayOnlyStates\.length > 0 \|\| slidingScaleStates\) && \(/);
 });
 
 test('1b. the old, less-clear "Sliding Scale Available" bare label no longer exists on its own', () => {
@@ -104,15 +109,20 @@ test('7. Massachusetts and Arizona remain self-pay only', () => {
 });
 
 test('8. Florida insurance content remains Florida-only', () => {
-  assert.match(feesSource, /Accepted Insurance Plans — Florida Only/);
-  assert.match(feesSource, /Massachusetts and Arizona psychiatric visits are self-pay only/i);
+  // Phase 26 reorg: heading/body shortened ("Insurance We Accept —
+  // Florida" / "...Massachusetts and Arizona visits are self-pay."), same
+  // Florida-only meaning, new exact wording.
+  assert.match(feesSource, /Insurance We Accept — Florida/);
+  assert.match(feesSource, /Massachusetts and Arizona visits are self-pay/i);
 });
 
 /* ------------------------------------------------ 9. booking unaffected --- */
 
 test('9. P7-1 booking tracking is unaffected by this change', () => {
+  // Phase 26 reorg dropped the per-card Book buttons (3 -> 2; see
+  // test-booking-click-tracking.mjs's expectedCoverage for the same change).
   const matches = feesSource.match(/trackAs="booking_click"/g) || [];
-  assert.equal(matches.length, 3, 'Fees & Insurance should still have exactly 3 booking_click CTAs (unchanged from before P7-3)');
+  assert.equal(matches.length, 2, 'Fees & Insurance should have exactly 2 booking_click CTAs (intro + bottom CTA, post-Phase-26 reorg)');
   // The sliding-scale text itself must never be wrapped in a tracked control.
   const idx = feesSource.indexOf(APPROVED_WORDING);
   const nearby = feesSource.slice(Math.max(0, idx - 150), idx + APPROVED_WORDING.length + 150);
