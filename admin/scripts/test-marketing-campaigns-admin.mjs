@@ -32,6 +32,7 @@ function fnSlice(source, startMarker, endMarker) {
 
 const onCreateSource = fnSlice(pageSource, 'async function onCreate', 'function openEdit');
 const onEditSource = fnSlice(pageSource, 'async function onEdit', 'async function onArchive');
+const onDeleteSource = fnSlice(pageSource, 'async function onDelete', 'async function onDuplicate');
 const previewDialogSource = pageSource.slice(pageSource.indexOf('{previewing ? ('));
 
 // 1. Campaigns appears under the existing Marketing group.
@@ -122,8 +123,14 @@ test('14. archived campaigns remain viewable (View has no status gate)', () => {
 });
 
 test('15. archived campaigns are not editable — Edit is only offered for draft campaigns', () => {
-  const editGuardCount = (pageSource.match(/row\.status === 'draft' \? \(\s*<button type="button" className="btn btn-ghost" onClick=\{\(\) => openEdit\(row\)\}/g) || []).length;
-  assert.ok(editGuardCount >= 1, 'expected Edit to be conditionally rendered only for draft campaigns');
+  // Edit's gate moved from an inline ternary to a `canEdit` variable
+  // (also now requiring !locked, not just draft status) — assert the
+  // gate variable's definition and that the Edit button is conditioned
+  // on it, rather than matching the old literal ternary text.
+  const canEditDefCount = (pageSource.match(/const canEdit = row\.status === 'draft' && !locked;/g) || []).length;
+  assert.ok(canEditDefCount >= 1, 'expected a canEdit gate requiring draft status and not delivery-locked');
+  const editButtonGuardCount = (pageSource.match(/\{canEdit \? \(\s*<button type="button" className="btn btn-ghost" onClick=\{\(\) => openEdit\(row\)\}>/g) || []).length;
+  assert.ok(editButtonGuardCount >= 1, 'expected the Edit button to be conditioned on canEdit');
 });
 
 // 16. Archive action exists.
@@ -133,10 +140,16 @@ test('16. an Archive action exists and calls the dedicated archive endpoint', ()
   assert.match(pageSource, /method:\s*'POST'/);
 });
 
-// 17/18. No delete, no unarchive.
-test('17. there is no delete/trash action', () => {
-  assert.doesNotMatch(pageSource, /'DELETE'/);
-  assert.doesNotMatch(pageSource, />\s*Delete\s*</);
+// 17/18. Delete is now a real, deliberately scoped action (added after this
+// test was first written); no unarchive still holds.
+test('17. Delete is restricted to draft, non-locked campaigns only (never archived or delivery-initiated)', () => {
+  const canDeleteDefCount = (pageSource.match(/const canDelete = row\.status === 'draft' && !locked;/g) || []).length;
+  assert.ok(canDeleteDefCount >= 1, 'expected a canDelete gate requiring draft status and not delivery-locked');
+  const deleteButtonGuardCount = (pageSource.match(/\{canDelete \? \(/g) || []).length;
+  assert.ok(deleteButtonGuardCount >= 1, 'expected the Delete button to be conditioned on canDelete');
+  assert.match(pageSource, /method: 'DELETE'/);
+  // Confirmation is still required before any delete request is sent.
+  assert.match(onDeleteSource, /confirm\(/);
   assert.doesNotMatch(pageSource, /Trash/i);
 });
 
@@ -184,15 +197,16 @@ test('26. no email addresses are shown by the recipient preview', () => {
   assert.doesNotMatch(previewDialogSource, /\.email\b/);
 });
 
-// 27. No personalization/merge fields.
-test('27. no personalization/merge-field syntax is supported', () => {
-  // `{{` alone is not a safe signal — JSX inline style objects
-  // (style={{ ... }}) legitimately use double braces throughout this file.
-  // The real signal is an actual merge-field-shaped token.
-  assert.doesNotMatch(pageSource, /\{\{\s*(first_name|patient_name|diagnosis|provider|appointment)\s*\}\}/i);
-  for (const term of ['merge field', 'merge_field', 'personalization', 'personalisation']) {
-    assert.doesNotMatch(pageSource, new RegExp(term, 'i'));
+// 27. Merge-field personalization is now a real, deliberately narrow
+// feature (added after this test was first written) — only the three
+// approved, non-clinical tokens are supported. The original concern this
+// test guarded against was clinical/PHI-adjacent fields leaking into bulk
+// marketing email; that boundary still holds and is asserted directly.
+test('27. only the approved non-clinical merge-field tokens are supported — no clinical/PHI-adjacent fields', () => {
+  for (const token of ['{{first_name}}', '{{first_name_or_there}}', '{{unsubscribe_url}}']) {
+    assert.ok(pageSource.includes(token), `expected the approved token ${token} to be documented in the UI`);
   }
+  assert.doesNotMatch(pageSource, /\{\{\s*(patient_name|diagnosis|provider|appointment|medication|treatment|diagnos\w*)\s*\}\}/i);
 });
 
 // 28/29. Unsubscribe note is non-functional, no real token.
