@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Client already has this off; admin was still leaking X-Powered-By:
+  // Next.js on every response (found in a production diagnostic).
+  poweredByHeader: false,
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
