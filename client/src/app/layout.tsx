@@ -8,7 +8,6 @@ import { SkipLink } from '@/components/layout/SkipLink';
 import { NavigationProgress } from '@/components/layout/NavigationProgress';
 import { ThemeVars } from '@/components/layout/ThemeVars';
 import { SiteHeader } from '@/components/layout/SiteHeader';
-import { CrisisBar } from '@/components/layout/CrisisBar';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { AnalyticsBeacon } from '@/components/seo/AnalyticsBeacon';
 import { ChatAssistant } from '@/components/chat/ChatAssistant';
@@ -86,7 +85,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ThemeVars />
         <SkipLink />
         <NavigationProgress />
-        <CrisisBar />
         <SiteHeader />
         <main id="main-content" tabIndex={-1} className="min-w-0 overflow-x-clip focus:outline-none">
           {children}

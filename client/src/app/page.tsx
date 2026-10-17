@@ -33,10 +33,10 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Homepage — reordered for Phase 24 (homepage reorg): Hero, four quick
  * cards, Services, How It Works, Insurance, Welcome+Benefits (merged, was
- * two separate sections), Watch and Learn, Contact. The crisis notice and
- * newsletter band are now global (CrisisBar in layout.tsx above the
- * header; the newsletter band is Footer.tsx's own top band) rather than
- * homepage-specific sections.
+ * two separate sections), Watch and Learn, Contact. The newsletter band is
+ * now global (Footer.tsx's own top band) rather than a homepage-specific
+ * section. The sitewide crisis bar that briefly sat above the header was
+ * removed per explicit follow-up request.
  *
  * TrustStrip's "Your provider" card was restored per explicit follow-up
  * request after the reorg briefly dropped it. Neither Stats ("A Foundation

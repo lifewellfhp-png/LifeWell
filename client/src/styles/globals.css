@@ -161,19 +161,6 @@
      sm/md/lg/xl/2xl keep Tailwind's defaults (640/768/1024/1280/1536).
      `xs` is added for small handsets. */
   --breakpoint-xs: 26.25rem; /* 420 */
-
-  /* Phase 24 homepage reorg: the sitewide crisis bar's own height
-     (CrisisBar.tsx), shared so Header.tsx's top offset stays in sync with
-     it rather than guessing a second hardcoded number. Sized for the
-     1-line case by default; redefined larger below 400px wide, where the
-     crisis message is long enough to wrap to 2 lines. */
-  --crisis-bar-height: 40px;
-}
-
-@media (width < 400px) {
-  :root {
-    --crisis-bar-height: 60px;
-  }
 }
 
 /* ==========================================================================
@@ -190,10 +177,8 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
-    /* Offset anchor targets so the sticky header never covers them.
-       Phase 24: now also accounts for the crisis bar's own height, which
-       the header itself sits below (see Header.tsx). */
-    scroll-padding-top: calc(6rem + var(--crisis-bar-height) + env(safe-area-inset-top));
+    /* Offset anchor targets so the sticky header never covers them. */
+    scroll-padding-top: calc(6rem + env(safe-area-inset-top));
     /* clip does not create a scroll container, so position:fixed overlays
        (mobile menu, search) stay viewport-relative on iOS. */
     overflow-x: clip;

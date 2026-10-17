@@ -47,7 +47,7 @@ export function Hero({
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative isolate flex min-h-[calc(100svh-var(--crisis-bar-height))] max-h-none items-center overflow-hidden md:max-desktop:min-h-[calc(850px-var(--crisis-bar-height))] desktop:min-h-[calc(950px-var(--crisis-bar-height))]"
+      className="relative isolate flex min-h-[100svh] max-h-none items-center overflow-hidden md:max-desktop:min-h-[850px] desktop:min-h-[950px]"
     >
       <HeroMedia image={data.image} hasCmsImage={data.hasCmsImage} />
 

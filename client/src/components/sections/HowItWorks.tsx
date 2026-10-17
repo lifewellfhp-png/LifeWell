@@ -10,8 +10,10 @@ import { site } from '@/data/site';
  * tiles with green circular number badges, then CTA.
  *
  * Phase 24 homepage reorg: the frosted "Are You in Danger?" overlay card
- * that used to sit on the photo here is gone — the sitewide CrisisBar
- * (layout.tsx, above the header on every page) replaces it.
+ * that used to sit on the photo here is gone and was not restored; it was
+ * briefly replaced with a sitewide crisis bar, which was itself removed
+ * per explicit follow-up request. `site` stays imported for CrisisCallout
+ * below, used elsewhere (e.g. the contact page).
  */
 export function HowItWorks({
   steps = defaultSteps,
