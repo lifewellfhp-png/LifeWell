@@ -117,6 +117,18 @@ const schema = z.object({
    * hasn't been configured yet.
    */
   TURNSTILE_SECRET_KEY: z.string().optional(),
+
+  /**
+   * IndexNow (indexnow.org) — pings participating search engines
+   * (currently Bing, and others that opt in) when content changes, so
+   * they don't have to wait for their own next crawl. Optional, same
+   * degrade-gracefully posture as every other integration above —
+   * pingIndexNow() just logs and no-ops until this is set. The key is
+   * any string the operator generates; IndexNow verifies ownership via a
+   * matching `<key>.txt` file at the site root (see
+   * src/lib/indexNow.ts's doc comment for the exact setup steps).
+   */
+  INDEXNOW_API_KEY: z.string().optional(),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -142,6 +154,9 @@ export const mailConfigured = Boolean(
 
 /** True once a Gemini API key is present; otherwise /api/chat answers with a clear "not configured" error. */
 export const geminiConfigured = Boolean(env.GEMINI_API_KEY);
+
+/** True once an IndexNow key is present; otherwise pingIndexNow() just logs and no-ops. */
+export const indexNowConfigured = Boolean(env.INDEXNOW_API_KEY);
 
 /** True once MFA_ENCRYPTION_KEY is set; otherwise MFA setup is blocked with a clear error. */
 export const mfaConfigured = Boolean(env.MFA_ENCRYPTION_KEY);
