@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { provider, providerPage } from '@/data/provider';
-import { site } from '@/data/site';
+import { site, formatCareLanguages } from '@/data/site';
 import { stats, testimonials } from '@/data/marketing';
 import { Container } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
@@ -241,13 +241,16 @@ function BioHero({
             <li className="border-b border-[#ddd] py-[15px] text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
               Fax: {site.contact.fax}
             </li>
-            <li className="py-[15px]">
+            <li className="border-b border-[#ddd] py-[15px]">
               <a
                 href={`mailto:${displayEmail}`}
                 className="text-[16px] leading-[1.45] text-[#374151] no-underline hover:text-[var(--lw-primary)] desktop:text-[18px]"
               >
                 Email: {displayEmail}
               </a>
+            </li>
+            <li className="py-[15px] text-[16px] leading-[1.45] text-[#374151] desktop:text-[18px]">
+              Languages: {formatCareLanguages()}
             </li>
           </ul>
 
