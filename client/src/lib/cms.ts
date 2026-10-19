@@ -155,7 +155,32 @@ function captureUtmParams(): { utm_source: string | null; utm_medium: string | n
   };
 }
 
+/**
+ * Non-patient-traffic exclusion, checked before every analytics/conversion
+ * request so excluded traffic never even reaches the server (a cheaper,
+ * more honest signal than letting the request through and filtering it
+ * server-side).
+ *
+ * `navigator.webdriver` is the W3C-standard flag Playwright/Puppeteer/
+ * Selenium set on the browser they automate — far harder to spoof away
+ * than a User-Agent string, and the only reliable signal against modern
+ * Chrome's `--headless=new` mode, which deliberately no longer
+ * self-identifies as "HeadlessChrome" in its UA.
+ *
+ * `lw_exclude_analytics` is a plain, non-HttpOnly cookie set by
+ * /api/analytics-exclude (this app's own domain) when the site owner
+ * opts their own browser out via the Admin Analytics page.
+ */
+function isExcludedVisitor(): boolean {
+  if (typeof navigator !== 'undefined' && navigator.webdriver) return true;
+  if (typeof document !== 'undefined' && /(?:^|;\s*)lw_exclude_analytics=1(?:;|$)/.test(document.cookie)) {
+    return true;
+  }
+  return false;
+}
+
 export async function trackPageView(path: string): Promise<void> {
+  if (isExcludedVisitor()) return;
   try {
     const device = classifyDevice();
 
@@ -191,6 +216,7 @@ export async function trackConversion(
   conversion_type: 'contact' | 'newsletter' | 'booking_click',
   path?: string
 ): Promise<void> {
+  if (isExcludedVisitor()) return;
   try {
     await fetch(`${API_URL}/api/public/conversions`, {
       method: 'POST',

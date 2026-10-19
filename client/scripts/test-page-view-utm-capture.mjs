@@ -221,10 +221,20 @@ test('13. internal navigation without UTM params does not inherit a prior page\'
 });
 
 test('13b. no module-level/persisted UTM state exists in cms.ts — source-level guarantee behind the behavioral test above', () => {
+  // 2026-10-19 analytics-accuracy fix: cms.ts now reads document.cookie
+  // once, for an unrelated purpose (the site owner's own
+  // lw_exclude_analytics opt-out preference, checked by
+  // isExcludedVisitor() — see test-analytics-exclusion.mjs) — not for
+  // UTM state. The guarantee this test exists for is narrower: UTM values
+  // are never cached/persisted anywhere, always read fresh from
+  // window.location.search inside captureUtmParams() itself.
+  const utmFnStart = cmsSource.indexOf('function captureUtmParams');
+  const utmFnBody = cmsSource.slice(utmFnStart, cmsSource.indexOf('\n}', utmFnStart));
   assert.doesNotMatch(cmsSource, /let\s+(lastUtm|storedUtm|persistedUtm|currentUtm)/i);
   assert.doesNotMatch(cmsSource, /localStorage/);
   assert.doesNotMatch(cmsSource, /sessionStorage/);
-  assert.doesNotMatch(cmsSource, /document\.cookie/);
+  assert.doesNotMatch(utmFnBody, /document\.cookie/);
+  assert.match(utmFnBody, /window\.location\.search/);
 });
 
 /* ------------------------------------------------- 14. event_type unchanged --- */
@@ -286,10 +296,20 @@ test('19. trackConversion source is completely unchanged by this task', () => {
 
 /* ------------------------------------------------- 20. no browser storage/cookie --- */
 
-test('20. no cookie, sessionStorage, or localStorage is introduced anywhere in cms.ts', () => {
+test('20. no tracking/identity cookie or storage is introduced anywhere in cms.ts', () => {
+  // 2026-10-19 analytics-accuracy fix: cms.ts now reads (never writes)
+  // one specific, non-identifying cookie — lw_exclude_analytics, the site
+  // owner's own opt-out preference, set by a separate route handler, not
+  // by this file. This is not a tracking/identity mechanism (it carries
+  // no visitor ID, no UTM value, nothing that could fingerprint or
+  // correlate a visitor) — the guarantee this test exists for (no
+  // visitor-tracking storage) still holds; it's scoped to exclude that
+  // one known, reviewed exception rather than banning all cookie access.
   assert.doesNotMatch(cmsSource, /localStorage/);
   assert.doesNotMatch(cmsSource, /sessionStorage/);
-  assert.doesNotMatch(cmsSource, /document\.cookie/);
+  assert.doesNotMatch(cmsSource, /document\.cookie\s*=/, 'cms.ts must never WRITE a cookie, only read the one known opt-out flag');
+  const cookieReads = cmsSource.match(/document\.cookie/g) || [];
+  assert.equal(cookieReads.length, 1, 'expected exactly one document.cookie read — the lw_exclude_analytics check');
 });
 
 test('21. captureUtmParams reads only the three allowed keys, via URLSearchParams, never the raw search string as a whole', () => {
