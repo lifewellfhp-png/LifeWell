@@ -37,53 +37,65 @@ const adminPageSource = adminPageSourceRaw.replace(/\r\n/g, '\n');
 
 const summaryStart = controllerSource.indexOf('export async function getAnalyticsSummary');
 const summarySource = controllerSource.slice(summaryStart);
-// The two UTM-specific accumulation lines, inside the shared pageViews
-// loop (merged with popularPages/devices/trafficSources/trends — one pass,
-// one range, one event-type filter for every report on this page).
-const utmSourceLine = 'if (e.utm_source) byUtmSource[e.utm_source] = (byUtmSource[e.utm_source] ?? 0) + 1;';
-const utmCampaignLine = 'if (e.utm_campaign) byUtmCampaign[e.utm_campaign] = (byUtmCampaign[e.utm_campaign] ?? 0) + 1;';
-const sharedLoopStart = summarySource.indexOf('for (const e of pageViews) {');
-const sharedLoopEnd = summarySource.indexOf('\n  }', sharedLoopStart);
-const sharedLoopBody = summarySource.slice(sharedLoopStart, sharedLoopEnd);
 const rankingCallsBlock = summarySource.slice(
   summarySource.indexOf('const utmSources = buildUtmShareRanking'),
-  summarySource.indexOf('const utmCampaigns = buildUtmShareRanking') + 60
+  summarySource.indexOf('const utmCampaigns = buildUtmShareRanking') + 75
 );
+
+// 2026-10-19 analytics-accuracy fix: the UTM accumulation that used to be
+// two lines inside a shared JS loop over a plain, 1000-row-capped
+// .select() moved into the analytics_summary() Postgres RPC function
+// (utmSourceCounts/utmCampaignCounts fields) — buildUtmShareRanking()
+// itself is unchanged, still a pure function fed by whatever counts object
+// it's given (now the RPC's result, not a JS accumulator). Tests 1/2/3/5
+// below assert the SQL migration implements the same page_view-only,
+// null-excluded scoping, rather than JS that no longer exists.
+const migrationSourceRaw = readFileSync(
+  join(root, 'supabase/migrations/20261019180354_analytics_summary_rpc.sql'),
+  'utf8'
+);
+const migrationSource = migrationSourceRaw.replace(/\r\n/g, '\n');
+const utmSourceBlockStart = migrationSource.indexOf("'utmSourceCounts'");
+const utmSourceBlock = migrationSource.slice(utmSourceBlockStart, utmSourceBlockStart + 350);
+const utmCampaignBlockStart = migrationSource.indexOf("'utmCampaignCounts'");
+const utmCampaignBlock = migrationSource.slice(utmCampaignBlockStart, utmCampaignBlockStart + 350);
 
 /* ------------------------------------------------- 1-2. data source / event scope --- */
 
-test('1. UTM aggregation reads from the analytics_events query (utm_source/utm_campaign selected)', () => {
-  assert.match(summarySource, /\.from\('analytics_events'\)\s*\n\s*\.select\('event_type, path, referrer_host, device, utm_source, utm_campaign, created_at'\)/);
+test('1. UTM aggregation reads from analytics_events, scoped to event_type = page_view', () => {
+  assert.match(utmSourceBlock, /from analytics_events/);
+  assert.match(utmSourceBlock, /event_type = 'page_view'/);
+  assert.match(utmCampaignBlock, /from analytics_events/);
+  assert.match(utmCampaignBlock, /event_type = 'page_view'/);
 });
 
-test('2. only page_view events contribute — the UTM accumulation lines live inside the loop over `pageViews`, never a raw `events` iteration', () => {
-  assert.match(sharedLoopBody, /for \(const e of pageViews\) \{/);
-  assert.ok(sharedLoopBody.includes(utmSourceLine));
-  assert.ok(sharedLoopBody.includes(utmCampaignLine));
-  assert.doesNotMatch(summarySource, /for \(const e of events\)/);
+test('2. only page_view events contribute — the UTM counts are their own scoped subqueries, never read from `conversions`', () => {
+  assert.doesNotMatch(utmSourceBlock, /from conversions/);
+  assert.doesNotMatch(utmCampaignBlock, /from conversions/);
 });
 
 /* ------------------------------------------------- 3-6. null/blank exclusion --- */
 
-test('3. a null utm_source is excluded from source attribution (truthy-guarded, not fabricated as a fallback label)', () => {
-  assert.ok(sharedLoopBody.includes(utmSourceLine));
-  assert.doesNotMatch(summarySource, /e\.utm_source \|\| /, 'must not fall back to a fabricated label like popularPages/trafficSources do');
+test('3. a null utm_source is excluded from source attribution (NULL-guarded, not fabricated as a fallback label)', () => {
+  assert.match(utmSourceBlock, /utm_source is not null/);
+  assert.doesNotMatch(utmSourceBlock, /coalesce\(utm_source/, 'must not fall back to a fabricated label like popularPages/trafficSources do');
 });
 
 test('4. an empty-string utm_source would also be excluded (falsy guard, not just null-specific)', () => {
   const ranking = buildUtmShareRanking({ google: 3 });
-  // The guard is `if (e.utm_source)` in the real aggregation loop (test 3) —
-  // '' is falsy, so it never reaches byUtmSource at all. This test confirms
-  // buildUtmShareRanking itself never invents a '' row from an empty
-  // counts map, i.e. there is no special-casing that would let a blank
-  // key slip through downstream.
+  // The guard is `utm_source is not null` in the real RPC aggregation
+  // (test 3) — normalizeUtmValue() at ingest already rejects '' to null
+  // before it's ever stored (see attribution.ts), so '' never reaches the
+  // database at all. This test confirms buildUtmShareRanking itself never
+  // invents a '' row from an empty counts map, i.e. there is no
+  // special-casing that would let a blank key slip through downstream.
   assert.deepEqual(Object.keys(buildUtmShareRanking({})), []);
   assert.deepEqual(ranking.map((r) => r.value), ['google']);
 });
 
 test('5. a null utm_campaign is excluded from campaign attribution', () => {
-  assert.ok(sharedLoopBody.includes(utmCampaignLine));
-  assert.doesNotMatch(summarySource, /e\.utm_campaign \|\| /);
+  assert.match(utmCampaignBlock, /utm_campaign is not null/);
+  assert.doesNotMatch(utmCampaignBlock, /coalesce\(utm_campaign/);
 });
 
 test('6. an empty-string utm_campaign would also be excluded (same falsy guard)', () => {
@@ -162,37 +174,38 @@ test('15b/16b. reconciliation holds within normal rounding even for values that 
 
 /* ------------------------------------------------- 17-22. date range application --- */
 
-test('17-20/22. UTM reports use the exact same range-resolved `pageViews` array as every other report on this page (today/7d/30d/custom all apply identically, by construction)', () => {
-  // popularPages, trafficSources, and the UTM aggregation are all
-  // accumulated in ONE shared loop over `pageViews` (test 2) — there is no
-  // second, independently-scoped query for UTM data, so any preset/custom
-  // range that works for the rest of the page necessarily applies
-  // identically here. Confirmed by there being exactly one such loop and
-  // exactly one resolveRange() call for the whole response.
-  const loopCount = (summarySource.match(/for \(const e of pageViews\) \{/g) || []).length;
-  assert.equal(loopCount, 1, 'expected exactly one shared loop over pageViews (utm reads the same array, not a second loop)');
+test('17-20/22. UTM reports use the exact same range as every other report on this page (today/7d/30d/custom all apply identically, by construction)', () => {
+  // 2026-10-19 analytics-accuracy fix: popularPages, trafficSources, and
+  // the UTM aggregation are all computed inside ONE shared RPC call
+  // (analytics_summary) — there is no second, independently-scoped query
+  // for UTM data, so any preset/custom range that works for the rest of
+  // the page necessarily applies identically here. Confirmed by there
+  // being exactly one such RPC call and exactly one resolveRange() call
+  // for the whole response.
+  const rpcCalls = (summarySource.match(/sb\.rpc\('analytics_summary'/g) || []).length;
+  assert.equal(rpcCalls, 1, 'expected exactly one analytics_summary RPC call (utm reads the same result, not a second query)');
   const resolveRangeCalls = (summarySource.match(/resolveRange\(/g) || []).length;
   assert.equal(resolveRangeCalls, 1);
 });
 
-test('21. Eastern Time range semantics (REPORT_TIMEZONE/zonedMidnightToUtc/dateKeyInZone) are untouched', () => {
+test('21. Eastern Time range semantics (REPORT_TIMEZONE / zoned-midnight math / day-bucketing) are untouched, now enforced in the RPC', () => {
   assert.match(controllerSource, /const REPORT_TIMEZONE = 'America\/New_York';/);
-  assert.match(controllerSource, /const rangeStart = zonedMidnightToUtc\(from, REPORT_TIMEZONE\);/);
-  assert.match(controllerSource, /const day = dateKeyInZone\(e\.created_at as string, REPORT_TIMEZONE\);/);
+  assert.match(migrationSource, /v_range_start := \(p_from::timestamp\) at time zone p_tz;/);
+  assert.match(migrationSource, /\(created_at at time zone p_tz\)::date/);
 });
 
 /* ------------------------------------------------- 23-26. conversions/event-type exclusion --- */
 
-test('23. neither UTM accumulation line references `conversions` in any form', () => {
-  assert.doesNotMatch(utmSourceLine, /conversions/);
-  assert.doesNotMatch(utmCampaignLine, /conversions/);
-  assert.ok(rankingCallsBlock.includes('byUtmSource') && rankingCallsBlock.includes('byUtmCampaign'));
+test('23. neither UTM aggregation block references `conversions` in any form', () => {
+  assert.doesNotMatch(utmSourceBlock, /conversions/);
+  assert.doesNotMatch(utmCampaignBlock, /conversions/);
+  assert.ok(rankingCallsBlock.includes('utmSourceCounts') && rankingCallsBlock.includes('utmCampaignCounts'));
   assert.doesNotMatch(rankingCallsBlock, /conversions/);
 });
 
-test('24/25/26. booking_click, contact, and newsletter conversion types cannot contribute — UTM values are read only from `e` (a pageViews row), never from any conversions row/type', () => {
-  assert.doesNotMatch(utmSourceLine, /conversion_type|booking_click|'contact'|'newsletter'/);
-  assert.doesNotMatch(utmCampaignLine, /conversion_type|booking_click|'contact'|'newsletter'/);
+test('24/25/26. booking_click, contact, and newsletter conversion types cannot contribute — UTM values are read only from analytics_events, never from `conversions`', () => {
+  assert.doesNotMatch(utmSourceBlock, /conversion_type|booking_click|'contact'|'newsletter'/);
+  assert.doesNotMatch(utmCampaignBlock, /conversion_type|booking_click|'contact'|'newsletter'/);
 });
 
 /* ------------------------------------------------- 27-30. privacy --- */
@@ -208,11 +221,11 @@ test('28/29. UtmShareRow carries no PII/PHI fields — only value/count/share', 
   assert.match(controllerSource, /export type UtmShareRow = \{ value: string; count: number; share: number \};/);
 });
 
-test('30. no full query string, path, or raw referrer is included in either UTM accumulation line', () => {
-  for (const line of [utmSourceLine, utmCampaignLine]) {
-    assert.doesNotMatch(line, /\.path\b/);
-    assert.doesNotMatch(line, /referrer_host/);
-    assert.doesNotMatch(line, /window\.location|\bsearch\b/);
+test('30. no full query string, path, or raw referrer is included in either UTM aggregation block', () => {
+  for (const block of [utmSourceBlock, utmCampaignBlock]) {
+    assert.doesNotMatch(block, /\bpath\b/);
+    assert.doesNotMatch(block, /referrer_host/);
+    assert.doesNotMatch(block, /window\.location|\bsearch\b/);
   }
 });
 
@@ -239,19 +252,21 @@ test('33. P3-UTM-1 capture/normalization remains intact (normalizeUtmValue still
 });
 
 test('34. existing device analytics (byDevice/devices) is unaffected', () => {
-  assert.match(summarySource, /const device = e\.device \|\| 'unknown';/);
-  assert.match(summarySource, /devices: byDevice,/);
+  assert.match(migrationSource, /'byDevice',\s*\(/);
+  assert.match(migrationSource, /coalesce\(device, 'unknown'\)/);
+  assert.match(summarySource, /devices: result\.byDevice,/);
 });
 
 test('35. existing referrer analytics (trafficSources) is unaffected', () => {
-  assert.match(summarySource, /const ref = e\.referrer_host \|\| 'direct';/);
-  assert.match(summarySource, /trafficSources,/);
+  assert.match(migrationSource, /'trafficSources',\s*\(/);
+  assert.match(migrationSource, /coalesce\(referrer_host, 'direct'\)/);
+  assert.match(summarySource, /trafficSources: result\.trafficSources,/);
 });
 
 test('36. existing topBookingPages/booking-click device+referrer reporting is unaffected', () => {
-  assert.match(summarySource, /const topBookingPages = Object\.entries\(byBookingClickPath\)/);
-  assert.match(summarySource, /bookingClicksByDevice: byBookingClickDevice,/);
-  assert.match(summarySource, /bookingClicksByReferrer,/);
+  assert.match(migrationSource, /'topBookingPages',\s*\(/);
+  assert.match(summarySource, /bookingClicksByDevice: result\.bookingClicksByDevice,/);
+  assert.match(summarySource, /bookingClicksByReferrer: result\.bookingClicksByReferrer,/);
 });
 
 test('37. Dashboard P1-1 (booking intent by page) is untouched by this task — admin.routes.ts still has its own aggregation, unmodified', () => {

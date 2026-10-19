@@ -6,10 +6,20 @@ import {
   conversionIngestSchema,
 } from '../validation/adminSchemas.js';
 import { normalizeReferrerHost, normalizeUtmValue } from '../lib/attribution.js';
+import { isExcludedRequest } from '../lib/trafficFilter.js';
 
 export async function handleAnalyticsIngest(req: Request, res: Response): Promise<void> {
   const parsed = analyticsIngestSchema.safeParse(req.body);
   if (!parsed.success) throw badRequest('Invalid analytics payload.');
+
+  // Known bots/crawlers, headless/automation tooling, and traffic from an
+  // origin other than the real public site are not patient traffic — the
+  // request still succeeds (the client's fire-and-forget beacon ignores
+  // the response either way), it just never reaches the database.
+  if (isExcludedRequest(req).excluded) {
+    res.status(201).json({ success: true });
+    return;
+  }
 
   // Never accept free-text or identifiers — schema already strips them.
   // Phase 8 P3-UTM-1: utm_source/utm_medium/utm_campaign are independently
@@ -32,6 +42,12 @@ export async function handleAnalyticsIngest(req: Request, res: Response): Promis
 export async function handleConversionIngest(req: Request, res: Response): Promise<void> {
   const parsed = conversionIngestSchema.safeParse(req.body);
   if (!parsed.success) throw badRequest('Invalid conversion payload.');
+
+  // Same non-patient-traffic exclusion as handleAnalyticsIngest above.
+  if (isExcludedRequest(req).excluded) {
+    res.status(201).json({ success: true });
+    return;
+  }
 
   // Strip any accidental PII keys from meta.
   const meta = { ...parsed.data.meta };
@@ -65,48 +81,25 @@ export async function handleConversionIngest(req: Request, res: Response): Promi
  * The resolved zone is echoed back in the API response (`timezone`) so the
  * Admin UI displays it rather than hardcoding a second copy of this fact.
  *
- * Boundary rule (defined before implementation, applies everywhere in this
- * file): `from` and `to` are calendar dates (YYYY-MM-DD) as observed in
- * REPORT_TIMEZONE, and both are INCLUSIVE from the caller's perspective. The
- * underlying Supabase query window is the standard half-open interval
- * [localMidnight(from), localMidnight(to + 1 day)) — start inclusive, end
- * exclusive — so every calendar day in the range is counted exactly once,
- * whether it's the first, last, or a middle day, with no midnight-boundary
- * event ever double-counted or dropped. Day-bucketing for the trend chart
- * uses the same zone, so "Aug 30" always means Aug 30 in REPORT_TIMEZONE,
- * never Aug 30 UTC.
+ * Boundary rule (defined before implementation; enforced inside the
+ * analytics_summary() Postgres function — see
+ * server/supabase/migrations/20261019180354_analytics_summary_rpc.sql —
+ * rather than in this file, now that aggregation happens in SQL): `from`
+ * and `to` are calendar dates (YYYY-MM-DD) as observed in REPORT_TIMEZONE,
+ * and both are INCLUSIVE from the caller's perspective. The underlying
+ * query window is the standard half-open interval [localMidnight(from),
+ * localMidnight(to + 1 day)) — start inclusive, end exclusive — so every
+ * calendar day in the range is counted exactly once, whether it's the
+ * first, last, or a middle day, with no midnight-boundary event ever
+ * double-counted or dropped. Day-bucketing for the trend chart uses the
+ * same zone, so "Aug 30" always means Aug 30 in REPORT_TIMEZONE, never
+ * Aug 30 UTC. This function still computes `from`/`to`/`rangeDays` in
+ * JS (resolveRange, calendarDaysBetween below) — only the zoned-midnight
+ * conversion and the actual row counting moved into SQL.
  */
 const REPORT_TIMEZONE = 'America/New_York';
 const MAX_RANGE_DAYS = 366;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-/** The UTC instant of `dateStr`'s (YYYY-MM-DD) local midnight in `timeZone`. */
-function zonedMidnightToUtc(dateStr: string, timeZone: string): Date {
-  const naiveUtc = new Date(`${dateStr}T00:00:00.000Z`);
-  const fmt = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hour12: false,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-  const parts: Record<string, string> = {};
-  for (const part of fmt.formatToParts(naiveUtc)) parts[part.type] = part.value;
-  const hour = Number(parts.hour) % 24; // some ICU builds render midnight as "24"
-  const zonedAsUtc = Date.UTC(
-    Number(parts.year),
-    Number(parts.month) - 1,
-    Number(parts.day),
-    hour,
-    Number(parts.minute),
-    Number(parts.second)
-  );
-  const offsetMs = zonedAsUtc - naiveUtc.getTime();
-  return new Date(naiveUtc.getTime() - offsetMs);
-}
 
 /** Adds (or subtracts, for a negative count) whole calendar days to a YYYY-MM-DD string. */
 function addCalendarDays(dateStr: string, days: number): string {
@@ -126,13 +119,6 @@ function calendarDaysBetween(fromStr: string, toStr: string): number {
 function todayInZone(timeZone: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(
     new Date()
-  );
-}
-
-/** The calendar date (YYYY-MM-DD) a stored UTC timestamp falls on, as observed in `timeZone`. */
-function dateKeyInZone(isoUtc: string, timeZone: string): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(
-    new Date(isoUtc)
   );
 }
 
@@ -212,152 +198,55 @@ export function buildUtmShareRanking(counts: Record<string, number>): UtmShareRo
     .sort((a, b) => (b.count !== a.count ? b.count - a.count : a.value.localeCompare(b.value)));
 }
 
+/**
+ * Shape of the JSONB object returned by the analytics_summary(p_from,
+ * p_to, p_tz) Postgres function — see
+ * server/supabase/migrations/20261019180354_analytics_summary_rpc.sql.
+ * All counting/grouping happens in SQL (count(*), group by, limit) so no
+ * PostgREST row cap ever applies, unlike a plain .select() of raw rows.
+ */
+type AnalyticsSummaryRpcResult = {
+  pageViews: number;
+  conversions: number;
+  priorPageViews: number;
+  priorConversions: number;
+  byDevice: Record<string, number>;
+  popularPages: { path: string; views: number }[];
+  trafficSources: { source: string; visits: number }[];
+  trends: { date: string; views: number }[];
+  utmSourceCounts: Record<string, number>;
+  utmCampaignCounts: Record<string, number>;
+  conversionCounts: Record<string, number>;
+  topBookingPages: { path: string; clicks: number }[];
+  bookingClicksByDevice: Record<string, number>;
+  bookingClicksByReferrer: { source: string; visits: number }[];
+};
+
+const pct = (now: number, prev: number) => {
+  if (!prev) return now ? 100 : 0;
+  return Math.round(((now - prev) / prev) * 100);
+};
+
 export async function getAnalyticsSummary(req: Request, res: Response): Promise<void> {
   const sb = getSupabase();
   const { from, to } = resolveRange(req.query);
   const rangeDays = calendarDaysBetween(from, to) + 1;
 
-  const rangeStart = zonedMidnightToUtc(from, REPORT_TIMEZONE);
-  const rangeEnd = zonedMidnightToUtc(addCalendarDays(to, 1), REPORT_TIMEZONE);
-
-  const [eventsRes, conversionsRes] = await Promise.all([
-    sb
-      .from('analytics_events')
-      .select('event_type, path, referrer_host, device, utm_source, utm_campaign, created_at')
-      .gte('created_at', rangeStart.toISOString())
-      .lt('created_at', rangeEnd.toISOString()),
-    sb
-      .from('conversions')
-      .select('conversion_type, path, device, referrer_host, created_at')
-      .gte('created_at', rangeStart.toISOString())
-      .lt('created_at', rangeEnd.toISOString()),
-  ]);
-
-  if (eventsRes.error) throw badRequest(eventsRes.error.message);
-  if (conversionsRes.error) throw badRequest(conversionsRes.error.message);
-
-  const events = eventsRes.data ?? [];
-  const conversions = conversionsRes.data ?? [];
-
-  const pageViews = events.filter((e) => e.event_type === 'page_view');
-  const byPath: Record<string, number> = {};
-  const byDevice: Record<string, number> = {};
-  const byReferrer: Record<string, number> = {};
-  const byDay: Record<string, number> = {};
-  // Phase 8 P3-UTM-2: page-view-only UTM traffic reporting, accumulated in
-  // this SAME pass over `pageViews` (never conversions, never other event
-  // types, never a second/independently-scoped query) — one shared range
-  // and event-type filter for every report on this page. Values are read
-  // as normalizeUtmValue() already stored them at ingest (P3-UTM-1) —
-  // trimmed, lowercased, charset-restricted — so this never re-normalizes
-  // or re-derives them differently than what's on the row. A null/absent
-  // value is excluded from its report entirely (never fabricated as
-  // "Direct"/"Organic"/"Unknown" — null UTM simply means not
-  // UTM-attributed, a materially different claim from the page-view rows
-  // that OTHER reports like trafficSources still count via a fallback).
-  const byUtmSource: Record<string, number> = {};
-  const byUtmCampaign: Record<string, number> = {};
-
-  for (const e of pageViews) {
-    const path = e.path || '/';
-    byPath[path] = (byPath[path] ?? 0) + 1;
-    const device = e.device || 'unknown';
-    byDevice[device] = (byDevice[device] ?? 0) + 1;
-    const ref = e.referrer_host || 'direct';
-    byReferrer[ref] = (byReferrer[ref] ?? 0) + 1;
-    const day = dateKeyInZone(e.created_at as string, REPORT_TIMEZONE);
-    byDay[day] = (byDay[day] ?? 0) + 1;
-    if (e.utm_source) byUtmSource[e.utm_source] = (byUtmSource[e.utm_source] ?? 0) + 1;
-    if (e.utm_campaign) byUtmCampaign[e.utm_campaign] = (byUtmCampaign[e.utm_campaign] ?? 0) + 1;
-  }
-
-  const popularPages = Object.entries(byPath)
-    .map(([path, views]) => ({ path, views }))
-    .sort((a, b) => b.views - a.views)
-    .slice(0, 15);
-
-  const trafficSources = Object.entries(byReferrer)
-    .map(([source, visits]) => ({ source, visits }))
-    .sort((a, b) => b.visits - a.visits)
-    .slice(0, 15);
+  const { data, error } = await sb.rpc('analytics_summary', {
+    p_from: from,
+    p_to: to,
+    p_tz: REPORT_TIMEZONE,
+  });
+  if (error) throw badRequest(error.message);
+  const result = data as AnalyticsSummaryRpcResult;
 
   // Uncapped (no top-N slice): unlike topBookingPages/popularPages, this
   // report is not authorized to break its own reconciliation guarantee by
   // hiding rows without an "Other" bucket — see the P3-UTM-2 task's row-cap
   // section. UTM value cardinality in practice is small (a curated set of
   // marketing sources/campaigns, not one row per page), so no cap is safe.
-  const utmSources = buildUtmShareRanking(byUtmSource);
-  const utmCampaigns = buildUtmShareRanking(byUtmCampaign);
-
-  const trends = Object.entries(byDay)
-    .map(([date, views]) => ({ date, views }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-
-  const conversionCounts = conversions.reduce<Record<string, number>>((acc, c) => {
-    acc[c.conversion_type] = (acc[c.conversion_type] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  const byBookingClickPath: Record<string, number> = {};
-  for (const c of conversions) {
-    if (c.conversion_type !== 'booking_click') continue;
-    const path = c.path || '/';
-    byBookingClickPath[path] = (byBookingClickPath[path] ?? 0) + 1;
-  }
-  const topBookingPages = Object.entries(byBookingClickPath)
-    .map(([path, clicks]) => ({ path, clicks }))
-    .sort((a, b) => b.clicks - a.clicks)
-    .slice(0, 15);
-
-  // Phase 8 P3-1: device/referrer attribution for booking_click only —
-  // matches topBookingPages' own scoping above (the conversion type this
-  // reporting was built for). Missing values are historical rows recorded
-  // before this column existed, or the rare payload that omitted them; both
-  // are treated identically to page views' own fallback convention
-  // ('unknown' device, 'direct' referrer) — never fabricated as a specific
-  // value.
-  const byBookingClickDevice: Record<string, number> = {};
-  const byBookingClickReferrer: Record<string, number> = {};
-  for (const c of conversions) {
-    if (c.conversion_type !== 'booking_click') continue;
-    const device = c.device || 'unknown';
-    byBookingClickDevice[device] = (byBookingClickDevice[device] ?? 0) + 1;
-    const ref = c.referrer_host || 'direct';
-    byBookingClickReferrer[ref] = (byBookingClickReferrer[ref] ?? 0) + 1;
-  }
-  const bookingClicksByReferrer = Object.entries(byBookingClickReferrer)
-    .map(([source, visits]) => ({ source, visits }))
-    .sort((a, b) => b.visits - a.visits)
-    .slice(0, 15);
-
-  // Comparison period: the immediately preceding window of the SAME length
-  // (in calendar days) as the selected range, bounded by the same
-  // REPORT_TIMEZONE half-open rule — generalizes the old hardcoded
-  // "prior 30 days" comparison to any range length.
-  const priorTo = addCalendarDays(from, -1);
-  const priorFrom = addCalendarDays(priorTo, -(rangeDays - 1));
-  const priorStart = zonedMidnightToUtc(priorFrom, REPORT_TIMEZONE);
-  const priorEnd = rangeStart;
-
-  const [priorEvents, priorConversions] = await Promise.all([
-    sb
-      .from('analytics_events')
-      .select('event_type, created_at')
-      .gte('created_at', priorStart.toISOString())
-      .lt('created_at', priorEnd.toISOString()),
-    sb
-      .from('conversions')
-      .select('id, created_at')
-      .gte('created_at', priorStart.toISOString())
-      .lt('created_at', priorEnd.toISOString()),
-  ]);
-  const priorViews = (priorEvents.data ?? []).filter((e) => e.event_type === 'page_view').length;
-  const priorConv = (priorConversions.data ?? []).length;
-
-  const pct = (now: number, prev: number) => {
-    if (!prev) return now ? 100 : 0;
-    return Math.round(((now - prev) / prev) * 100);
-  };
+  const utmSources = buildUtmShareRanking(result.utmSourceCounts);
+  const utmCampaigns = buildUtmShareRanking(result.utmCampaignCounts);
 
   res.json({
     success: true,
@@ -367,23 +256,23 @@ export async function getAnalyticsSummary(req: Request, res: Response): Promise<
       timezone: REPORT_TIMEZONE,
       rangeDays,
       totals: {
-        pageViews: pageViews.length,
-        conversions: conversions.length,
+        pageViews: result.pageViews,
+        conversions: result.conversions,
       },
       deltas: {
-        pageViews: pct(pageViews.length, priorViews),
-        conversions: pct(conversions.length, priorConv),
+        pageViews: pct(result.pageViews, result.priorPageViews),
+        conversions: pct(result.conversions, result.priorConversions),
       },
-      popularPages,
-      devices: byDevice,
-      trafficSources,
+      popularPages: result.popularPages,
+      devices: result.byDevice,
+      trafficSources: result.trafficSources,
       utmSources,
       utmCampaigns,
-      trends,
-      conversionCounts,
-      topBookingPages,
-      bookingClicksByDevice: byBookingClickDevice,
-      bookingClicksByReferrer,
+      trends: result.trends,
+      conversionCounts: result.conversionCounts,
+      topBookingPages: result.topBookingPages,
+      bookingClicksByDevice: result.bookingClicksByDevice,
+      bookingClicksByReferrer: result.bookingClicksByReferrer,
     },
   });
 }

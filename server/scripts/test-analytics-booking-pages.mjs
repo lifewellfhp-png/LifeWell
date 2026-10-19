@@ -42,46 +42,66 @@ const summaryStart = controllerSource.indexOf('export async function getAnalytic
 const summaryEnd = controllerSource.indexOf('\n}', controllerSource.lastIndexOf('res.json({'));
 const summarySource = controllerSource.slice(summaryStart, summaryEnd);
 
-test('1. getAnalyticsSummary aggregates booking_click conversions by path into a new topBookingPages field', () => {
+// 2026-10-19 analytics-accuracy fix: all counting/grouping (including
+// topBookingPages/popularPages/conversionCounts below) moved from a JS
+// loop over a plain, 1000-row-capped .select() into a single Postgres RPC
+// function, analytics_summary() — see the migration file read below.
+// getAnalyticsSummary now just calls sb.rpc(...) and reshapes the result;
+// tests 1/2/3/5 below assert the SQL migration's aggregation instead of
+// the (now-removed) JS loop, preserving the same intent each test had.
+const migrationSourceRaw = readFileSync(
+  join(root, 'supabase/migrations/20261019180354_analytics_summary_rpc.sql'),
+  'utf8'
+);
+const migrationSource = migrationSourceRaw.replace(/\r\n/g, '\n');
+
+test('1. analytics_summary() aggregates booking_click conversions by path into a topBookingPages field', () => {
   assert.ok(summaryStart > -1, 'expected to find getAnalyticsSummary');
-  assert.match(summarySource, /byBookingClickPath\[path\] = \(byBookingClickPath\[path\] \?\? 0\) \+ 1/);
-  assert.match(summarySource, /topBookingPages/);
+  assert.match(migrationSource, /'topBookingPages',\s*\(/);
+  assert.match(summarySource, /topBookingPages: result\.topBookingPages/);
 });
 
-test("2. the aggregation is scoped to conversion_type === 'booking_click' only (excludes contact/newsletter)", () => {
-  const aggStart = summarySource.indexOf('byBookingClickPath');
-  const aggBlock = summarySource.slice(aggStart, aggStart + 400);
-  assert.match(aggBlock, /c\.conversion_type !== 'booking_click'/);
+test("2. the aggregation is scoped to conversion_type = 'booking_click' only (excludes contact/newsletter)", () => {
+  const aggStart = migrationSource.indexOf("'topBookingPages'");
+  const aggBlock = migrationSource.slice(aggStart, aggStart + 400);
+  assert.match(aggBlock, /conversion_type = 'booking_click'/);
   assert.doesNotMatch(aggBlock, /'contact'/);
   assert.doesNotMatch(aggBlock, /'newsletter'/);
 });
 
-test('3. topBookingPages is sorted descending and capped at 15, matching the existing popularPages pattern', () => {
-  const popularBlock = summarySource.slice(
-    summarySource.indexOf('const popularPages'),
-    summarySource.indexOf('const popularPages') + 200
+test('3. topBookingPages is sorted descending and capped at 15, matching the popularPages pattern', () => {
+  const popularBlock = migrationSource.slice(
+    migrationSource.indexOf("'popularPages'"),
+    migrationSource.indexOf("'popularPages'") + 450
   );
-  const bookingBlock = summarySource.slice(
-    summarySource.indexOf('const topBookingPages'),
-    summarySource.indexOf('const topBookingPages') + 200
+  const bookingBlock = migrationSource.slice(
+    migrationSource.indexOf("'topBookingPages'"),
+    migrationSource.indexOf("'topBookingPages'") + 450
   );
   for (const block of [popularBlock, bookingBlock]) {
-    assert.match(block, /\.sort\(\(a, b\) => b\.\w+ - a\.\w+\)/);
-    assert.match(block, /\.slice\(0, 15\)/);
+    assert.match(block, /order by count\(\*\) desc/);
+    assert.match(block, /limit 15/);
   }
 });
 
 test('4. topBookingPages is included in the response payload alongside the existing fields, none removed', () => {
   const responseStart = summarySource.indexOf('res.json({');
   const responseBlock = summarySource.slice(responseStart);
-  for (const field of ['popularPages,', 'devices: byDevice,', 'trafficSources,', 'trends,', 'conversionCounts,', 'topBookingPages,']) {
+  for (const field of [
+    'popularPages: result.popularPages,',
+    'devices: result.byDevice,',
+    'trafficSources: result.trafficSources,',
+    'trends: result.trends,',
+    'conversionCounts: result.conversionCounts,',
+    'topBookingPages: result.topBookingPages,',
+  ]) {
     assert.ok(responseBlock.includes(field), `expected response to still include: ${field}`);
   }
 });
 
-test('5. existing popularPages (page-view) and conversionCounts (type totals) aggregation logic is untouched', () => {
-  assert.match(summarySource, /const popularPages = Object\.entries\(byPath\)/);
-  assert.match(summarySource, /const conversionCounts = conversions\.reduce<Record<string, number>>/);
+test('5. popularPages (page-view) and conversionCounts (type totals) aggregation logic is present in the RPC', () => {
+  assert.match(migrationSource, /'popularPages',\s*\(/);
+  assert.match(migrationSource, /'conversionCounts',\s*\(/);
 });
 
 test('6. no analytics/conversion ingest schema or ingest handlers were touched by this change', () => {

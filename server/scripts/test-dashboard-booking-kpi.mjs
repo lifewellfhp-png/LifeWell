@@ -111,14 +111,22 @@ test('10. no Production-mutating call (insert/update/delete/upsert) was introduc
   assert.doesNotMatch(dashboardSource, /\.upsert\(/);
 });
 
-test('11. the analytics.controller.ts conversionCounts (type-total) logic this task depended on remains present and unchanged', () => {
+test('11. the conversionCounts (type-total) aggregate this task depended on remains present and unchanged', () => {
   // P1-1 (booking-by-path) was out of scope for P0-1 at the time this test
   // was written and has since been implemented as its own, separately
   // authorized task (see test-analytics-booking-pages.mjs) — so this test
   // no longer asserts the file is free of "booking_click" entirely, only
   // that the specific aggregate this P0-1 fix relied on is intact.
-  const controllerSource = readFileSync(join(root, 'src/controllers/analytics.controller.ts'), 'utf8');
-  assert.match(controllerSource, /const conversionCounts = conversions\.reduce/);
+  //
+  // 2026-10-19 analytics-accuracy fix: this aggregate moved from a JS
+  // .reduce() over a plain, 1000-row-capped .select() into the
+  // analytics_summary() Postgres RPC function — asserted against the SQL
+  // migration instead of the (now-removed) JS line.
+  const migrationSource = readFileSync(
+    join(root, 'supabase/migrations/20261019180354_analytics_summary_rpc.sql'),
+    'utf8'
+  );
+  assert.match(migrationSource, /'conversionCounts',\s*\(/);
 });
 
 // --- Behavioral: the real route still requires auth, unaffected by the query change ---

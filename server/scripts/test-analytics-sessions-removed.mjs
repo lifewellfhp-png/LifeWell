@@ -53,14 +53,27 @@ test("2. session_start is no longer read anywhere inside getAnalyticsSummary", (
 });
 
 test('3. totals/deltas retain pageViews and conversions, unaffected by the removal', () => {
+  // 2026-10-19 analytics-accuracy fix: pageViews/conversions are now read
+  // off the analytics_summary() RPC's result object, not computed by
+  // counting a JS array fetched via a (1000-row-capped) .select().
   const responseBlock = summarySource.slice(summarySource.indexOf('res.json({'));
-  assert.match(responseBlock, /totals:\s*\{\s*pageViews:\s*pageViews\.length,\s*conversions:\s*conversions\.length,?\s*\}/);
-  assert.match(responseBlock, /deltas:\s*\{\s*pageViews:\s*pct\(pageViews\.length,\s*priorViews\),\s*conversions:\s*pct\(conversions\.length,\s*priorConv\),?\s*\}/);
+  assert.match(responseBlock, /totals:\s*\{\s*pageViews:\s*result\.pageViews,\s*conversions:\s*result\.conversions,?\s*\}/);
+  assert.match(
+    responseBlock,
+    /deltas:\s*\{\s*pageViews:\s*pct\(result\.pageViews,\s*result\.priorPageViews\),\s*conversions:\s*pct\(result\.conversions,\s*result\.priorConversions\),?\s*\}/
+  );
 });
 
 test('4. topBookingPages (P1-1) and all other existing response fields are unaffected', () => {
   const responseBlock = summarySource.slice(summarySource.indexOf('res.json({'));
-  for (const field of ['popularPages,', 'devices: byDevice,', 'trafficSources,', 'trends,', 'conversionCounts,', 'topBookingPages,']) {
+  for (const field of [
+    'popularPages: result.popularPages,',
+    'devices: result.byDevice,',
+    'trafficSources: result.trafficSources,',
+    'trends: result.trends,',
+    'conversionCounts: result.conversionCounts,',
+    'topBookingPages: result.topBookingPages,',
+  ]) {
     assert.ok(responseBlock.includes(field), `expected response to still include: ${field}`);
   }
 });

@@ -10,8 +10,8 @@
  *     INCLUSIVE from the caller's perspective.
  *   - Underlying query window: half-open [localMidnight(from),
  *     localMidnight(to + 1 day)) — start inclusive, end exclusive.
- *   - Trend day-buckets use the same zone (dateKeyInZone), not raw UTC
- *     slicing.
+ *   - Trend day-buckets use the same zone (now computed inside the
+ *     analytics_summary() Postgres RPC function, not raw UTC slicing).
  *   - The comparison ("prior") period is the same length in days,
  *     immediately preceding the selected range, same zone rule.
  *   - preset=today|7d|30d resolves "today" server-side in the reporting
@@ -65,26 +65,33 @@ test('2. getAnalyticsSummary reads from/to/preset from the request query, not a 
   assert.doesNotMatch(fnBody, /Date\.now\(\) - 30 \* 24 \* 60 \* 60 \* 1000/, 'the old hardcoded 30-day window must be gone');
 });
 
-test('3. the query window is half-open: gte(rangeStart) ... lt(rangeEnd), both derived via zonedMidnightToUtc', () => {
-  const fnStart = controllerSource.indexOf('export async function getAnalyticsSummary');
-  const fnBody = controllerSource.slice(fnStart, controllerSource.indexOf('const priorTo', fnStart));
-  assert.match(fnBody, /const rangeStart = zonedMidnightToUtc\(from, REPORT_TIMEZONE\);/);
-  assert.match(fnBody, /const rangeEnd = zonedMidnightToUtc\(addCalendarDays\(to, 1\), REPORT_TIMEZONE\);/);
-  assert.match(fnBody, /\.gte\('created_at', rangeStart\.toISOString\(\)\)/);
-  assert.match(fnBody, /\.lt\('created_at', rangeEnd\.toISOString\(\)\)/);
+// 2026-10-19 analytics-accuracy fix: the half-open query window, trend
+// day-bucketing, and prior-period math all moved from this controller into
+// the analytics_summary() Postgres function (one RPC call replaces the
+// old plain .select() + JS-loop aggregation, which silently capped at
+// PostgREST's default 1000-row limit). Tests 3/4/5 below assert the SQL
+// migration implements the same rules the controller used to, rather than
+// asserting JS that no longer exists.
+const migrationSourceRaw = readFileSync(
+  join(root, 'supabase/migrations/20261019180354_analytics_summary_rpc.sql'),
+  'utf8'
+);
+const migrationSource = migrationSourceRaw.replace(/\r\n/g, '\n');
+
+test('3. the query window is half-open: >= v_range_start and < v_range_end, both derived via zoned-midnight math in the RPC', () => {
+  assert.match(migrationSource, /v_range_start := \(p_from::timestamp\) at time zone p_tz;/);
+  assert.match(migrationSource, /v_range_end := \(\(p_to \+ 1\)::timestamp\) at time zone p_tz;/);
+  assert.match(migrationSource, /created_at >= v_range_start and created_at < v_range_end/);
 });
 
-test('4. trend day-buckets use dateKeyInZone (reporting timezone), not a raw UTC .slice(0, 10)', () => {
-  assert.match(controllerSource, /const day = dateKeyInZone\(e\.created_at as string, REPORT_TIMEZONE\);/);
-  assert.doesNotMatch(controllerSource, /const day = \(e\.created_at as string\)\.slice\(0, 10\);/);
+test('4. trend day-buckets use the reporting timezone (at time zone p_tz), not a raw UTC date', () => {
+  assert.match(migrationSource, /\(created_at at time zone p_tz\)::date/);
 });
 
 test('5. the comparison period is derived from the ACTUAL selected range length, not a hardcoded 60/30-day split', () => {
-  const fnStart = controllerSource.indexOf('export async function getAnalyticsSummary');
-  const fnBody = controllerSource.slice(fnStart);
-  assert.match(fnBody, /const priorTo = addCalendarDays\(from, -1\);/);
-  assert.match(fnBody, /const priorFrom = addCalendarDays\(priorTo, -\(rangeDays - 1\)\);/);
-  assert.doesNotMatch(fnBody, /60 \* 24 \* 60 \* 60 \* 1000/, 'the old hardcoded 60-day prior window must be gone');
+  assert.match(migrationSource, /v_range_days := \(p_to - p_from\) \+ 1;/);
+  assert.match(migrationSource, /v_prior_start := \(\(p_from - v_range_days\)::timestamp\) at time zone p_tz;/);
+  assert.doesNotMatch(migrationSource, /60 \* 24 \* 60 \* 60/, 'the old hardcoded 60-day prior window must not reappear');
 });
 
 test('6. the response echoes from/to/timezone so the Admin UI never hardcodes a second copy of the reporting zone', () => {
@@ -187,7 +194,7 @@ test('17. the Admin Analytics page displays the reporting timezone the API retur
 /* ------------------------------------------- 18. protected areas --- */
 
 test('18. topBookingPages (P1-1) aggregation and Sessions removal (P1-2) are unaffected by this change', () => {
-  assert.match(controllerSource, /const topBookingPages = Object\.entries\(byBookingClickPath\)/);
+  assert.match(migrationSource, /'topBookingPages',\s*\(/);
   assert.doesNotMatch(controllerSource, /sessions:/);
   assert.doesNotMatch(controllerSource, /session_start/);
 });

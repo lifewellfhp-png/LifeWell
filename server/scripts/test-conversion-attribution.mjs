@@ -197,32 +197,47 @@ test('20. handleConversionIngest independently re-normalizes referrer_host rathe
 
 /* ------------------------------------ 21-24. getAnalyticsSummary aggregation --- */
 
-test('21. getAnalyticsSummary now selects device/referrer_host from conversions and aggregates booking_click by both', () => {
-  const summaryStart = controllerSource.indexOf('export async function getAnalyticsSummary');
-  const summaryBody = controllerSource.slice(summaryStart, controllerSource.indexOf('res.json({', summaryStart));
-  assert.match(summaryBody, /\.from\('conversions'\)\s*\n\s*\.select\('conversion_type, path, device, referrer_host, created_at'\)/);
-  assert.match(summaryBody, /if \(c\.conversion_type !== 'booking_click'\) continue;[\s\S]*?byBookingClickDevice/);
-  assert.match(summaryBody, /const ref = c\.referrer_host \|\| 'direct';/);
-  assert.match(summaryBody, /const device = c\.device \|\| 'unknown';/);
+// 2026-10-19 analytics-accuracy fix: device/referrer_host aggregation for
+// conversions (including booking_click) moved from a JS loop over a
+// plain, 1000-row-capped .select() into the analytics_summary() Postgres
+// RPC function. Tests 21/23 below assert the SQL migration implements the
+// same device/referrer attribution and date/timezone rules the controller
+// used to, rather than JS that no longer exists.
+const migrationSourceRaw = readFileSync(
+  join(root, 'supabase/migrations/20261019180354_analytics_summary_rpc.sql'),
+  'utf8'
+);
+const migrationSource = migrationSourceRaw.replace(/\r\n/g, '\n');
+
+test('21. analytics_summary() aggregates conversions by device/referrer_host, scoped to booking_click', () => {
+  const deviceStart = migrationSource.indexOf("'bookingClicksByDevice'");
+  const deviceBlock = migrationSource.slice(deviceStart, deviceStart + 350);
+  assert.match(deviceBlock, /conversion_type = 'booking_click'/);
+  assert.match(deviceBlock, /coalesce\(device, 'unknown'\)/);
+
+  const refStart = migrationSource.indexOf("'bookingClicksByReferrer'");
+  const refBlock = migrationSource.slice(refStart, refStart + 450);
+  assert.match(refBlock, /conversion_type = 'booking_click'/);
+  assert.match(refBlock, /coalesce\(referrer_host, 'direct'\)/);
 });
 
 test('22. the response includes the new fields additively — nothing existing was removed', () => {
   const responseBlock = controllerSource.slice(controllerSource.indexOf('res.json({'));
   for (const field of [
     'from,', 'to,', 'timezone: REPORT_TIMEZONE,', 'rangeDays,',
-    'popularPages,', 'devices: byDevice,', 'trafficSources,', 'trends,',
-    'conversionCounts,', 'topBookingPages,',
-    'bookingClicksByDevice: byBookingClickDevice,', 'bookingClicksByReferrer,',
+    'popularPages: result.popularPages,', 'devices: result.byDevice,', 'trafficSources: result.trafficSources,', 'trends: result.trends,',
+    'conversionCounts: result.conversionCounts,', 'topBookingPages: result.topBookingPages,',
+    'bookingClicksByDevice: result.bookingClicksByDevice,', 'bookingClicksByReferrer: result.bookingClicksByReferrer,',
   ]) {
     assert.ok(responseBlock.includes(field), `expected response to include: ${field}`);
   }
 });
 
-test('23. P2-1 date-range/ET-bucketing/comparison-period logic is untouched by this change', () => {
+test('23. P2-1 date-range/ET-bucketing/comparison-period logic is untouched by this change (now in the RPC)', () => {
   assert.match(controllerSource, /const REPORT_TIMEZONE = 'America\/New_York';/);
-  assert.match(controllerSource, /const rangeStart = zonedMidnightToUtc\(from, REPORT_TIMEZONE\);/);
-  assert.match(controllerSource, /const day = dateKeyInZone\(e\.created_at as string, REPORT_TIMEZONE\);/);
-  assert.match(controllerSource, /const priorFrom = addCalendarDays\(priorTo, -\(rangeDays - 1\)\);/);
+  assert.match(migrationSource, /v_range_start := \(p_from::timestamp\) at time zone p_tz;/);
+  assert.match(migrationSource, /\(created_at at time zone p_tz\)::date/);
+  assert.match(migrationSource, /v_prior_start := \(\(p_from - v_range_days\)::timestamp\) at time zone p_tz;/);
 });
 
 test('24. P1-2 Sessions removal is not reintroduced by this change', () => {
