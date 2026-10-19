@@ -155,6 +155,9 @@ export default async function BlogPostPage({ params }: Props) {
   const category = str(post.category);
   const readingTime = estimateReadingTime(body);
   const relatedServiceSlug = str(post.related_service_slug);
+  // Real per-post byline when the CMS has one; BLOG_AUTHOR_BYLINE is the
+  // fallback for posts that never set author_name, not the only value.
+  const authorName = str(post.author_name) || BLOG_AUTHOR_BYLINE;
   const relatedService = relatedServiceSlug ? getServiceSummary(relatedServiceSlug) : undefined;
 
   // Related articles: same category first, then other recent posts, up to
@@ -180,7 +183,7 @@ export default async function BlogPostPage({ params }: Props) {
           image: socialImage(post) ? { url: socialImage(post) as string } : null,
           publishedAt,
           modifiedAt: str(post.updated_at),
-          authorName: BLOG_AUTHOR_BYLINE,
+          authorName,
           breadcrumb: crumbs,
         })}
         id={`blog-post-${slug}-schema`}
@@ -198,7 +201,7 @@ export default async function BlogPostPage({ params }: Props) {
           )}
 
           <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-border-subtle py-5 text-sm text-text-secondary">
-            <span>By {BLOG_AUTHOR_BYLINE}</span>
+            <span>By {authorName}</span>
             {publishedAt && (
               <span aria-hidden="true" className="text-border-strong">
                 •
