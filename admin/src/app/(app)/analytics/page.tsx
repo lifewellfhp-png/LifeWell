@@ -79,12 +79,42 @@ function Delta({ value, days }: { value: number; days: number }) {
   );
 }
 
+/** The real public site's own domain — the exclude-cookie route lives
+ * there (client/src/app/api/analytics-exclude/route.ts), not here. Admin
+ * has no custom domain and shares no parent domain with the client app,
+ * so a cookie set there can never be read back from this page — see the
+ * localStorage note below. */
+const CLIENT_SITE_URL = 'https://www.lifewellfhp.com';
+const EXCLUDE_LABEL_KEY = 'lw_admin_exclude_label';
+
 export default function AnalyticsPage() {
   const [data, setData] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [preset, setPreset] = useState<PresetOption>('30d');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
+  const [excludeLabel, setExcludeLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setExcludeLabel(localStorage.getItem(EXCLUDE_LABEL_KEY));
+    } catch {
+      // localStorage can throw in a private window — this is a pure UI
+      // nicety, never required for the exclusion itself to work.
+    }
+  }, []);
+
+  function setMyVisitsExcluded(excluded: boolean) {
+    window.open(`${CLIENT_SITE_URL}/api/analytics-exclude?enable=${excluded ? '1' : '0'}`, '_blank');
+    const label = excluded ? 'Excluded (as of last click)' : 'Not excluded (as of last click)';
+    try {
+      localStorage.setItem(EXCLUDE_LABEL_KEY, label);
+    } catch {
+      // Same as above — the cookie itself is set either way; this is only
+      // this browser's own memory of which button it last clicked.
+    }
+    setExcludeLabel(label);
+  }
 
   useEffect(() => {
     if (preset === 'custom') return; // wait for explicit Apply
@@ -203,6 +233,21 @@ export default function AnalyticsPage() {
           </>
         )}
       </div>
+
+      <div className="filter-bar">
+        <button type="button" className="btn btn-ghost" onClick={() => setMyVisitsExcluded(true)}>
+          Exclude my visits from analytics
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={() => setMyVisitsExcluded(false)}>
+          Re-enable my visits
+        </button>
+        {excludeLabel ? <span className="page-sub">{excludeLabel} — opens the public site in a new tab to set a cookie there.</span> : null}
+      </div>
+      <p className="page-sub">
+        This only affects the browser you click from, and only once that new tab finishes loading. It can&apos;t show
+        a live on/off state here — the preference cookie lives on the public site&apos;s own domain, which this page
+        can never read back.
+      </p>
 
       {error ? <div className="error-banner">{error}</div> : null}
 
