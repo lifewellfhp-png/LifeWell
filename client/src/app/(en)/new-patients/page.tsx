@@ -15,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: 'New Patients — What to Expect at Your First Visit',
     description: DESCRIPTION,
     path: '/new-patients',
+    alternateLocale: { es: '/es/new-patients' },
   });
 }
 

@@ -19,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: 'Contact Us — Secure, Confidential Telehealth Support',
     description: DESCRIPTION,
     path: PATH,
+    alternateLocale: { es: '/es/contact-telehealth-mental-health-provider' },
     image: {
       url: contactPage.heroImage.src,
       width: contactPage.heroImage.width,

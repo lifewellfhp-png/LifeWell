@@ -23,6 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: 'Book an Appointment — Secure Telehealth Scheduling',
     description: DESCRIPTION,
     path: '/book-telehealth-mental-health-appointment',
+    alternateLocale: { es: '/es/book-telehealth-mental-health-appointment' },
     image: {
       url: '/images/sections/Book-Telehealth-Mental-Health-Appointment.avif',
       width: 633,

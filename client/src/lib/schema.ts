@@ -200,7 +200,15 @@ export function websiteNode() {
   };
 }
 
-function webPageNode(path: string, name: string, description: string) {
+/**
+ * `language` defaults to site.language ('en-US') — every existing English
+ * call site is unaffected. Spanish pages (path starting with /es) must
+ * pass 'es' explicitly: inLanguage describes what language THIS PAGE's
+ * text is written in, which is a different fact from CARE_LANGUAGES
+ * (what language a visit happens in) — see CARE_LANGUAGES' own doc
+ * comment in data/site.ts for why conflating the two would be wrong.
+ */
+function webPageNode(path: string, name: string, description: string, language: string = site.language) {
   const url = abs(path === '/' ? '/' : path.replace(/\/$/, ''));
   return {
     '@type': 'WebPage',
@@ -210,7 +218,7 @@ function webPageNode(path: string, name: string, description: string) {
     description,
     isPartOf: { '@id': WEBSITE_ID },
     about: { '@id': ORG_ID },
-    inLanguage: site.language,
+    inLanguage: language,
   };
 }
 
@@ -249,10 +257,11 @@ export function pageGraph(
   path: string,
   name: string,
   description: string,
-  trail?: { name: string; href: string }[]
+  trail?: { name: string; href: string }[],
+  language?: string
 ) {
   return graph([
-    webPageNode(path, name, description),
+    webPageNode(path, name, description, language),
     ...(trail ? [breadcrumbNode(trail)] : []),
   ]);
 }
@@ -335,22 +344,30 @@ export function serviceListGraph(summaries: ServiceSummary[], description: strin
 }
 
 /** FAQPage — only emitted where the questions are genuinely visible on-page. */
-export function faqGraph(faqs: Faq[], description: string) {
+export function faqGraph(
+  faqs: Faq[],
+  description: string,
+  options?: { path?: string; pageName?: string; language?: string; breadcrumb?: { name: string; href: string }[] }
+) {
+  const path = options?.path ?? '/faqs';
+  const url = abs(path);
   return graph([
-    webPageNode('/faqs', 'Frequently Asked Questions', description),
+    webPageNode(path, options?.pageName ?? 'Frequently Asked Questions', description, options?.language),
     {
       '@type': 'FAQPage',
-      '@id': `${site.url}/faqs#faq`,
+      '@id': `${url}#faq`,
       mainEntity: faqs.map((f) => ({
         '@type': 'Question',
         name: f.question,
         acceptedAnswer: { '@type': 'Answer', text: f.answer },
       })),
     },
-    breadcrumbNode([
-      { name: 'Home', href: '/' },
-      { name: 'FAQs', href: '/faqs' },
-    ]),
+    breadcrumbNode(
+      options?.breadcrumb ?? [
+        { name: 'Home', href: '/' },
+        { name: 'FAQs', href: '/faqs' },
+      ]
+    ),
   ]);
 }
 

@@ -15,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: 'Our Services — Telehealth Psychiatry & Primary Care',
     description: DESCRIPTION,
     path: '/our-services',
+    alternateLocale: { es: '/es/our-services' },
     image: {
       url: '/images/sections/SERVIES-IMG.avif',
       width: 1180,

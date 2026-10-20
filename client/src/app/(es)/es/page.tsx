@@ -38,7 +38,10 @@ export default async function HomePageEs() {
 
   return (
     <>
-      <JsonLd data={pageGraph('/es', 'LifeWell Family Health & Psychiatry', DESCRIPTION)} id="es-home-schema" />
+      <JsonLd
+        data={pageGraph('/es', 'LifeWell Family Health & Psychiatry', DESCRIPTION, undefined, 'es')}
+        id="es-home-schema"
+      />
 
       <Section tone="inverse" spacing="lg" className="bg-[var(--lw-primary)]">
         <Container>

@@ -15,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
       page?.intro[0]?.slice(0, 158) ??
       'Accessibility Statement for LifeWell Family Health & Psychiatry.',
     path: `/${SLUG}`,
+    alternateLocale: { es: `/es/${SLUG}` },
   });
 }
 
