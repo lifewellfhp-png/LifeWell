@@ -33,6 +33,7 @@ export async function generateMetadata({
     title: state.metaTitle,
     description,
     path: `/telehealth/${slug}`,
+    alternateLocale: { es: `/es/telehealth/${slug}` },
     image: state.ogImageUrl || state.heroImage ? { url: (state.ogImageUrl || state.heroImage?.src) as string } : undefined,
   });
 }
