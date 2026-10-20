@@ -7,7 +7,7 @@ import { marketingCampaignSendSchema } from '../validation/adminSchemas.js';
 import { writeAuditLog } from '../lib/audit.js';
 import type { AuthedRequest } from '../middleware/adminAuth.js';
 import { env } from '../config/env.js';
-import { buildRecipientEligibilityFilters } from '../controllers/marketingCampaigns.controller.js';
+import { buildRecipientEligibilityFilters, getCampaignDeliverySummary } from '../controllers/marketingCampaigns.controller.js';
 import { isUniqueEmailViolation } from '../controllers/marketingContacts.controller.js';
 import { sendViaPauboxApi, escapeHtml, pauboxConfigured, type PauboxApiResult } from './email.service.js';
 import { createMarketingUnsubscribeToken } from '../lib/marketingUnsubscribeToken.js';
@@ -73,7 +73,10 @@ export const FAILURE_CODES = {
 } as const;
 
 /** Only a draft campaign may be sent — archived is permanently terminal. */
-export function assertCampaignSendable(campaign: { status: string }): void {
+export function assertCampaignSendable(campaign: { status: string; delivery_locked?: boolean }): void {
+  if (campaign.delivery_locked === true) {
+    throw new AppError('This campaign has already had delivery initiated and cannot be sent.', 409, { expose: true });
+  }
   if (campaign.status !== 'draft') {
     throw new AppError('Only a draft campaign can be sent.', 409, { expose: true });
   }
@@ -182,7 +185,8 @@ export async function initiateCampaignSend(
   if (campaignError) throw badRequest(campaignError.message);
   if (!campaign) throw notFound('Marketing campaign not found.');
 
-  assertCampaignSendable(campaign);
+  const deliverySummary = await getCampaignDeliverySummary(campaignId);
+  assertCampaignSendable({ ...campaign, delivery_locked: deliverySummary.delivery_locked });
 
   const eligible = await fetchEligibleContacts(campaign.audience_type as string | null);
 

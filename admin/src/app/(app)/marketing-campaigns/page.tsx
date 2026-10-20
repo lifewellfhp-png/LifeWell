@@ -28,6 +28,13 @@ type Campaign = {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+  delivery_locked?: boolean;
+  pending?: number;
+  processing?: number;
+  sent?: number;
+  failed?: number;
+  skipped?: number;
+  ambiguous_timeout?: number;
 };
 
 type Pagination = { page: number; pageSize: number; total: number; totalPages: number };
@@ -47,12 +54,16 @@ const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 25;
 const SEARCH_DEBOUNCE_MS = 400;
 
-function statusBadgeClass(status: CampaignStatus): string {
-  return status === 'draft' ? 'badge warn' : 'badge';
+function statusBadgeClass(status: CampaignStatus | 'delivery-initiated', locked = false): string {
+  return status === 'draft' || locked || status === 'delivery-initiated' ? 'badge warn' : 'badge';
 }
 
 function audienceLabel(audience: AudienceType | null): string {
   return audience ? AUDIENCE_LABELS[audience] : 'All Subscribed Contacts';
+}
+
+function campaignStatusLabel(row: Campaign): string {
+  return row.delivery_locked ? 'Delivery initiated' : STATUS_LABELS[row.status];
 }
 
 const emptyCampaignForm = {
@@ -423,7 +434,9 @@ export default function MarketingCampaignsPage() {
                       <td>{row.subject}</td>
                       <td>{audienceLabel(row.audience_type)}</td>
                       <td>
-                        <span className={statusBadgeClass(row.status)}>{STATUS_LABELS[row.status]}</span>
+                        <span className={statusBadgeClass(row.status, Boolean(row.delivery_locked))}>
+                          {campaignStatusLabel(row)}
+                        </span>
                       </td>
                       <td>{new Date(row.updated_at).toLocaleDateString()}</td>
                       <td>
@@ -431,7 +444,7 @@ export default function MarketingCampaignsPage() {
                           <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
                             View
                           </button>
-                          {row.status === 'draft' ? (
+                          {row.status === 'draft' && !row.delivery_locked ? (
                             <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
                               Edit
                             </button>
@@ -439,12 +452,12 @@ export default function MarketingCampaignsPage() {
                           <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
                             Preview
                           </button>
-                          {row.status === 'draft' ? (
+                          {row.status === 'draft' && !row.delivery_locked ? (
                             <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
                               Archive
                             </button>
                           ) : null}
-                          {row.status === 'draft' ? (
+                          {row.status === 'draft' && !row.delivery_locked ? (
                             <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
                               Send
                             </button>
@@ -474,13 +487,15 @@ export default function MarketingCampaignsPage() {
                   </div>
                   <div className="mobile-card-row">
                     <span>Status</span>
-                    <span className={statusBadgeClass(row.status)}>{STATUS_LABELS[row.status]}</span>
+                    <span className={statusBadgeClass(row.status, Boolean(row.delivery_locked))}>
+                      {campaignStatusLabel(row)}
+                    </span>
                   </div>
                   <div className="row-actions">
                     <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
                       View
                     </button>
-                    {row.status === 'draft' ? (
+                    {row.status === 'draft' && !row.delivery_locked ? (
                       <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
                         Edit
                       </button>
@@ -488,12 +503,12 @@ export default function MarketingCampaignsPage() {
                     <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
                       Preview
                     </button>
-                    {row.status === 'draft' ? (
+                    {row.status === 'draft' && !row.delivery_locked ? (
                       <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
                         Archive
                       </button>
                     ) : null}
-                    {row.status === 'draft' ? (
+                    {row.status === 'draft' && !row.delivery_locked ? (
                       <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
                         Send
                       </button>
