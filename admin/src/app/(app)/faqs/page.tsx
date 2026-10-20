@@ -73,18 +73,6 @@ export default function Page() {
         { key: 'question', label: 'Question', full: true },
         { key: 'answer', label: 'Answer', type: 'textarea', full: true },
         {
-          key: 'question_es',
-          label: 'Question (Spanish) [REVIEW before publishing]',
-          full: true,
-          hint: () => 'Optional. Shown on /es/faqs once entered — needs a native-speaker check first.',
-        },
-        {
-          key: 'answer_es',
-          label: 'Answer (Spanish) [REVIEW before publishing]',
-          type: 'textarea',
-          full: true,
-        },
-        {
           key: 'category',
           label: 'Category',
           type: 'select',

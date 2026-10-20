@@ -27,7 +27,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: 'Telehealth Mental Health Care | PMHNP Online Therapy & Medication Management',
     description: site.description,
     path: '/',
-    alternateLocale: { es: '/es' },
   });
 }
 

@@ -19,7 +19,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: 'Frequently Asked Questions — Telehealth Mental Health Care',
     description: DESCRIPTION,
     path: '/faqs',
-    alternateLocale: { es: '/es/faqs' },
   });
 }
 

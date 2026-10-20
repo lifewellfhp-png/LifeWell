@@ -17,7 +17,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: 'Fees & Insurance — Transparent Telehealth Pricing',
     description: DESCRIPTION,
     path: '/fees-insurance',
-    alternateLocale: { es: '/es/fees-insurance' },
     image: {
       url: feesIntro.image.src,
       width: feesIntro.image.width,

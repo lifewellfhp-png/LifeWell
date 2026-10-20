@@ -46,6 +46,12 @@ function readTokens(source) {
     const resolved = allVars[target];
     if (resolved) tokens[name.slice('color-'.length)] = resolved;
   }
+  const rootValues = Object.fromEntries(
+    [...source.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)].map((m) => [m[1], m[2].toLowerCase()])
+  );
+  for (const m of source.matchAll(/--color-([a-z0-9-]+):\s*var\(--([a-z0-9-]+)\)\s*;/g)) {
+    if (rootValues[m[2]]) tokens[m[1]] = rootValues[m[2]];
+  }
   return tokens;
 }
 

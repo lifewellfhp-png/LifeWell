@@ -15,7 +15,6 @@ export async function generateMetadata(): Promise<Metadata> {
       page?.intro[0]?.slice(0, 158) ??
       'SMS Consent Policy for LifeWell Family Health & Psychiatry.',
     path: `/${SLUG}`,
-    alternateLocale: { es: `/es/${SLUG}` },
   });
 }
 

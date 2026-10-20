@@ -22,8 +22,6 @@ type Campaign = {
   subject: string;
   preview_text: string | null;
   content: string;
-  html_body: string | null;
-  subject_fallback: string | null;
   status: CampaignStatus;
   audience_type: AudienceType | null;
   created_by: string | null;
@@ -43,7 +41,6 @@ type Pagination = { page: number; pageSize: number; total: number; totalPages: n
 type ListData = { items: Campaign[]; pagination: Pagination };
 type RecipientPreviewData = { eligible_count: number; audience_type: AudienceType | null };
 type SendResult = { requested: number; snapshotted: number; sent: number; failed: number; skipped: number };
-type TestSendResult = { ok: boolean; httpStatus: number };
 
 const STATUS_LABELS: Record<CampaignStatus, string> = { draft: 'Draft', archived: 'Archived' };
 const AUDIENCE_LABELS: Record<AudienceType, string> = {
@@ -57,8 +54,8 @@ const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 25;
 const SEARCH_DEBOUNCE_MS = 400;
 
-function statusBadgeClass(status: CampaignStatus | 'delivery-initiated'): string {
-  return status === 'draft' || status === 'delivery-initiated' ? 'badge warn' : 'badge';
+function statusBadgeClass(status: CampaignStatus | 'delivery-initiated', locked = false): string {
+  return status === 'draft' || locked || status === 'delivery-initiated' ? 'badge warn' : 'badge';
 }
 
 function audienceLabel(audience: AudienceType | null): string {
@@ -72,10 +69,8 @@ function campaignStatusLabel(row: Campaign): string {
 const emptyCampaignForm = {
   name: '',
   subject: '',
-  subject_fallback: '',
   preview_text: '',
   content: '',
-  html_body: '',
   audience_type: '' as AudienceType | '',
 };
 type CampaignForm = typeof emptyCampaignForm;
@@ -121,17 +116,6 @@ export default function MarketingCampaignsPage() {
   const [sendError, setSendError] = useState<string | null>(null);
   const [sendResult, setSendResult] = useState<SendResult | null>(null);
 
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
-
-  const [testSending, setTestSending] = useState<Campaign | null>(null);
-  const [testSendEmail, setTestSendEmail] = useState('');
-  const [testSendFirstName, setTestSendFirstName] = useState('');
-  const [testSendChecked, setTestSendChecked] = useState(false);
-  const [testSendSubmitting, setTestSendSubmitting] = useState(false);
-  const [testSendError, setTestSendError] = useState<string | null>(null);
-  const [testSendResult, setTestSendResult] = useState<TestSendResult | null>(null);
-
   async function load() {
     const params = new URLSearchParams();
     params.set('page', String(page));
@@ -167,12 +151,11 @@ export default function MarketingCampaignsPage() {
   }, [searchInput]);
 
   useEffect(() => {
-    document.body.style.overflow =
-      createOpen || editing || viewing || previewing || sending || testSending ? 'hidden' : '';
+    document.body.style.overflow = createOpen || editing || viewing || previewing || sending ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
-  }, [createOpen, editing, viewing, previewing, sending, testSending]);
+  }, [createOpen, editing, viewing, previewing, sending]);
 
   function openCreate() {
     setCreateForm(emptyCampaignForm);
@@ -195,10 +178,8 @@ export default function MarketingCampaignsPage() {
     const payload: Record<string, unknown> = {
       name: createForm.name.trim(),
       subject: createForm.subject.trim(),
-      subject_fallback: createForm.subject_fallback.trim() || null,
       preview_text: createForm.preview_text.trim() || null,
       content: createForm.content,
-      html_body: createForm.html_body.trim() || null,
       audience_type: createForm.audience_type || null,
     };
 
@@ -223,10 +204,8 @@ export default function MarketingCampaignsPage() {
     setEditForm({
       name: campaign.name,
       subject: campaign.subject,
-      subject_fallback: campaign.subject_fallback ?? '',
       preview_text: campaign.preview_text ?? '',
       content: campaign.content,
-      html_body: campaign.html_body ?? '',
       audience_type: campaign.audience_type ?? '',
     });
     setEditError(null);
@@ -249,10 +228,8 @@ export default function MarketingCampaignsPage() {
     const payload: Record<string, unknown> = {
       name: editForm.name.trim(),
       subject: editForm.subject.trim(),
-      subject_fallback: editForm.subject_fallback.trim() || null,
       preview_text: editForm.preview_text.trim() || null,
       content: editForm.content,
-      html_body: editForm.html_body.trim() || null,
       audience_type: editForm.audience_type || null,
     };
 
@@ -351,69 +328,6 @@ export default function MarketingCampaignsPage() {
     await load();
   }
 
-  async function onDelete(campaign: Campaign) {
-    if (!confirm(`Delete "${campaign.name}"? This cannot be undone.`)) return;
-    setDeletingId(campaign.id);
-    setError(null);
-    const res = await api(`/api/admin/marketing-campaigns/${campaign.id}`, { method: 'DELETE' });
-    setDeletingId(null);
-    if (!res.success) {
-      setError(res.message || 'Could not delete this campaign draft.');
-      return;
-    }
-    setMessage('Campaign draft deleted.');
-    await load();
-  }
-
-  async function onDuplicate(campaign: Campaign) {
-    setDuplicatingId(campaign.id);
-    setError(null);
-    const res = await api(`/api/admin/marketing-campaigns/${campaign.id}/duplicate`, { method: 'POST' });
-    setDuplicatingId(null);
-    if (!res.success) {
-      setError(res.message || 'Could not duplicate this campaign.');
-      return;
-    }
-    setMessage('Campaign duplicated as a new draft. Delivery history is preserved on the original.');
-    setPage(1);
-    await load();
-  }
-
-  function openTestSend(campaign: Campaign) {
-    setTestSending(campaign);
-    setTestSendEmail('');
-    setTestSendFirstName('');
-    setTestSendChecked(false);
-    setTestSendError(null);
-    setTestSendResult(null);
-  }
-
-  function closeTestSend() {
-    if (testSendSubmitting) return;
-    setTestSending(null);
-  }
-
-  async function onConfirmTestSend() {
-    if (!testSending || !testSendChecked || !testSendEmail.trim()) return;
-    setTestSendSubmitting(true);
-    setTestSendError(null);
-    const payload: Record<string, unknown> = { email: testSendEmail.trim(), confirm: true };
-    if (testSendFirstName.trim()) payload.first_name = testSendFirstName.trim();
-    // Dedicated endpoint only — the server always renders the already-
-    // persisted campaign content; this request carries no subject/content/
-    // html_body of its own.
-    const res = await api<TestSendResult>(`/api/admin/marketing-campaigns/${testSending.id}/test-send`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    setTestSendSubmitting(false);
-    if (!res.success) {
-      setTestSendError(res.message || 'Could not send this test email.');
-      return;
-    }
-    setTestSendResult(res.data ?? null);
-  }
-
   const hasActiveFilter = Boolean(searchInput || statusFilter || audienceFilter);
 
   return (
@@ -422,8 +336,8 @@ export default function MarketingCampaignsPage() {
         <div>
           <h1 className="page-title">Campaigns</h1>
           <p className="page-sub">
-            Draft marketing campaign content and audience criteria, then send to a test address or to currently
-            subscribed contacts.
+            Draft marketing campaign content and audience criteria. This is a draft builder only — no email is sent
+            from this page.
           </p>
         </div>
         <button type="button" className="btn btn-primary" onClick={openCreate}>
@@ -514,158 +428,94 @@ export default function MarketingCampaignsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((row) => {
-                    const locked = !!row.delivery_locked;
-                    const canEdit = row.status === 'draft' && !locked;
-                    const canArchive = row.status === 'draft' && !locked;
-                    const canSend = row.status === 'draft' && !locked;
-                    const canTestSend = row.status === 'draft' && !locked;
-                    const canDelete = row.status === 'draft' && !locked;
-                    return (
-                      <tr key={row.id}>
-                        <td>{row.name}</td>
-                        <td>{row.subject}</td>
-                        <td>{audienceLabel(row.audience_type)}</td>
-                        <td>
-                          <span className={statusBadgeClass(locked ? 'delivery-initiated' : row.status)}>
-                            {campaignStatusLabel(row)}
-                          </span>
-                        </td>
-                        <td>{new Date(row.updated_at).toLocaleDateString()}</td>
-                        <td>
-                          <div className="row-actions">
-                            <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
-                              View
+                  {items.map((row) => (
+                    <tr key={row.id}>
+                      <td>{row.name}</td>
+                      <td>{row.subject}</td>
+                      <td>{audienceLabel(row.audience_type)}</td>
+                      <td>
+                        <span className={statusBadgeClass(row.status, Boolean(row.delivery_locked))}>
+                          {campaignStatusLabel(row)}
+                        </span>
+                      </td>
+                      <td>{new Date(row.updated_at).toLocaleDateString()}</td>
+                      <td>
+                        <div className="row-actions">
+                          <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
+                            View
+                          </button>
+                          {row.status === 'draft' && !row.delivery_locked ? (
+                            <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
+                              Edit
                             </button>
-                            {canEdit ? (
-                              <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
-                                Edit
-                              </button>
-                            ) : null}
-                            <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
-                              Preview
+                          ) : null}
+                          <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
+                            Preview
+                          </button>
+                          {row.status === 'draft' && !row.delivery_locked ? (
+                            <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
+                              Archive
                             </button>
-                            {canTestSend ? (
-                              <button type="button" className="btn btn-ghost" onClick={() => openTestSend(row)}>
-                                Send Test
-                              </button>
-                            ) : null}
-                            {canArchive ? (
-                              <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
-                                Archive
-                              </button>
-                            ) : null}
-                            <button
-                              type="button"
-                              className="btn btn-ghost"
-                              title="Delivery history is preserved. Duplicate this campaign to make changes or send it again."
-                              onClick={() => onDuplicate(row)}
-                              disabled={duplicatingId === row.id}
-                            >
-                              {duplicatingId === row.id ? 'Duplicating…' : 'Duplicate as Draft'}
+                          ) : null}
+                          {row.status === 'draft' && !row.delivery_locked ? (
+                            <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
+                              Send
                             </button>
-                            {canDelete ? (
-                              <button
-                                type="button"
-                                className="btn btn-danger"
-                                onClick={() => onDelete(row)}
-                                disabled={deletingId === row.id}
-                              >
-                                {deletingId === row.id ? 'Deleting…' : 'Delete'}
-                              </button>
-                            ) : null}
-                            {canSend ? (
-                              <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
-                                Send
-                              </button>
-                            ) : null}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
 
             <div className="mobile-cards">
-              {items.map((row) => {
-                const locked = !!row.delivery_locked;
-                const canEdit = row.status === 'draft' && !locked;
-                const canArchive = row.status === 'draft' && !locked;
-                const canSend = row.status === 'draft' && !locked;
-                const canTestSend = row.status === 'draft' && !locked;
-                const canDelete = row.status === 'draft' && !locked;
-                return (
-                  <article key={row.id} className="mobile-card">
-                    <div className="mobile-card-row">
-                      <span>Name</span>
-                      <strong>{row.name}</strong>
-                    </div>
-                    <div className="mobile-card-row">
-                      <span>Subject</span>
-                      <strong>{row.subject}</strong>
-                    </div>
-                    <div className="mobile-card-row">
-                      <span>Audience</span>
-                      <span>{audienceLabel(row.audience_type)}</span>
-                    </div>
-                    <div className="mobile-card-row">
-                      <span>Status</span>
-                      <span className={statusBadgeClass(locked ? 'delivery-initiated' : row.status)}>
-                        {campaignStatusLabel(row)}
-                      </span>
-                    </div>
-                    <div className="row-actions">
-                      <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
-                        View
+              {items.map((row) => (
+                <article key={row.id} className="mobile-card">
+                  <div className="mobile-card-row">
+                    <span>Name</span>
+                    <strong>{row.name}</strong>
+                  </div>
+                  <div className="mobile-card-row">
+                    <span>Subject</span>
+                    <strong>{row.subject}</strong>
+                  </div>
+                  <div className="mobile-card-row">
+                    <span>Audience</span>
+                    <span>{audienceLabel(row.audience_type)}</span>
+                  </div>
+                  <div className="mobile-card-row">
+                    <span>Status</span>
+                    <span className={statusBadgeClass(row.status, Boolean(row.delivery_locked))}>
+                      {campaignStatusLabel(row)}
+                    </span>
+                  </div>
+                  <div className="row-actions">
+                    <button type="button" className="btn btn-ghost" onClick={() => setViewing(row)}>
+                      View
+                    </button>
+                    {row.status === 'draft' && !row.delivery_locked ? (
+                      <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
+                        Edit
                       </button>
-                      {canEdit ? (
-                        <button type="button" className="btn btn-ghost" onClick={() => openEdit(row)}>
-                          Edit
-                        </button>
-                      ) : null}
-                      <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
-                        Preview
+                    ) : null}
+                    <button type="button" className="btn btn-ghost" onClick={() => openPreview(row)}>
+                      Preview
+                    </button>
+                    {row.status === 'draft' && !row.delivery_locked ? (
+                      <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
+                        Archive
                       </button>
-                      {canTestSend ? (
-                        <button type="button" className="btn btn-ghost" onClick={() => openTestSend(row)}>
-                          Send Test
-                        </button>
-                      ) : null}
-                      {canArchive ? (
-                        <button type="button" className="btn btn-ghost" onClick={() => onArchive(row)}>
-                          Archive
-                        </button>
-                      ) : null}
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        title="Delivery history is preserved. Duplicate this campaign to make changes or send it again."
-                        onClick={() => onDuplicate(row)}
-                        disabled={duplicatingId === row.id}
-                      >
-                        {duplicatingId === row.id ? 'Duplicating…' : 'Duplicate as Draft'}
+                    ) : null}
+                    {row.status === 'draft' && !row.delivery_locked ? (
+                      <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
+                        Send
                       </button>
-                      {canDelete ? (
-                        <button
-                          type="button"
-                          className="btn btn-danger"
-                          onClick={() => onDelete(row)}
-                          disabled={deletingId === row.id}
-                        >
-                          {deletingId === row.id ? 'Deleting…' : 'Delete'}
-                        </button>
-                      ) : null}
-                      {canSend ? (
-                        <button type="button" className="btn btn-primary" onClick={() => openSend(row)}>
-                          Send
-                        </button>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
+                    ) : null}
+                  </div>
+                </article>
+              ))}
             </div>
           </>
         )}
@@ -728,25 +578,6 @@ export default function MarketingCampaignsPage() {
                 onChange={(e) => setCreateForm({ ...createForm, subject: e.target.value })}
               />
               {createFieldErrors.subject ? <p className="field-error">{createFieldErrors.subject}</p> : null}
-              <p className="muted" style={{ marginTop: '0.35rem' }}>
-                May include the <code>{'{{first_name}}'}</code> token. If used, set a Fallback subject below —
-                it is never auto-personalized with a generic word.
-              </p>
-            </div>
-            <div className="field">
-              <label htmlFor="mc-subject-fallback">Fallback subject (optional)</label>
-              <input
-                id="mc-subject-fallback"
-                maxLength={200}
-                value={createForm.subject_fallback}
-                onChange={(e) => setCreateForm({ ...createForm, subject_fallback: e.target.value })}
-              />
-              <p className="muted" style={{ marginTop: '0.35rem' }}>
-                Used instead of Subject when a recipient has no usable first name.
-              </p>
-              {createFieldErrors.subject_fallback ? (
-                <p className="field-error">{createFieldErrors.subject_fallback}</p>
-              ) : null}
             </div>
             <div className="field">
               <label htmlFor="mc-preview">Preview text</label>
@@ -788,23 +619,7 @@ export default function MarketingCampaignsPage() {
               />
               {createFieldErrors.content ? <p className="field-error">{createFieldErrors.content}</p> : null}
               <p className="muted" style={{ marginTop: '0.35rem' }}>
-                Plain-text alternative — required. May include <code>{'{{first_name_or_there}}'}</code> and{' '}
-                <code>{'{{unsubscribe_url}}'}</code>.
-              </p>
-            </div>
-            <div className="field">
-              <label htmlFor="mc-html-body">HTML body (optional)</label>
-              <textarea
-                id="mc-html-body"
-                rows={10}
-                value={createForm.html_body}
-                onChange={(e) => setCreateForm({ ...createForm, html_body: e.target.value })}
-              />
-              {createFieldErrors.html_body ? <p className="field-error">{createFieldErrors.html_body}</p> : null}
-              <p className="muted" style={{ marginTop: '0.35rem' }}>
-                Full HTML email. When set, this replaces the plain-text-only rendering for the HTML part of the
-                message. May include <code>{'{{first_name_or_there}}'}</code> and{' '}
-                <code>{'{{unsubscribe_url}}'}</code> — both are substituted per recipient at send time.
+                Plain text only.
               </p>
             </div>
 
@@ -855,25 +670,6 @@ export default function MarketingCampaignsPage() {
                 onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
               />
               {editFieldErrors.subject ? <p className="field-error">{editFieldErrors.subject}</p> : null}
-              <p className="muted" style={{ marginTop: '0.35rem' }}>
-                May include the <code>{'{{first_name}}'}</code> token. If used, set a Fallback subject below —
-                it is never auto-personalized with a generic word.
-              </p>
-            </div>
-            <div className="field">
-              <label htmlFor="mc-edit-subject-fallback">Fallback subject (optional)</label>
-              <input
-                id="mc-edit-subject-fallback"
-                maxLength={200}
-                value={editForm.subject_fallback}
-                onChange={(e) => setEditForm({ ...editForm, subject_fallback: e.target.value })}
-              />
-              <p className="muted" style={{ marginTop: '0.35rem' }}>
-                Used instead of Subject when a recipient has no usable first name.
-              </p>
-              {editFieldErrors.subject_fallback ? (
-                <p className="field-error">{editFieldErrors.subject_fallback}</p>
-              ) : null}
             </div>
             <div className="field">
               <label htmlFor="mc-edit-preview">Preview text</label>
@@ -915,23 +711,7 @@ export default function MarketingCampaignsPage() {
               />
               {editFieldErrors.content ? <p className="field-error">{editFieldErrors.content}</p> : null}
               <p className="muted" style={{ marginTop: '0.35rem' }}>
-                Plain-text alternative — required. May include <code>{'{{first_name_or_there}}'}</code> and{' '}
-                <code>{'{{unsubscribe_url}}'}</code>.
-              </p>
-            </div>
-            <div className="field">
-              <label htmlFor="mc-edit-html-body">HTML body (optional)</label>
-              <textarea
-                id="mc-edit-html-body"
-                rows={10}
-                value={editForm.html_body}
-                onChange={(e) => setEditForm({ ...editForm, html_body: e.target.value })}
-              />
-              {editFieldErrors.html_body ? <p className="field-error">{editFieldErrors.html_body}</p> : null}
-              <p className="muted" style={{ marginTop: '0.35rem' }}>
-                Full HTML email. When set, this replaces the plain-text-only rendering for the HTML part of the
-                message. May include <code>{'{{first_name_or_there}}'}</code> and{' '}
-                <code>{'{{unsubscribe_url}}'}</code> — both are substituted per recipient at send time.
+                Plain text only.
               </p>
             </div>
 
@@ -974,7 +754,7 @@ export default function MarketingCampaignsPage() {
               </p>
               <p>
                 <span>Status</span>
-                <strong>{campaignStatusLabel(viewing)}</strong>
+                <strong>{STATUS_LABELS[viewing.status]}</strong>
               </p>
               <p>
                 <span>Created</span>
@@ -991,41 +771,6 @@ export default function MarketingCampaignsPage() {
                 </p>
               ) : null}
             </div>
-            {viewing.delivery_locked ? (
-              <>
-                <p className="muted" style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>
-                  Delivery diagnostics (aggregate counts only — no recipient details are shown here).
-                </p>
-                <div className="detail-grid">
-                  <p>
-                    <span>Pending</span>
-                    <strong>{viewing.pending ?? 0}</strong>
-                  </p>
-                  <p>
-                    <span>Processing</span>
-                    <strong>{viewing.processing ? `${viewing.processing} (Review needed)` : 0}</strong>
-                  </p>
-                  <p>
-                    <span>Accepted by provider</span>
-                    <strong>{viewing.sent ?? 0}</strong>
-                  </p>
-                  <p>
-                    <span>Failed</span>
-                    <strong>{viewing.failed ?? 0}</strong>
-                  </p>
-                  <p>
-                    <span>Skipped</span>
-                    <strong>{viewing.skipped ?? 0}</strong>
-                  </p>
-                  <p>
-                    <span>Ambiguous timeout</span>
-                    <strong>
-                      {viewing.ambiguous_timeout ? `${viewing.ambiguous_timeout} (Review needed)` : 0}
-                    </strong>
-                  </p>
-                </div>
-              </>
-            ) : null}
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={() => setViewing(null)}>
                 Close
@@ -1126,14 +871,6 @@ export default function MarketingCampaignsPage() {
                   </p>
                 </div>
 
-                {!sendEligibleLoading && sendEligible === 0 ? (
-                  <div className="error-banner" style={{ marginBottom: '1rem' }}>
-                    No eligible subscribed recipients right now. This audience currently has 0 contacts with
-                    marketing status &ldquo;Subscribed&rdquo;{sending.audience_type ? ' matching this audience' : ''}.
-                    Sending will complete with 0 emails sent.
-                  </div>
-                ) : null}
-
                 <p className="muted" style={{ marginTop: 0 }}>
                   Content preview:
                 </p>
@@ -1170,13 +907,6 @@ export default function MarketingCampaignsPage() {
               </>
             ) : (
               <>
-                {sendResult.requested === 0 ? (
-                  <div className="error-banner" style={{ marginBottom: '1rem' }}>
-                    No eligible recipients were found at send time — 0 emails were sent. No recipient records
-                    were created and this campaign remains a draft (not locked), so it can be edited or sent
-                    again once there are eligible subscribed contacts.
-                  </div>
-                ) : null}
                 <div className="detail-grid" style={{ marginBottom: '1rem' }}>
                   <p>
                     <span>Requested</span>
@@ -1205,107 +935,6 @@ export default function MarketingCampaignsPage() {
                 </p>
                 <div className="modal-actions">
                   <button type="button" className="btn btn-primary" onClick={closeSend}>
-                    Done
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      ) : null}
-
-      {testSending ? (
-        <div className="overlay modal-overlay">
-          <div className="card card-pad modal-card">
-            <div className="modal-head">
-              <div>
-                <p className="modal-kicker">Marketing Campaigns</p>
-                <h2>Send test: {testSending.name}</h2>
-              </div>
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={closeTestSend}
-                aria-label="Close"
-                disabled={testSendSubmitting}
-              >
-                <X size={18} />
-              </button>
-            </div>
-            {testSendError ? <div className="error-banner">{testSendError}</div> : null}
-
-            {!testSendResult ? (
-              <>
-                <p className="muted" style={{ marginTop: 0 }}>
-                  Sends one real email of this draft&rsquo;s saved content to the address below, with a{' '}
-                  <strong>[TEST]</strong> subject prefix and a visible test banner. No subscriber list is used, no
-                  delivery record is created for this campaign, and it remains fully editable afterward.
-                </p>
-                <div className="field">
-                  <label htmlFor="mc-test-email">Test recipient email</label>
-                  <input
-                    id="mc-test-email"
-                    type="email"
-                    required
-                    value={testSendEmail}
-                    onChange={(e) => setTestSendEmail(e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="mc-test-first-name">Test first name (optional)</label>
-                  <input
-                    id="mc-test-first-name"
-                    maxLength={60}
-                    value={testSendFirstName}
-                    onChange={(e) => setTestSendFirstName(e.target.value)}
-                  />
-                  <p className="muted" style={{ marginTop: '0.35rem' }}>
-                    Used only to preview personalization for this test message — never saved.
-                  </p>
-                </div>
-
-                <label className="access-tile" style={{ marginBottom: '1rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={testSendChecked}
-                    onChange={(e) => setTestSendChecked(e.target.checked)}
-                  />
-                  <span>I confirm this address is mine or otherwise approved to receive a test email.</span>
-                </label>
-
-                <div className="modal-actions">
-                  <button type="button" className="btn btn-ghost" onClick={closeTestSend} disabled={testSendSubmitting}>
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={onConfirmTestSend}
-                    disabled={!testSendChecked || !testSendEmail.trim() || testSendSubmitting}
-                  >
-                    {testSendSubmitting ? 'Sending…' : 'Send Test'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="detail-grid" style={{ marginBottom: '1rem' }}>
-                  <p>
-                    <span>Provider accepted</span>
-                    <strong>{testSendResult.ok ? 'Yes' : 'No'}</strong>
-                  </p>
-                  <p>
-                    <span>HTTP status</span>
-                    <strong>{testSendResult.httpStatus}</strong>
-                  </p>
-                </div>
-                {!testSendResult.ok ? (
-                  <div className="error-banner" style={{ marginBottom: '1rem' }}>
-                    The email provider did not accept this test message.
-                  </div>
-                ) : null}
-                <div className="modal-actions">
-                  <button type="button" className="btn btn-primary" onClick={closeTestSend}>
                     Done
                   </button>
                 </div>

@@ -44,7 +44,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/unsubscribe'],
       })),
     ],
-    sitemap: [`${site.url}/sitemap.xml`, `${site.url}/sitemap-es.xml`],
+    sitemap: `${site.url}/sitemap.xml`,
     host: site.url,
   };
 }
