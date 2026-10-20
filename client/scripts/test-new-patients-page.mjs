@@ -27,7 +27,7 @@ import { searchIndex } from '../src/data/search-index.ts';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 
-const pageSource = readFileSync(join(root, 'src/app/new-patients/page.tsx'), 'utf8');
+const pageSource = readFileSync(join(root, 'src/app/(en)/new-patients/page.tsx'), 'utf8');
 const contentSource = readFileSync(join(root, 'src/components/sections/NewPatientsPageContent.tsx'), 'utf8');
 const sitemapSource = readFileSync(join(root, 'src/app/sitemap.ts'), 'utf8');
 const allCopy = [
@@ -38,7 +38,7 @@ const allCopy = [
 ].join(' ');
 
 test('A. the /new-patients route file exists', () => {
-  assert.doesNotThrow(() => readFileSync(join(root, 'src/app/new-patients/page.tsx'), 'utf8'));
+  assert.doesNotThrow(() => readFileSync(join(root, 'src/app/(en)/new-patients/page.tsx'), 'utf8'));
 });
 
 test('B. metadata resolves against the /new-patients CMS path', () => {
