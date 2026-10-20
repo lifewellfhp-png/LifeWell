@@ -27,7 +27,7 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
-const pageSource = readFileSync(join(root, 'src/app/orlando-psychiatric-care/page.tsx'), 'utf8');
+const pageSource = readFileSync(join(root, 'src/app/(en)/orlando-psychiatric-care/page.tsx'), 'utf8');
 const contentSource = readFileSync(join(root, 'src/components/sections/OrlandoPageContent.tsx'), 'utf8');
 
 /* -------------------------------------------------------- 1-4. NAP --- */

@@ -1,5 +1,6 @@
 import { corsOrigins } from '../config/env.js';
 import { logger } from '../utils/logger.js';
+import { pingIndexNow } from './indexNow.js';
 
 function siteOrigins() {
   const extra = (process.env.CLIENT_REVALIDATE_URLS || '')
@@ -16,8 +17,8 @@ function siteOrigins() {
 export async function refreshPublicSite(): Promise<void> {
   const secret = process.env.REVALIDATE_SECRET || '';
   const origins = siteOrigins();
-  await Promise.all(
-    origins.map(async (origin) => {
+  await Promise.all([
+    ...origins.map(async (origin) => {
       try {
         await fetch(`${origin.replace(/\/$/, '')}/api/revalidate`, {
           method: 'POST',
@@ -32,6 +33,12 @@ export async function refreshPublicSite(): Promise<void> {
           message: err instanceof Error ? err.message : 'unknown',
         });
       }
-    })
-  );
+    }),
+    // This generic save path (shared across every admin content type via
+    // crudFactory.ts) doesn't know which specific public URL a given row
+    // maps to, so this pings the site root — enough to prompt a re-crawl
+    // without a per-content-type URL-mapping project. A caller that DOES
+    // know the exact path (none currently do) could ping that instead.
+    pingIndexNow(['/']),
+  ]);
 }

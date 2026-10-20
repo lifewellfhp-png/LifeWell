@@ -9,6 +9,7 @@ import { headerNav, headerCta } from '@/data/navigation';
 import { cn } from '@/lib/utils';
 import { isOptimizableImageSrc } from '@/lib/site-asset';
 import { NavBar } from './NavBar';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 /**
  * Live header is absolutely positioned over the hero (transparent), then
@@ -82,6 +83,9 @@ export function Header({
         </Link>
 
         <NavBar items={headerNav} cta={button} overlay={overlay} phone={phone} />
+        <div className="shrink-0">
+          <LanguageSwitcher currentLocale="en" overlay={overlay} />
+        </div>
       </div>
     </header>
   );

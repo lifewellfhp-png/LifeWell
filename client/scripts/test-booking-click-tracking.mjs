@@ -155,7 +155,7 @@ const expectedCoverage = [
   ['components/sections/PremiumBookingChoice.tsx', 1],
   ['components/layout/NavBar.tsx', 2],
   ['components/layout/MobileMenu.tsx', 1],
-  ['app/book-telehealth-mental-health-appointment/page.tsx', 1],
+  ['app/(en)/book-telehealth-mental-health-appointment/page.tsx', 1],
   ['components/sections/OurServicesPageContent.tsx', 1],
   ['components/sections/TestimonialsPageContent.tsx', 1],
 ];
@@ -210,7 +210,7 @@ test('5. Preceptorship page has no booking_click tracking anywhere', () => {
 
 test('5b. non-booking SwapButton/JourneyCta/HeaderCta call sites were not converted', () => {
   const cases = [
-    ['app/page.tsx', /href="\/our-services"[^]*?SwapButton/, 'View All Services'],
+    ['app/(en)/page.tsx', /href="\/our-services"[^]*?SwapButton/, 'View All Services'],
     ['components/sections/InsuranceGrid.tsx', /SwapButton href={ctaHref}/, 'View Fees & Insurance'],
     ['components/sections/VideosSection.tsx', /SwapButton href="\/videos"/, 'Watch More Videos'],
     ['components/sections/WelcomeSection.tsx', /SwapButton href={welcome\.cta\.href}/, 'Learn More About the Provider'],

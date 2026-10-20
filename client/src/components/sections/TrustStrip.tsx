@@ -1,7 +1,7 @@
 import type { TelehealthState } from '@/data/telehealth-states';
 import Link from 'next/link';
 import { provider as staticProvider } from '@/data/provider';
-import { site } from '@/data/site';
+import { site, formatCareLanguages } from '@/data/site';
 import { Container } from '@/components/ui/Section';
 
 type Provider = {
@@ -58,6 +58,9 @@ export function TrustStrip({ provider = staticProvider, states }: { provider?: P
             </li>
           ))}
         </ul>
+        <p className="mt-4 text-center text-[13px] text-text-secondary">
+          Visits are conducted in {formatCareLanguages()}.
+        </p>
       </Container>
     </div>
   );
