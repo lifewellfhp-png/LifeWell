@@ -28,6 +28,17 @@ export function formatCareLanguages(): string {
   return `${list.slice(0, -1).join(', ')}, and ${list[list.length - 1]}`;
 }
 
+/**
+ * The required Spanish-page disclaimer (Part 3, item 12) — owner-given
+ * exact wording, not a programmatic translation of CARE_LANGUAGES, so
+ * every Spanish page states it identically. No interpreter-availability
+ * sentence is appended — that was never confirmed; this function is the
+ * one place to add it if the owner later confirms one exists.
+ */
+export function formatCareLanguagesEs(): string {
+  return 'Las consultas se realizan en inglés, francés y criollo haitiano.';
+}
+
 export const site = {
   name: 'LifeWell Family Health & Psychiatry',
   shortName: 'LifeWell FHP',

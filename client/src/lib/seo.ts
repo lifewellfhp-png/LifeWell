@@ -27,6 +27,20 @@ export interface PageMetaInput {
   publishedTime?: string | null;
   modifiedTime?: string | null;
   noIndex?: boolean;
+  /** Defaults to site.locale ('en_US'). Spanish pages pass 'es_US'. */
+  ogLocale?: string;
+  /**
+   * Reciprocal hreflang. A page passes the ROOT-RELATIVE path of its
+   * counterpart in the other language — e.g. the English /fees-insurance
+   * page passes `{ es: '/es/fees-insurance' }`, and that Spanish page
+   * passes `{ en: '/fees-insurance' }`. x-default always points at the
+   * English path (the site's default experience) — pass `en` and
+   * x-default is derived from it automatically, never passed in
+   * separately. Omitted entirely (no `alternates.languages` at all) for
+   * a page with no counterpart yet in the other language, since a
+   * one-sided hreflang is worse than none.
+   */
+  alternateLocale?: { en?: string; es?: string };
 }
 
 const absolute = (path: string) =>
@@ -41,6 +55,8 @@ export function pageMetadata({
   publishedTime,
   modifiedTime,
   noIndex = false,
+  ogLocale = site.locale,
+  alternateLocale,
 }: PageMetaInput): Metadata {
   const canonical = absolute(path === '/' ? '/' : path.replace(/\/$/, ''));
   const brandedTitle = withBrand(title);
@@ -50,6 +66,34 @@ export function pageMetadata({
     ...(image.height ? { height: image.height } : {}),
     alt: image.alt || brandedTitle,
   };
+  // Each language's URL is this page's own canonical when this page IS
+  // that language (inferred from `path`), or the passed-in counterpart
+  // path otherwise. x-default always points at the English URL. Omitted
+  // entirely when the caller passes no alternateLocale at all — a page
+  // with no counterpart yet in the other language gets no languages
+  // field, not a one-sided or self-only one.
+  const isSpanishPage = path.startsWith('/es');
+  const englishUrl = !alternateLocale
+    ? undefined
+    : isSpanishPage
+      ? alternateLocale.en
+        ? absolute(alternateLocale.en)
+        : undefined
+      : canonical;
+  const spanishUrl = !alternateLocale
+    ? undefined
+    : isSpanishPage
+      ? canonical
+      : alternateLocale.es
+        ? absolute(alternateLocale.es)
+        : undefined;
+  const languages =
+    englishUrl || spanishUrl
+      ? {
+          ...(englishUrl ? { en: englishUrl, 'x-default': englishUrl } : {}),
+          ...(spanishUrl ? { es: spanishUrl } : {}),
+        }
+      : undefined;
 
   return {
     // `absolute` opts this title out of the root layout's `title.template`.
@@ -58,7 +102,7 @@ export function pageMetadata({
     // practice name — see withBrand().
     title: { absolute: brandedTitle },
     description,
-    alternates: { canonical },
+    alternates: { canonical, ...(languages ? { languages } : {}) },
     robots: noIndex
       ? { index: false, follow: false }
       : {
@@ -78,7 +122,7 @@ export function pageMetadata({
       description,
       url: canonical,
       siteName: site.name,
-      locale: site.locale,
+      locale: ogLocale,
       images: [ogImage],
       ...(type === 'article' && publishedTime ? { publishedTime } : {}),
       ...(type === 'article' && modifiedTime ? { modifiedTime } : {}),
