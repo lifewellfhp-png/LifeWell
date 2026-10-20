@@ -22,7 +22,7 @@ export interface ContentSection {
 
 /* ----------------------------------------------------------- services --- */
 
-export type ServiceCategory = 'psychiatric' | 'primary-care';
+export type ServiceCategory = 'psychiatric' | 'primary-care' | 'professional-education';
 
 export interface Service {
   slug: string;

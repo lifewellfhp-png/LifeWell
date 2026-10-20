@@ -16,6 +16,10 @@ export const serviceCategories: Record<ServiceCategory, { label: string; shortLa
     label: 'Family Health (Primary Care Services)',
     shortLabel: 'Family Health',
   },
+  'professional-education': {
+    label: 'Professional Education',
+    shortLabel: 'Professional Education',
+  },
 };
 
 const SUMMARY: Record<string, string> = {
@@ -41,6 +45,8 @@ const SUMMARY: Record<string, string> = {
     'I provide personalized wellness and lifestyle counseling through secure telehealth visits to help you improve nutrition, sleep, stress management, and daily habits that support long-term physical and mental health.',
   'lab-testing-coordination-telehealth':
     'I provide lab testing coordination through secure telehealth visits, including ordering appropriate laboratory tests, reviewing results, and explaining findings to help guide your treatment and protect your long-term health.',
+  'preceptorship-program':
+    'I offer a professional preceptorship program that supports students and early-career professionals with guided clinical education, mentorship, and practical learning in a safe, professional setting.',
 };
 
 const MENU_LABEL: Record<string, string> = {
@@ -56,6 +62,7 @@ const MENU_LABEL: Record<string, string> = {
   'weight-management-telehealth': 'Weight Management',
   'wellness-and-lifestyle-counseling-telehealth': 'Wellness and Lifestyle Counseling',
   'lab-testing-coordination-telehealth': 'Lab Testing Coordination',
+  'preceptorship-program': 'Preceptorship Program',
 };
 
 const SERVICE_IMAGE: Record<string, { file: string; alt: string }> = {
@@ -103,6 +110,10 @@ const SERVICE_IMAGE: Record<string, { file: string; alt: string }> = {
     file: 'Lab-Testing-Coordination-Telehealth.avif',
     alt: 'Lab testing coordination by telehealth',
   },
+  'preceptorship-program': {
+    file: 'preceptorship/student-mentor-education.svg',
+    alt: 'Student and mentor working together in a healthcare education setting',
+  },
 };
 
 /** Order matches the WordPress service posts. */
@@ -118,6 +129,7 @@ const CATALOG: { slug: string; category: ServiceCategory }[] = [
   { slug: 'weight-management-telehealth', category: 'primary-care' },
   { slug: 'wellness-and-lifestyle-counseling-telehealth', category: 'primary-care' },
   { slug: 'lab-testing-coordination-telehealth', category: 'primary-care' },
+  { slug: 'preceptorship-program', category: 'professional-education' },
 ];
 
 export const serviceHref = (slug: string) => `/services/${slug}`;
@@ -173,6 +185,8 @@ export const PREFETCH_ROUTES = [
   '/',
   '/bio',
   '/our-services',
+  '/preceptorship-program',
+  '/services/preceptorship-program',
   '/fees-insurance',
   '/blog',
   '/videos',

@@ -34,6 +34,9 @@ export async function ServicePageContent({ slug }: { slug: string }) {
   const related = cms.serviceSummaries.filter((s) => s.slug !== slug).slice(0, 3);
   const psych = cms.serviceSummaries.filter((s) => s.category === 'psychiatric' && s.slug !== slug);
   const primary = cms.serviceSummaries.filter((s) => s.category === 'primary-care' && s.slug !== slug);
+  const professionalEducation = cms.serviceSummaries.filter(
+    (s) => s.category === 'professional-education' && s.slug !== slug
+  );
   const cmsParagraphs = String(detail?.body || '')
     .split(/\n+/)
     .map((p) => p.trim())
@@ -108,6 +111,13 @@ export async function ServicePageContent({ slug }: { slug: string }) {
               links={primary}
               className="mt-10"
             />
+            {professionalEducation.length > 0 ? (
+              <ServiceList
+                heading={serviceCategories['professional-education'].label}
+                links={professionalEducation}
+                className="mt-10"
+              />
+            ) : null}
 
             <div className="mt-10 rounded-[20px] bg-[#EEF3F7] px-6 py-8">
               <h2 className="font-heading text-[22px] font-medium italic leading-[1.3] tracking-[-1px] text-[var(--lw-accent)] sm:text-[24px]">

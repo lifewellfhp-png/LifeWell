@@ -297,8 +297,12 @@ export function mapServiceSummaries(cms: PublicCmsPayload | null, live: boolean)
       // that would silently make it MA/AZ-eligible (see TelehealthStatePageContent's
       // `category === 'psychiatric'` filter) without anyone having chosen that.
       // 'primary-care' is the safe default: it never unlocks MA/AZ display.
+      // 'professional-education' is allowed explicitly for preceptorship and other
+      // non-clinical education offerings, without pretending they are psychiatric care.
       const category =
-        r.category === 'primary-care' || r.category === 'psychiatric'
+        r.category === 'primary-care' ||
+        r.category === 'psychiatric' ||
+        r.category === 'professional-education'
           ? r.category
           : base?.category ?? 'primary-care';
       const imageSrc = siteAssetSrc(
