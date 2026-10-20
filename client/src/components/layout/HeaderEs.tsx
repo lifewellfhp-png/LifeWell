@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -28,6 +28,8 @@ export function HeaderEs({ logoUrl }: { logoUrl?: string | null } = {}) {
   const pathname = usePathname();
   const isHome = pathname === '/es';
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isHome) {
@@ -40,11 +42,34 @@ export function HeaderEs({ logoUrl }: { logoUrl?: string | null } = {}) {
     return () => window.removeEventListener('scroll', onScroll);
   }, [isHome]);
 
+  // Close the mobile panel whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    const onDown = (e: MouseEvent) => {
+      if (panelRef.current?.contains(e.target as Node)) return;
+      setMobileOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('mousedown', onDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('mousedown', onDown);
+    };
+  }, [mobileOpen]);
+
   const overlay = isHome && !scrolled;
   const logo = logoUrl || '/images/brand/logo-v2.avif';
 
   return (
     <header
+      ref={panelRef}
       className={cn(
         'z-50 w-full overflow-x-clip transition-[background-color,box-shadow] duration-300',
         isHome ? 'fixed top-0' : 'sticky top-0',
@@ -52,7 +77,7 @@ export function HeaderEs({ logoUrl }: { logoUrl?: string | null } = {}) {
       )}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <div className="mx-auto flex min-h-[72px] w-full max-w-header min-w-0 flex-wrap items-center gap-3 px-4 py-3 sm:min-h-[90px] sm:flex-nowrap sm:gap-4 sm:px-[30px] sm:py-5 lg:gap-5 lg:px-10 lg:py-[22px]">
+      <div className="mx-auto flex min-h-[72px] w-full max-w-header min-w-0 items-center gap-3 px-4 py-3 sm:min-h-[90px] sm:gap-4 sm:px-[30px] sm:py-5 lg:gap-5 lg:px-10 lg:py-[22px]">
         <Link href="/es" prefetch className="relative z-10 shrink-0 no-underline" aria-label={`${site.name} — inicio`}>
           <Image
             src={logo}
@@ -64,7 +89,7 @@ export function HeaderEs({ logoUrl }: { logoUrl?: string | null } = {}) {
           />
         </Link>
 
-        <nav aria-label="Navegación principal" className="order-3 flex w-full flex-wrap gap-x-5 gap-y-2 sm:order-none sm:w-auto sm:flex-1 sm:justify-end">
+        <nav aria-label="Navegación principal" className="hidden flex-1 flex-wrap justify-end gap-x-5 gap-y-2 sm:flex">
           {ES_NAV.map((item) => (
             <Link
               key={item.href}
@@ -80,10 +105,73 @@ export function HeaderEs({ logoUrl }: { logoUrl?: string | null } = {}) {
           ))}
         </nav>
 
-        <div className="shrink-0">
-          <LanguageSwitcher currentLocale="es" overlay={overlay} />
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
+          <div className="hidden sm:block">
+            <LanguageSwitcher currentLocale="es" overlay={overlay} />
+          </div>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-expanded={mobileOpen}
+            aria-controls="es-mobile-menu"
+            aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+            className={cn(
+              'relative z-10 inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center rounded-sm border px-3 text-sm font-semibold transition-colors duration-150 sm:hidden',
+              overlay
+                ? 'border-white/50 text-white hover:bg-white/10'
+                : 'border-border-subtle text-text-primary hover:bg-surface-muted'
+            )}
+          >
+            <BurgerIcon />
+          </button>
         </div>
       </div>
+
+      {mobileOpen && (
+        <div
+          id="es-mobile-menu"
+          className="border-t border-black/5 bg-white px-4 py-3 shadow-[0_8px_16px_rgba(0,0,0,0.06)] sm:hidden"
+        >
+          <nav aria-label="Navegación principal" className="flex flex-col gap-1">
+            {ES_NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                prefetch
+                className={cn(
+                  'flex min-h-11 items-center rounded-sm px-2 text-[15px] font-semibold no-underline',
+                  pathname === item.href
+                    ? 'bg-[#EEF2FA] text-[var(--lw-accent)]'
+                    : 'text-[var(--lw-primary)] hover:bg-[#EEF2FA]'
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="mt-2 border-t border-black/5 pt-2">
+            <LanguageSwitcher currentLocale="es" overlay={false} />
+          </div>
+        </div>
+      )}
     </header>
+  );
+}
+
+function BurgerIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
+      <path d="M2 4.5h14M2 9h14M2 13.5h14" />
+    </svg>
   );
 }
