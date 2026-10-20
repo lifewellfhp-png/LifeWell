@@ -8,6 +8,7 @@ import type { NavItem, NavLink } from '@/types/content';
 import { cn } from '@/lib/utils';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { MobileMenu } from './MobileMenu';
+import { SiteSearch } from './SiteSearch';
 
 /** Extra room for the Get Started control plus flex gaps. */
 const CTA_RESERVE = 230;
@@ -125,6 +126,8 @@ export function NavBar({
           compact === null ? 'ml-auto min-[1440px]:ml-0' : showCompact && 'ml-auto'
         )}
       >
+        <SiteSearch />
+
         <div
           className={cn(
             compact === null ? 'hidden min-[1440px]:flex' : showDesktop ? 'flex' : 'hidden'

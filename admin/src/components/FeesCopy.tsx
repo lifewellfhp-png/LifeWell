@@ -168,7 +168,7 @@ export function FeesCopy() {
       <h2>Fees page text</h2>
       <p className="muted" style={{ marginTop: 0 }}>
         Intro and self-pay copy on /fees-insurance. Plan logos are in the table below. Psychiatric state pricing is
-        managed here and overrides the site's fallback values when published.
+        managed here and overrides the site&apos;s fallback values when published.
       </p>
       {error ? <div className="error-banner">{error}</div> : null}
       {message ? <div className="ok-banner">{message}</div> : null}

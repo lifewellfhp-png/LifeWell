@@ -293,7 +293,7 @@ if (!ringOk) note('keyboard', 'no visible focus ring');
 
 // FAQ accordion via keyboard.
 await page.goto(BASE + '/faqs', { waitUntil: 'domcontentloaded', timeout: 60000 });
-const firstQ = page.locator('button[aria-expanded]').first();
+const firstQ = page.locator('main button[aria-expanded]').first();
 const before = await firstQ.getAttribute('aria-expanded');
 await firstQ.focus();
 await page.keyboard.press('Enter');
@@ -312,14 +312,15 @@ await page.waitForTimeout(400);
 
 const searchTrigger = page.getByRole('button', { name: /search this site/i });
 await searchTrigger.click();
-const searchBox = page.getByRole('combobox');
+const searchDialog = page.getByRole('dialog', { name: 'Search this site' });
+const searchBox = searchDialog.getByRole('combobox');
 const searchOpened = await searchBox.isVisible().catch(() => false);
 console.log(`  opens from header                                   ${searchOpened ? 'ok' : 'FAIL'}`);
 if (!searchOpened) note('search', 'did not open');
 
 await searchBox.fill('weight');
 await page.waitForTimeout(300);
-const optionCount = await page.getByRole('option').count();
+const optionCount = await searchDialog.getByRole('option').count();
 console.log(`  returns results for a real term                     ${optionCount > 0 ? 'ok' : 'FAIL'} (${optionCount})`);
 if (optionCount === 0) note('search', 'no results for "weight"');
 
@@ -334,7 +335,7 @@ if (!hasActive) note('search', 'aria-activedescendant not tracking');
 
 // Capture the highlighted option's target, then assert Enter opens it.
 const expectedHref = await page.evaluate(() => {
-  const input = document.querySelector('[role="combobox"]');
+  const input = document.querySelector('[role="dialog"] [role="combobox"]');
   const id = input?.getAttribute('aria-activedescendant');
   const el = id ? document.getElementById(id) : null;
   return el ? new URL(el.getAttribute('href'), location.origin).pathname : null;
@@ -349,7 +350,8 @@ if (!navigated) note('search', `Enter went to ${landedOn}, expected ${expectedHr
 await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 60000 });
 await page.waitForTimeout(400);
 await page.getByRole('button', { name: /search this site/i }).click();
-await page.getByRole('combobox').fill('zzzznotathing');
+const emptySearchDialog = page.getByRole('dialog', { name: 'Search this site' });
+await emptySearchDialog.getByRole('combobox').fill('zzzznotathing');
 await page.waitForTimeout(300);
 const emptyState = await page.locator('text=/No results for/i').first().isVisible().catch(() => false);
 console.log(`  empty state for no matches                          ${emptyState ? 'ok' : 'FAIL'}`);
@@ -357,7 +359,7 @@ if (!emptyState) note('search', 'no empty state');
 
 await page.keyboard.press('Escape');
 await page.waitForTimeout(250);
-const searchClosed = !(await page.getByRole('combobox').isVisible().catch(() => false));
+const searchClosed = !(await emptySearchDialog.getByRole('combobox').isVisible().catch(() => false));
 console.log(`  closes on Escape                                    ${searchClosed ? 'ok' : 'FAIL'}`);
 if (!searchClosed) note('search', 'Escape did not close');
 

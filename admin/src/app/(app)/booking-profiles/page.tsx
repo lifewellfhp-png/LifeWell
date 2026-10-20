@@ -484,7 +484,7 @@ export default function BookingProfilesPage() {
           <p className="page-sub" style={{ marginTop: 0 }}>
             Headings and descriptions for the redesigned{' '}
             <code>/book-telehealth-mental-health-appointment</code> page. Leave the defaults if
-            you're not sure.
+            you&apos;re not sure.
           </p>
           <div className="grid-2">
             <div className="field" style={{ gridColumn: '1 / -1' }}>
