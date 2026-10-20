@@ -59,8 +59,8 @@ test('3. the wildcard rule still allows / and now disallows /unsubscribe', () =>
   assert.match(wildcardBlock, /disallow: \['\/unsubscribe'\]/);
 });
 
-test('4. the sitemap is still linked', () => {
-  assert.match(source, /sitemap: `\$\{site\.url\}\/sitemap\.xml`/);
+test('4. both the English and Spanish sitemaps are linked', () => {
+  assert.match(source, /sitemap: \[`\$\{site\.url\}\/sitemap\.xml`, `\$\{site\.url\}\/sitemap-es\.xml`\]/);
 });
 
 test('5. host is still set to the real production origin', () => {

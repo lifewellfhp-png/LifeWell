@@ -44,11 +44,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/unsubscribe'],
       })),
     ],
-    // sitemap-es.xml is added to this list once Part 3's Spanish sitemap
-    // route exists (see the feature/ai-search-and-spanish branch's later
-    // commits) — kept to one real sitemap here so this commit never links
-    // a 404.
-    sitemap: `${site.url}/sitemap.xml`,
+    sitemap: [`${site.url}/sitemap.xml`, `${site.url}/sitemap-es.xml`],
     host: site.url,
   };
 }
