@@ -30,10 +30,22 @@ const englishPaths = new Set([
   ...telehealthStateSlugs.map((slug) => `/telehealth/${slug}`),
 ]);
 
+const englishAliases = new Map([
+  ['/services', '/our-services'],
+  ['/about', '/bio'],
+  ['/contact', '/contact-telehealth-mental-health-provider'],
+  ['/book', '/book-telehealth-mental-health-appointment'],
+  ['/testimonials', '/telehealth-mental-health-testimonials'],
+  ['/reviews', '/telehealth-mental-health-testimonials'],
+  ['/faq', '/faqs'],
+]);
+
 export function englishPathForSpanishPath(pathname: string): string {
   if (pathname === '/es') return '/';
   if (!pathname.startsWith('/es/')) return pathname;
 
   const candidate = pathname.slice('/es'.length);
+  const alias = englishAliases.get(candidate);
+  if (alias) return alias;
   return englishPaths.has(candidate) ? candidate : '/';
 }
