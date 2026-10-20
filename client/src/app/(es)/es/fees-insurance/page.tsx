@@ -113,6 +113,46 @@ export default async function FeesInsurancePageEs() {
           </div>
         </Container>
       </Section>
+
+      {/*
+        Good Faith Estimate notice — a federal No Surprises Act disclosure,
+        not casual marketing copy, so per the task's own instruction it is
+        NOT machine-translated: the lead-in sentence below is the only
+        Spanish text here, same "kept in English, clearly marked" pattern
+        as LegalNoticeEs.tsx. The notice body itself is copied verbatim
+        from FeesPageContent.tsx (the English page) so the two never drift.
+      */}
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-20 lg:max-[1601px]:px-10 min-[1601px]:px-[80px]">
+        <Container>
+          <div className="mx-auto max-w-[70ch] rounded-[16px] bg-[#EEF2FA] p-6 sm:p-8">
+            <p className="text-[13px] text-text-secondary">
+              Este aviso federal se muestra en inglés porque es un documento legal (Ley No Sorpresas).
+            </p>
+            <h2 className="mt-3 font-heading text-[20px] font-normal text-[var(--lw-primary)] sm:text-[22px]">
+              Good Faith Estimate
+            </h2>
+            <p className="mt-3 text-[14px] leading-[1.6] text-[#374151] desktop:text-[15px]">
+              You have the right to receive a Good Faith Estimate explaining how much your medical care will cost.
+              Under the law, health care providers need to give patients who don&apos;t have insurance or who are not
+              using insurance an estimate of the bill for medical items and services. For questions or more
+              information about your right to a Good Faith Estimate, visit{' '}
+              <a
+                href="https://www.cms.gov/nosurprises"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[var(--lw-primary)] underline underline-offset-2"
+              >
+                www.cms.gov/nosurprises
+              </a>{' '}
+              or call{' '}
+              <a href="tel:+18009853059" className="font-semibold text-[var(--lw-primary)] underline underline-offset-2">
+                1-800-985-3059
+              </a>
+              .
+            </p>
+          </div>
+        </Container>
+      </section>
     </>
   );
 }
