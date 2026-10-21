@@ -49,7 +49,7 @@ export async function generateMetadata({
     publishedTime: post.publishedAt,
     modifiedTime: post.modifiedAt,
     image: post.image
-      ? { url: post.image, width: 1920, height: 1080, alt: post.title }
+      ? { url: post.image, width: 1920, height: 1080, alt: post.imageAlt || post.title }
       : undefined,
     // Placeholder-bodied posts must not be indexed as thin content.
     noIndex: post.needsClientContent,
@@ -73,6 +73,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       {!post.needsClientContent && (
         <JsonLd
           data={articleGraph({
+            type: 'BlogPosting',
             path: `/${slug}`,
             title: post.title,
             description: post.excerpt || post.title,
@@ -122,7 +123,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             <div className="mt-9 overflow-hidden rounded-md border border-border-subtle bg-surface-muted">
               <Image
                 src={post.image}
-                alt=""
+                alt={post.imageAlt || post.title}
                 width={1920}
                 height={1080}
                 priority

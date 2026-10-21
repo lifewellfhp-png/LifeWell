@@ -69,6 +69,7 @@ export interface BlogPost {
   publishedAt: string | null;
   modifiedAt: string | null;
   image: string | null;
+  imageAlt?: string;
   /**
    * True when the source body is WordPress theme filler rather than real
    * clinical writing. Flagged posts are withheld from the public site.
