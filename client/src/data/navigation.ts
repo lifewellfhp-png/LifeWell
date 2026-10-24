@@ -31,7 +31,7 @@ const mentalHealthMenuLinks: NavLink[] = [
     description: 'Depression, anxiety, ADHD, bipolar disorder, PTSD',
   },
   {
-    label: 'Follow-Up Care',
+    label: 'Follow-Up Mental Health Care',
     href: hrefFor('psychiatric-follow-up-visits-telehealth'),
     description: 'Regular check-ins to track your progress',
   },
@@ -39,20 +39,21 @@ const mentalHealthMenuLinks: NavLink[] = [
 
 /** No description lines, per the brief — keeps this longer column compact. */
 const primaryCareMenuLinks: NavLink[] = [
-  { label: 'Annual Physicals & Screenings', href: hrefFor('annual-physical-exam-telehealth') },
+  { label: 'Annual Physicals & Preventive Screenings', href: hrefFor('annual-physical-exam-telehealth') },
   { label: 'Chronic Disease Management', href: hrefFor('chronic-disease-management-telehealth') },
   { label: 'Preventive Care', href: hrefFor('preventive-care-telehealth') },
-  { label: 'Sick Visits (Adults 18+)', href: hrefFor('telehealth-sick-visits-primary-care') },
+  { label: 'Sick Visits', href: hrefFor('telehealth-sick-visits-primary-care') },
   { label: 'Weight Management', href: hrefFor('weight-management-telehealth') },
   { label: 'Wellness & Lifestyle Counseling', href: hrefFor('wellness-and-lifestyle-counseling-telehealth') },
   { label: 'Lab Testing Coordination', href: hrefFor('lab-testing-coordination-telehealth') },
 ];
 
-/** Bottom-strip link in the Services mega menu, not one of the two main columns. */
-export const preceptorshipLink: NavLink = {
-  label: 'Preceptorship Program',
-  href: hrefFor('preceptorship-program'),
-};
+/** Third Services-menu column — a narrower, tinted column in its own right
+ * (not a bottom-strip link), so nursing-student visitors get the same
+ * top-level billing as Mental Health/Primary Care. */
+const professionalEducationMenuLinks: NavLink[] = [
+  { label: 'Preceptorship Program', href: hrefFor('preceptorship-program') },
+];
 
 /**
  * Header navigation, mirroring the source site's structure.
@@ -79,6 +80,11 @@ export const headerNav: NavItem[] = [
     groups: [
       { label: 'Mental Health', links: mentalHealthMenuLinks },
       { label: 'Primary Care', links: primaryCareMenuLinks },
+      {
+        label: 'Professional Education',
+        links: professionalEducationMenuLinks,
+        caption: 'Clinical training for nurse practitioner students.',
+      },
     ],
   },
   { label: 'Provider', href: '/bio' },

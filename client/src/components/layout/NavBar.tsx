@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { MobileMenu } from './MobileMenu';
 import { SiteSearch } from './SiteSearch';
+import { groupHeadingIcon } from './navMenuIcons';
 
 /** Extra room for the Get Started control plus flex gaps. */
 const CTA_RESERVE = 230;
@@ -108,7 +109,7 @@ export function NavBar({
         <ul className="flex w-full items-center justify-center gap-[3px]">
           {items.map((item) =>
             item.groups ? (
-              <MegaMenuItem key={item.href} item={item} pathname={pathname} overlay={overlay} />
+              <MegaMenuItem key={item.href} item={item} pathname={pathname} overlay={overlay} cta={cta} />
             ) : item.flat ? (
               <FlatDropdownItem key={item.href} item={item} pathname={pathname} overlay={overlay} />
             ) : (
@@ -231,7 +232,17 @@ function TopLevelLink({
  * and returns focus to the trigger. Focus leaving the subtree closes it, so
  * tabbing past the menu behaves predictably.
  */
-function MegaMenuItem({ item, pathname, overlay }: { item: NavItem; pathname: string; overlay?: boolean }) {
+function MegaMenuItem({
+  item,
+  pathname,
+  overlay,
+  cta,
+}: {
+  item: NavItem;
+  pathname: string;
+  overlay?: boolean;
+  cta: NavLink;
+}) {
   const [open, setOpen] = useState(false);
   const [top, setTop] = useState(110);
   const [mounted, setMounted] = useState(false);
@@ -303,40 +314,61 @@ function MegaMenuItem({ item, pathname, overlay }: { item: NavItem; pathname: st
     createPortal(
       <div
         id={panelId}
-        className="services-mega fixed left-1/2 z-[70] w-[min(640px,calc(100vw-2rem))] -translate-x-1/2"
+        className="services-mega fixed left-1/2 z-[70] w-[min(1000px,calc(100vw-2rem))] -translate-x-1/2"
         style={{ top }}
         onMouseEnter={openNow}
         onMouseLeave={closeSoon}
       >
-        <div className="mega-card flex min-h-[390px] overflow-hidden rounded-[16px] border border-[#e3e8f2] bg-[#ffffff] shadow-[0_20px_40px_rgba(0,37,116,0.15)]">
-          {item.groups?.map((group) => (
-            <div
-              key={group.label}
-              className="flex min-w-0 w-1/2 flex-col justify-center gap-5 p-10"
+        <div className="mega-card flex flex-col overflow-hidden rounded-[16px] border border-[#e3e8f2] bg-[#ffffff] shadow-[0_20px_40px_rgba(0,37,116,0.15)]">
+          <div className="flex items-start">
+            {item.groups?.map((group) => {
+              const isProfessionalEducation = group.label === 'Professional Education';
+              return (
+                <div
+                  key={group.label}
+                  className={cn(
+                    'flex min-w-0 flex-col items-start gap-4 p-8',
+                    isProfessionalEducation ? 'w-[26%] shrink-0 bg-[#eef2fa]' : 'flex-1'
+                  )}
+                >
+                  <span className="relative inline-flex items-center gap-2 pb-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[var(--lw-primary)] after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-6 after:bg-[var(--lw-accent)]">
+                    {groupHeadingIcon(group.label)}
+                    {group.label}
+                  </span>
+                  <ul className="flex w-full flex-col gap-px">
+                    {group.links.map((link) => (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          prefetch
+                          aria-current={pathname === link.href ? 'page' : undefined}
+                          className="mega-link block whitespace-nowrap rounded-[10px] px-2.5 py-2.5 text-[15px] font-medium leading-snug text-[var(--lw-primary)] no-underline transition-colors duration-200 hover:bg-[#eef2fa] hover:text-[var(--color-brand-accent-hover)] focus-visible:bg-[#eef2fa] focus-visible:text-[var(--color-brand-accent-hover)]"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  {group.caption && (
+                    <p className="text-[13px] leading-snug text-[#4b5563]">{group.caption}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#eef2fa] bg-[#f7fafc] px-8 py-4">
+            <Link
+              href={item.href}
+              prefetch
+              className="text-[14px] font-semibold text-[var(--lw-primary)] no-underline hover:text-[var(--color-brand-accent-hover)]"
             >
-              <Link
-                href={item.href}
-                prefetch
-                className="mega-heading block text-[var(--lw-primary)] no-underline"
-              >
-                {group.label}
-              </Link>
-              <ul className="flex flex-col gap-px">
-                {group.links.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      prefetch
-                      aria-current={pathname === link.href ? 'page' : undefined}
-                      className="mega-link block rounded-[10px] px-2.5 py-2.5 text-[var(--lw-primary)] no-underline transition-colors duration-200 hover:bg-[#eef2fa] hover:text-[var(--color-brand-accent-hover)] focus-visible:bg-[#eef2fa] focus-visible:text-[var(--color-brand-accent-hover)]"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+              View all services <span aria-hidden="true">→</span>
+            </Link>
+            <SwapButton href={cta.href} size="sm" tone="accent" trackAs="booking_click">
+              {cta.label}
+            </SwapButton>
+          </div>
         </div>
       </div>,
       document.body
