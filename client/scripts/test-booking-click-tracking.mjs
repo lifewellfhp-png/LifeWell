@@ -153,8 +153,11 @@ const expectedCoverage = [
   ['components/sections/ServicePageContent.tsx', 2],
   ['components/sections/StatsBand.tsx', 1],
   ['components/sections/PremiumBookingChoice.tsx', 1],
-  ['components/layout/NavBar.tsx', 2],
-  ['components/layout/MobileMenu.tsx', 1],
+  // Services-menu redesign: a Book button was added to the mega menu's own
+  // bottom bar (desktop) and to the Services accordion's own bottom strip
+  // (mobile), alongside the pre-existing header CTA(s).
+  ['components/layout/NavBar.tsx', 3],
+  ['components/layout/MobileMenu.tsx', 2],
   ['app/book-telehealth-mental-health-appointment/page.tsx', 1],
   ['components/sections/OurServicesPageContent.tsx', 1],
   ['components/sections/TestimonialsPageContent.tsx', 1],

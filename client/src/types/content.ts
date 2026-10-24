@@ -195,6 +195,8 @@ export interface NavLink {
 export interface NavGroup {
   label: string;
   links: NavLink[];
+  /** Short caption shown under a column's links in the Services mega menu (e.g. Professional Education). */
+  caption?: string;
 }
 
 export interface NavItem extends NavLink {

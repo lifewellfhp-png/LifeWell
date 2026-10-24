@@ -1,34 +1,80 @@
 /**
- * Small line icons used next to each Mental Health link in the Services
- * mega menu (desktop) and its mobile accordion equivalent — in a module of
- * its own so NavBar.tsx and MobileMenu.tsx (which already import each
- * other) don't end up in a circular import over this shared array.
- * Order matches navigation.ts's mentalHealthMenuLinks exactly.
+ * Small line icons shown next to each column heading in the Services mega
+ * menu (desktop) and its mobile accordion equivalent — in a module of its
+ * own so NavBar.tsx and MobileMenu.tsx (which already import each other)
+ * don't end up in a circular import over this shared lookup.
  */
-export const MENTAL_HEALTH_ICONS: Array<() => React.ReactNode> = [
-  () => (
-    <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 2h6a1 1 0 0 1 1 1v1h1a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h1V3a1 1 0 0 1 1-1Z" />
-      <path d="m9 13 2 2 4-4" />
+function MentalHealthIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 21s-7-4.35-9.5-8.5C.5 8.5 2 5 5.5 5c2 0 3.5 1.5 4.5 3 1-1.5 2.5-3 4.5-3C18 5 19.5 8.5 17.5 12.5 15 16.65 12 21 12 21Z" />
     </svg>
-  ),
-  () => (
-    <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)" />
-      <path d="m8.5 15.5 7-7" />
+  );
+}
+
+function PrimaryCareIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="6" cy="3.3" r="1.3" />
+      <circle cx="14" cy="3.3" r="1.3" />
+      <path d="M6 4.6v5.4a4 4 0 0 0 8 0V4.6" />
+      <path d="M10 13v1.5a4.5 4.5 0 0 0 4.5 4.5h.5" />
+      <circle cx="18" cy="19" r="2.5" />
     </svg>
-  ),
-  () => (
-    <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
-      <path d="M8 12h2l1.5-3L13 15l1.5-3H16" />
+  );
+}
+
+function ProfessionalEducationIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3 2 8l10 5 10-5-10-5Z" />
+      <path d="M6 10.5V16c0 1.5 2.5 3 6 3s6-1.5 6-3v-5.5" />
+      <path d="M22 8v6" />
     </svg>
-  ),
-  () => (
-    <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="17" rx="2" />
-      <path d="M3 9h18M8 2v4M16 2v4" />
-      <path d="m8.5 15 2 2 4-4" />
-    </svg>
-  ),
-];
+  );
+}
+
+const GROUP_HEADING_ICONS: Record<string, () => React.ReactNode> = {
+  'Mental Health': MentalHealthIcon,
+  'Primary Care': PrimaryCareIcon,
+  'Professional Education': ProfessionalEducationIcon,
+};
+
+/** Returns the small line icon for a Services-menu column heading, or null for an unrecognized label. */
+export function groupHeadingIcon(label: string): React.ReactNode {
+  const Icon = GROUP_HEADING_ICONS[label];
+  return Icon ? <Icon /> : null;
+}

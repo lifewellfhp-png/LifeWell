@@ -1,8 +1,8 @@
 /**
  * Regression tests for AI-search-visibility Part 2 item 4: /llms.txt
  * must be built from the same resolved content every page renders from
- * (never a hand-maintained second copy of these facts), and must never
- * claim Spanish as a language of care.
+ * (never a hand-maintained second copy of these facts), and must not
+ * state languages of care (removed sitewide on request).
  *
  *   npx tsx --test scripts/test-llms-txt.mjs
  */
@@ -28,9 +28,9 @@ test('2. it reads from getResolvedContent(), never a hardcoded/static duplicate 
   assert.match(source, /cms\.telehealthStates/);
 });
 
-test('3. languages of care come from the shared formatCareLanguages() helper, not a separate literal list', () => {
-  assert.match(source, /formatCareLanguages\(\)/);
-  assert.doesNotMatch(source, /'English', 'French'/);
+test('3. no languages-of-care statement remains (removed on request)', () => {
+  assert.doesNotMatch(source, /formatCareLanguages/);
+  assert.doesNotMatch(source, /Languages of care/i);
 });
 
 test('4. the route doc comment states llms.txt is optional/unconfirmed by major AI providers', () => {

@@ -1,4 +1,4 @@
-import { site, CARE_LANGUAGES } from '@/data/site';
+import { site } from '@/data/site';
 import { provider } from '@/data/provider';
 import { DEFAULT_OG_IMAGE } from '@/lib/seo';
 import { telehealthStates, type TelehealthState } from '@/data/telehealth-states';
@@ -95,9 +95,6 @@ export function organizationNode() {
       addressCountry: site.address.country,
     },
     areaServed: allStatesServed,
-    // Clinical/spoken languages visits are conducted in — see CARE_LANGUAGES'
-    // own doc comment. Never the same thing as inLanguage (page text language).
-    availableLanguage: [...CARE_LANGUAGES],
     availableService: { '@id': `${site.url}/our-services#services` },
     openingHoursSpecification: site.hoursSpec.map((h) => ({
       '@type': 'OpeningHoursSpecification',
@@ -171,9 +168,6 @@ export function providerNode(resolved?: ResolvedProviderLike) {
     },
     medicalSpecialty: 'Psychiatric',
     knowsAbout: provider.expertise,
-    // Clinical/spoken languages visits are conducted in — see CARE_LANGUAGES'
-    // own doc comment. Never the same thing as inLanguage (page text language).
-    knowsLanguage: [...CARE_LANGUAGES],
     worksFor: { '@id': ORG_ID },
     alumniOf: [
       { '@type': 'CollegeOrUniversity', name: 'University of Central Florida' },
@@ -200,14 +194,6 @@ export function websiteNode() {
   };
 }
 
-/**
- * `language` defaults to site.language ('en-US') — every existing English
- * call site is unaffected. Spanish pages (path starting with /es) must
- * pass 'es' explicitly: inLanguage describes what language THIS PAGE's
- * text is written in, which is a different fact from CARE_LANGUAGES
- * (what language a visit happens in) — see CARE_LANGUAGES' own doc
- * comment in data/site.ts for why conflating the two would be wrong.
- */
 function webPageNode(path: string, name: string, description: string, language: string = site.language) {
   const url = abs(path === '/' ? '/' : path.replace(/\/$/, ''));
   return {
