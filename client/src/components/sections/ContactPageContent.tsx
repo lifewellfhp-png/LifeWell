@@ -3,7 +3,7 @@ import { ContactForm } from '@/components/forms/ContactForm';
 import { InnerPageHero } from '@/components/sections/InnerPageHero';
 import { SwapButton } from '@/components/ui/SwapButton';
 import { contactPage } from '@/data/contact';
-import { site, formatCareLanguages } from '@/data/site';
+import { site } from '@/data/site';
 
 export type ContactCms = {
   phone: string;
@@ -75,13 +75,6 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
               >
                 {email}
               </a>
-            </p>
-
-            <h3 className="mt-8 font-body text-[12px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[13px] desktop:text-[15px]">
-              Languages:
-            </h3>
-            <p className="mt-2 text-[14px] leading-[1.45] text-text-primary sm:max-desktop:text-[16px] desktop:text-[18px]">
-              Visits are conducted in {formatCareLanguages()}.
             </p>
 
             <h3 className="mt-8 font-body text-[12px] font-semibold uppercase tracking-[1px] text-[var(--lw-accent)] sm:max-desktop:text-[13px] desktop:text-[15px]">
