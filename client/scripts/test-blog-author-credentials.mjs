@@ -15,7 +15,7 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 
-const pageSource = readFileSync(join(root, 'src/app/(en)/blog/[slug]/page.tsx'), 'utf8').replace(/\r\n/g, '\n');
+const pageSource = readFileSync(join(root, 'src/app/blog/[slug]/page.tsx'), 'utf8').replace(/\r\n/g, '\n');
 const schemaSource = readFileSync(join(root, 'src/lib/schema.ts'), 'utf8').replace(/\r\n/g, '\n');
 
 test('1. the blog post page reads post.author_name, falling back to BLOG_AUTHOR_BYLINE', () => {

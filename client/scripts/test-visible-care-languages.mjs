@@ -1,10 +1,11 @@
 /**
  * Regression tests for AI-search-visibility Part 2 item 8: the real
  * languages of care must be visible as plain text (not only inside an
- * image) on the homepage (via TrustStrip), /bio, and
- * /contact-telehealth-mental-health-provider, all sourced from the same
- * CARE_LANGUAGES constant so they can never drift from each other or
- * from the structured-data fields (test-care-languages-schema.mjs).
+ * image) on the homepage (via TrustStrip) and /bio, sourced from the
+ * same CARE_LANGUAGES constant so they can never drift from each other
+ * or from the structured-data fields (test-care-languages-schema.mjs).
+ * The contact page's own languages line was removed on request — see
+ * test 4 below.
  *
  *   npx tsx --test scripts/test-visible-care-languages.mjs
  */
@@ -35,7 +36,8 @@ test('3. BioPageContent renders formatCareLanguages() as visible text', () => {
   assert.match(source, /Languages: \{formatCareLanguages\(\)\}/);
 });
 
-test('4. ContactPageContent renders formatCareLanguages() as visible text', () => {
+test('4. ContactPageContent no longer renders a languages line (removed on request)', () => {
   const source = readFileSync(join(root, 'src/components/sections/ContactPageContent.tsx'), 'utf8');
-  assert.match(source, /Visits are conducted in \{formatCareLanguages\(\)\}/);
+  assert.doesNotMatch(source, /formatCareLanguages/);
+  assert.doesNotMatch(source, /Visits are conducted in/);
 });

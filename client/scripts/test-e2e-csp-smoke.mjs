@@ -96,7 +96,12 @@ before(async () => {
 
   server = await startServer();
   browser = await chromium.launch();
-  page = await browser.newPage();
+  // A narrow mobile-ish viewport, not Playwright's 1280x720 default: the
+  // header's nav now measures its own content width and only shows the
+  // "Open menu" burger (test 2 below) once the full desktop nav wouldn't
+  // fit — at 1280px every link plus the CTA fits, so the burger stays
+  // display:none and that test would hang waiting to click it.
+  page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   page.on('console', (msg) => {
     const text = msg.text();
     if (FORBIDDEN.some((pattern) => pattern.test(text))) violations.push({ url: page.url(), text });

@@ -1,6 +1,6 @@
 /**
  * Regression tests for the public marketing-unsubscribe landing page
- * (P4-I3): client/src/app/(en)/unsubscribe/page.tsx and
+ * (P4-I3): client/src/app/unsubscribe/page.tsx and
  * client/src/components/sections/UnsubscribeLanding.tsx.
  *
  * Same convention as the admin/server marketing-contacts test files: no
@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
-const pagePath = join(root, 'src', 'app', '(en)', 'unsubscribe', 'page.tsx');
+const pagePath = join(root, 'src', 'app', 'unsubscribe', 'page.tsx');
 const componentPath = join(root, 'src', 'components', 'sections', 'UnsubscribeLanding.tsx');
 const apiPath = join(root, 'src', 'lib', 'api.ts');
 

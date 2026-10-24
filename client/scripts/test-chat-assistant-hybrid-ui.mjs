@@ -22,7 +22,7 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const widgetSource = readFileSync(join(root, 'src/components/chat/ChatAssistant.tsx'), 'utf8');
-const layoutSource = readFileSync(join(root, 'src/app/(en)/layout.tsx'), 'utf8');
+const layoutSource = readFileSync(join(root, 'src/app/layout.tsx'), 'utf8');
 const apiSource = readFileSync(join(root, 'src/lib/api.ts'), 'utf8');
 
 test('13. the online status indicator is fail-closed: both "still checking" (null) and "confirmed unavailable" (false) render as non-claiming, never green', () => {
