@@ -81,14 +81,8 @@ export function ChatAssistant(props: {
    *  (server/src/lib/chatFacts.ts), so this prop isn't read directly here. */
   psychiatricStatePricing: PsychiatricStatePricing[];
   bookingUrl: string;
-  /** Spanish pages pass a short translated note ("Our chat assistant
-   * currently responds in English.") shown above the toggle button — the
-   * chat itself stays English-only everywhere; this just makes that clear
-   * to a Spanish-reading visitor before they open it. undefined on English
-   * pages renders nothing, no visual change there. */
-  localeNote?: string;
 }) {
-  const { bookingUrl, localeNote } = props;
+  const { bookingUrl } = props;
   const uid = useId();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([GREETING]);
@@ -274,11 +268,6 @@ export function ChatAssistant(props: {
         changed here — onClick/aria-expanded/open-close behavior above are
         untouched.
       */}
-      {!open && localeNote && (
-        <p className="mb-2 max-w-[220px] rounded-md bg-surface-raised px-3 py-2 text-right text-xs text-text-secondary shadow-md">
-          {localeNote}
-        </p>
-      )}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

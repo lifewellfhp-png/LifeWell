@@ -127,11 +127,6 @@ export type FaqCategory = (typeof FAQ_CATEGORIES)[number];
 export const faqCreate = z.object({
   question: z.string().min(1).max(500),
   answer: z.string().min(1).max(10000),
-  // Spanish translation (Part 3, AI-search-visibility/Spanish-site
-  // feature) — optional; the Admin UI labels these [REVIEW before
-  // publishing] since nothing here enforces a native-speaker check.
-  question_es: z.string().max(500).optional().nullable(),
-  answer_es: z.string().max(10000).optional().nullable(),
   category: z.enum(FAQ_CATEGORIES).optional().nullable(),
   published: z.boolean().default(true),
   sort_order: z.number().int().default(0),
