@@ -5,29 +5,6 @@
  * conflicting sets of office hours).
  */
 
-/**
- * The languages visits are actually conducted in — owner-confirmed. This is
- * a clinical/spoken-language fact, NOT the same thing as what language a
- * given page's TEXT is written in (see schema.ts's `inLanguage`, which is
- * allowed to say "es" on a Spanish page). Every consumer of this list
- * (schema.ts's knowsLanguage/availableLanguage, the visible homepage/bio/
- * contact copy, the Spanish-page disclaimer) reads from here so it can
- * never drift or accidentally include a language the practice doesn't
- * actually treat patients in. Do not add Spanish here unless the owner
- * explicitly confirms visits are conducted in Spanish — translating the
- * site's written text into Spanish does not change this list.
- */
-export const CARE_LANGUAGES = ['English', 'French', 'Haitian Creole'] as const;
-
-/** "English, French, and Haitian Creole" — the one place this sentence
- * fragment is ever assembled, so every visible mention of CARE_LANGUAGES
- * reads identically. */
-export function formatCareLanguages(): string {
-  const list = [...CARE_LANGUAGES];
-  if (list.length <= 1) return list.join('');
-  return `${list.slice(0, -1).join(', ')}, and ${list[list.length - 1]}`;
-}
-
 export const site = {
   name: 'LifeWell Family Health & Psychiatry',
   shortName: 'LifeWell FHP',

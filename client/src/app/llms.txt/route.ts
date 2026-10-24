@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { site, formatCareLanguages } from '@/data/site';
+import { site } from '@/data/site';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
 export const dynamic = 'force-dynamic';
@@ -37,7 +37,6 @@ export async function GET() {
     `Address: ${site.address.street}, ${site.address.suite}, ${site.address.city}, ${site.address.state} ${site.address.zip}`
   );
   lines.push(`Booking: ${site.url}${cms.booking.page}`);
-  lines.push(`Languages of care: Visits are conducted in ${formatCareLanguages()}.`);
   lines.push('');
 
   lines.push('## Where care is available');
