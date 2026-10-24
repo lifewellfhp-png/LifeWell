@@ -126,16 +126,12 @@ test('10. known static routes map to the correct friendly labels, matching clien
   for (const [path, label] of Object.entries(expected)) {
     assert.equal(friendlyBookingPageLabel(path), label, `expected ${path} -> ${label}`);
   }
-  // These routes are verified to actually exist in client/src/app/(en) —
-  // moved there from a bare client/src/app/<route> in the i18n route-
-  // group-move commit (every English page lives under the (en) route
-  // group now; route groups are invisible to the URL, so these paths
-  // are unchanged — only the on-disk location moved).
-  const clientAppDir = join(root, '../client/src/app/(en)');
+  // These routes are verified to actually exist in client/src/app.
+  const clientAppDir = join(root, '../client/src/app');
   for (const routePath of Object.keys(expected)) {
     const segment = routePath.slice(1);
     const pagePath = join(clientAppDir, segment, 'page.tsx');
-    assert.ok(existsSyncSafe(pagePath), `expected a real route at client/src/app/(en)/${segment}/page.tsx`);
+    assert.ok(existsSyncSafe(pagePath), `expected a real route at client/src/app/${segment}/page.tsx`);
   }
 });
 
