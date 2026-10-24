@@ -111,7 +111,7 @@ export function MobileMenu({ id, open, onClose, items, cta, pathname, phone }: M
         role="dialog"
         aria-modal="true"
         aria-label="Site navigation"
-        className="absolute inset-y-0 right-0 flex h-full w-full max-w-[min(24rem,100%)] flex-col bg-surface-raised shadow-lg pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+        className="absolute inset-y-0 right-0 flex h-full w-full max-w-[min(24rem,100%)] flex-col border-l border-[#e3e8f2] bg-[#ffffff] shadow-[0_20px_40px_rgba(0,37,116,0.15)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
       >
         <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
           {/* No standalone "Home" nav entry (Phase 22) — this logo link is
@@ -214,14 +214,14 @@ function Accordion({ item, pathname }: { item: NavItem; pathname: string }) {
               <Link
                 href={preceptorshipLink.href}
                 prefetch
-                className="flex min-h-11 items-center rounded-sm px-4 py-2 text-[14px] font-semibold leading-snug text-[var(--lw-primary)] no-underline hover:bg-[#F7FAFC]"
+                className="flex min-h-11 items-center rounded-sm px-4 py-2 text-[14px] font-semibold leading-snug text-[var(--lw-primary)] no-underline hover:bg-[#eef2fa] hover:text-[var(--color-brand-accent-hover)] focus-visible:bg-[#eef2fa] focus-visible:text-[var(--color-brand-accent-hover)]"
               >
                 For nursing students: {preceptorshipLink.label} <span aria-hidden="true">&nbsp;→</span>
               </Link>
               <Link
                 href={item.href}
                 prefetch
-                className="flex min-h-11 items-center rounded-sm px-4 py-2 text-[14px] font-semibold leading-snug text-[var(--lw-primary)] no-underline hover:bg-[#F7FAFC]"
+                className="flex min-h-11 items-center rounded-sm px-4 py-2 text-[14px] font-semibold leading-snug text-[var(--lw-primary)] no-underline hover:bg-[#eef2fa] hover:text-[var(--color-brand-accent-hover)] focus-visible:bg-[#eef2fa] focus-visible:text-[var(--color-brand-accent-hover)]"
               >
                 View all services <span aria-hidden="true">&nbsp;→</span>
               </Link>
@@ -239,7 +239,9 @@ function Accordion({ item, pathname }: { item: NavItem; pathname: string }) {
                   aria-current={pathname === link.href ? 'page' : undefined}
                   className={cn(
                     'flex min-h-11 items-center rounded-sm px-4 py-2 text-[15px] font-semibold leading-snug text-[var(--lw-primary)] no-underline transition-colors duration-quick',
-                    pathname === link.href ? 'bg-[#F7FAFC] text-[var(--lw-accent)]' : 'hover:bg-[#F7FAFC] hover:text-[var(--lw-accent)]'
+                    pathname === link.href
+                      ? 'bg-[#eef2fa] text-[var(--color-brand-accent-hover)]'
+                      : 'hover:bg-[#eef2fa] hover:text-[var(--color-brand-accent-hover)] focus-visible:bg-[#eef2fa] focus-visible:text-[var(--color-brand-accent-hover)]'
                   )}
                 >
                   {link.label}
@@ -284,15 +286,15 @@ function GroupAccordion({ group, pathname }: { group: NavGroup; pathname: string
               prefetch
               aria-current={pathname === link.href ? 'page' : undefined}
               className={cn(
-                'flex items-start gap-2.5 rounded-sm px-4 py-2 no-underline transition-colors duration-quick',
-                pathname === link.href ? 'bg-[#F7FAFC]' : 'hover:bg-[#F7FAFC]'
+                'group/link flex items-start gap-2.5 rounded-sm px-4 py-2 no-underline transition-colors duration-quick',
+                pathname === link.href ? 'bg-[#eef2fa]' : 'hover:bg-[#eef2fa] focus-visible:bg-[#eef2fa]'
               )}
             >
               {isMentalHealth && (
                 <span className="mt-0.5 shrink-0 text-[var(--lw-accent)]">{MENTAL_HEALTH_ICONS[i]?.()}</span>
               )}
               <span className="min-w-0">
-                <span className="block text-[15px] font-semibold leading-snug text-[var(--lw-primary)]">
+                <span className="block text-[15px] font-semibold leading-snug text-[var(--lw-primary)] transition-colors duration-quick group-hover/link:text-[var(--color-brand-accent-hover)] group-focus-visible/link:text-[var(--color-brand-accent-hover)]">
                   {link.label}
                 </span>
                 {link.description && (
