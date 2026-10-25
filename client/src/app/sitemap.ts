@@ -5,6 +5,7 @@ import { telehealthStateSlugs } from '@/data/telehealth-states';
 import { generatedLegalPages } from '@/data/generated/legal';
 import { publishedPosts, postHref } from '@/data/blog';
 import { PSYCHIATRIC_CONDITIONS } from '@/data/psychiatric-conditions';
+import { CONDITION_PAGES } from '@/data/condition-pages';
 import { fetchPublicCms } from '@/lib/cms';
 
 const abs = (path: string) => `${site.url}${path === '/' ? '' : path}`;
@@ -68,6 +69,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: abs('/videos'), lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: abs('/for-providers'), lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: abs('/partners'), lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: abs('/conditions'), lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    {
+      url: abs('/psychiatric-care-avalon-park'),
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
   ];
 
   const serviceEntries: MetadataRoute.Sitemap = serviceSlugs.map((slug) => {
@@ -85,6 +93,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: 'monthly' as const,
     priority: 0.7,
+  }));
+
+  const conditionPageEntries: MetadataRoute.Sitemap = CONDITION_PAGES.map((condition) => ({
+    url: abs(`/conditions/${condition.slug}`),
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
   }));
 
   const telehealthStateEntries: MetadataRoute.Sitemap = telehealthStateSlugs.map((slug) => ({
@@ -125,6 +140,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...core,
     ...serviceEntries,
     ...psychiatricConditionEntries,
+    ...conditionPageEntries,
     ...telehealthStateEntries,
     ...blogIndex,
     ...postEntries,

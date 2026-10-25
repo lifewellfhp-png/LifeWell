@@ -11,6 +11,7 @@ import { getService } from '@/data/services';
 import { getResolvedContent } from '@/lib/cms-resolve';
 import { site } from '@/data/site';
 import { provider } from '@/data/provider';
+import { CONDITION_PAGES } from '@/data/condition-pages';
 
 /**
  * Services whose subject matter warrants the same YMYL safety disclaimer
@@ -99,6 +100,23 @@ export async function ServicePageContent({ slug }: { slug: string }) {
 
             {!cmsParagraphs.length && service ? (
               <ContentSections sections={service.sections} variant="live" className="mt-12" />
+            ) : null}
+
+            {slug === 'treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd' ? (
+              <section aria-labelledby="condition-pages" className="mt-14">
+                <h2 id="condition-pages">Explore individual condition pages</h2>
+                <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+                  {CONDITION_PAGES.map((condition) => (
+                    <Link
+                      key={condition.slug}
+                      href={`/conditions/${condition.slug}`}
+                      className="font-semibold text-text-link underline"
+                    >
+                      {condition.name}
+                    </Link>
+                  ))}
+                </div>
+              </section>
             ) : null}
 
             {service?.cta && (

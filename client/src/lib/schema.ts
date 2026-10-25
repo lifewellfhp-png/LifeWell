@@ -252,6 +252,62 @@ export function pageGraph(
   ]);
 }
 
+export function medicalConditionGraph(
+  path: string,
+  name: string,
+  description: string,
+  trail: { name: string; href: string }[],
+  conditionName: string
+) {
+  const url = abs(path);
+  return graph([
+    webPageNode(path, name, description),
+    {
+      '@type': 'MedicalWebPage',
+      '@id': `${url}#medicalwebpage`,
+      url,
+      name,
+      description,
+      about: { '@id': `${url}#condition` },
+    },
+    {
+      '@type': 'MedicalCondition',
+      '@id': `${url}#condition`,
+      name: conditionName,
+      description,
+    },
+    breadcrumbNode(trail),
+  ]);
+}
+
+export function localClinicGraph(
+  path: string,
+  name: string,
+  description: string,
+  trail: { name: string; href: string }[]
+) {
+  const url = abs(path);
+  return graph([
+    webPageNode(path, name, description),
+    {
+      '@type': ['LocalBusiness', 'MedicalClinic'],
+      '@id': `${url}#clinic`,
+      name: site.name,
+      url,
+      telephone: site.contact.phone,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: `${site.address.street}, ${site.address.suite}`,
+        addressLocality: site.address.city,
+        addressRegion: site.address.state,
+        postalCode: site.address.zip,
+        addressCountry: site.address.country,
+      },
+    },
+    breadcrumbNode(trail),
+  ]);
+}
+
 export function providerPageGraph(description: string, resolved?: ResolvedProviderLike) {
   const name = resolved?.name || provider.name;
   const credentials = resolved?.credentials || provider.credentials;

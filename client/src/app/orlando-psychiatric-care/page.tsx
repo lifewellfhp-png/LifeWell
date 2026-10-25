@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { OrlandoPageContent } from '@/components/sections/OrlandoPageContent';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { cmsMetadata } from '@/lib/cms-seo';
-import { pageGraph } from '@/lib/schema';
+import { localClinicGraph } from '@/lib/schema';
 import { getResolvedContent } from '@/lib/cms-resolve';
 
 const DESCRIPTION =
@@ -22,7 +22,7 @@ export default async function OrlandoPage() {
   return (
     <>
       <JsonLd
-        data={pageGraph('/orlando-psychiatric-care', 'Psychiatric Care in Orlando, FL', DESCRIPTION, [
+        data={localClinicGraph('/orlando-psychiatric-care', 'Psychiatric Care in Orlando, FL', DESCRIPTION, [
           { name: 'Home', href: '/' },
           { name: 'Orlando, FL', href: '/orlando-psychiatric-care' },
         ])}

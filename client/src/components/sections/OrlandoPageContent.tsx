@@ -39,6 +39,27 @@ export function OrlandoPageContent() {
         </div>
       </InnerPageHero>
 
+      <Section tone="muted" spacing="sm" aria-labelledby="orlando-areas-heading">
+        <Container size="narrow">
+          <SectionHeading
+            as="h2"
+            id="orlando-areas-heading"
+            align="left"
+            title="Areas We"
+            accent="Serve"
+            description="Our Orlando office is convenient for patients in Avalon Park, East Orlando, and Waterford Lakes. In-person care is available at our office, with telehealth options for eligible patients."
+          />
+          <Link
+            href={orlandoOffice.directionsHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-block text-[15px] font-semibold text-[var(--lw-primary)] underline-offset-4 hover:underline sm:text-[16px]"
+          >
+            Get directions to our Orlando office
+          </Link>
+        </Container>
+      </Section>
+
       <Section tone="transparent" spacing="sm" aria-labelledby="orlando-office-heading">
         <Container size="narrow">
           <SectionHeading
