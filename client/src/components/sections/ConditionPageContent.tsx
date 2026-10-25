@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { PageHero } from '@/components/sections/PageHero';
 import { SwapButton } from '@/components/ui/SwapButton';
-import { CONDITION_PAGES, type ConditionPage } from '@/data/condition-pages';
+import { CONDITION_PAGES, CONDITION_REVIEW, type ConditionPage } from '@/data/condition-pages';
 import { site } from '@/data/site';
 
 function CrisisNotice({ condition }: { condition: ConditionPage }) {
@@ -41,6 +41,9 @@ export function ConditionPageContent({ condition }: { condition: ConditionPage }
             Call {site.contact.phone}
           </a>
         </div>
+        <p className="mt-5 text-sm text-text-secondary">
+          Medically reviewed by {CONDITION_REVIEW.reviewer} on {CONDITION_REVIEW.date}
+        </p>
       </PageHero>
 
       <main className="bg-white px-5 py-14 sm:px-[30px] sm:py-20 lg:px-10 lg:py-24">
