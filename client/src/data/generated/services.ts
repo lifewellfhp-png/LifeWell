@@ -12,7 +12,7 @@ export const generatedServices: Service[] = [
     "lead": "Comprehensive Psychiatric Evaluations for Accurate Diagnosis and Personalized Care",
     "intro": [
       "A psychiatric evaluation is an essential first step in understanding your mental health and identifying a clear path forward. Whether you are experiencing anxiety, depression, difficulty focusing, mood changes, or sleep disturbances, a comprehensive evaluation helps clarify what you are experiencing and how it can be treated.",
-      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner with over 15 years of clinical experience, we provide detailed psychiatric evaluations for adults age 18 and older through secure telehealth appointments. Our goal is to create a safe, respectful, and judgment-free environment where you feel comfortable sharing your experiences openly.",
+      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner with over 15 years of clinical experience, we provide detailed psychiatric evaluations for patients age 12 and older through secure telehealth appointments. Our goal is to create a safe, respectful, and judgment-free environment where you feel comfortable sharing your experiences openly.",
       "A psychiatric evaluation is not just about diagnosing a condition—it is about understanding you as a whole person. We carefully review your symptoms, medical history, lifestyle factors, and emotional experiences to develop a treatment plan tailored to your specific needs and goals.",
       "This process provides clarity, direction, and a foundation for effective mental health treatment."
     ],
@@ -265,7 +265,7 @@ export const generatedServices: Service[] = [
     "lead": "Telehealth Psychiatric Medication Management for Safe and Personalized Treatment",
     "intro": [
       "Psychiatric medication management plays an important role in treating many mental health conditions, including anxiety, depression, ADHD, mood disorders, and sleep disturbances. While medications can significantly improve symptoms and quality of life, effective treatment requires careful evaluation, monitoring, and ongoing adjustment.",
-      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner, we provide comprehensive medication management for adults through secure telehealth appointments. Our goal is to ensure that every medication prescribed is appropriate for your diagnosis, effective in reducing symptoms, and safe for your overall health.",
+      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner, we provide comprehensive medication management for patients age 12 and older through secure telehealth appointments. Our goal is to ensure that every medication prescribed is appropriate for your diagnosis, effective in reducing symptoms, and safe for your overall health.",
       "Medication management is not simply about prescribing medication. It is an ongoing process that includes evaluating your symptoms, monitoring progress, managing side effects, and making adjustments when necessary. We work closely with you to ensure you understand your treatment and feel confident in your care plan.",
       "Every treatment decision is personalized based on your medical history, symptoms, and individual goals."
     ],
@@ -532,7 +532,7 @@ export const generatedServices: Service[] = [
     "lead": "Telehealth Treatment for Depression, Anxiety, ADHD, Bipolar Disorder & PTSD",
     "intro": [
       "Mental health conditions such as depression, anxiety, ADHD, bipolar disorder, and PTSD can affect every aspect of your life—including your mood, focus, relationships, sleep, and overall well-being. These conditions are medical conditions, not personal weaknesses, and effective treatment is available.",
-      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner, we provide comprehensive, individualized treatment for adults through secure telehealth appointments. Our approach focuses on understanding your symptoms, identifying underlying causes, and developing a personalized treatment plan tailored to your needs and goals.",
+      "As a dual board-certified Psychiatric Mental Health Nurse Practitioner (PMHNP-BC) and Family Nurse Practitioner, we provide comprehensive, individualized treatment for patients age 12 and older through secure telehealth appointments. Our approach focuses on understanding your symptoms, identifying underlying causes, and developing a personalized treatment plan tailored to your needs and goals.",
       "Treatment is not limited to medication alone. We use a holistic, evidence-based approach that may include medication management, lifestyle guidance, sleep support strategies, and education to help you better understand and manage your condition.",
       "Our goal is to help you achieve symptom relief, emotional stability, and long-term mental wellness while ensuring you feel heard, respected, and supported throughout the process."
     ],

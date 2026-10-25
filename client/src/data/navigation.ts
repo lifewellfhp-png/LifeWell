@@ -97,6 +97,8 @@ export const headerNav: NavItem[] = [
       { label: 'Testimonials', href: '/telehealth-mental-health-testimonials' },
       { label: 'Videos', href: '/videos' },
       { label: 'FAQs', href: '/faqs' },
+      { label: 'For Providers', href: '/for-providers' },
+      { label: 'Partners', href: '/partners' },
     ],
   },
   { label: 'Contact', href: '/contact-telehealth-mental-health-provider' },
@@ -146,6 +148,8 @@ export const footerExploreLinks: NavLink[] = [
   { label: 'Testimonials', href: '/telehealth-mental-health-testimonials' },
   { label: 'Videos', href: '/videos' },
   { label: 'FAQs', href: '/faqs' },
+  { label: 'For Providers', href: '/for-providers' },
+  { label: 'Partners', href: '/partners' },
   { label: 'Contact Us', href: '/contact-telehealth-mental-health-provider' },
 ];
 

@@ -106,7 +106,7 @@ export const telehealthStates: TelehealthState[] = [
     badge: 'Self-Pay Telehealth for Massachusetts Residents',
     heading: 'Online Psychiatric Care for Massachusetts Residents',
     subheading:
-      "We see adult patients throughout Massachusetts entirely by secure video — from the Berkshires to Cape Cod, wherever you're able to connect privately. We don't have a physical office in the state, so every Massachusetts appointment is telehealth.",
+      "We see patients age 12 and older throughout Massachusetts entirely by secure video — from the Berkshires to Cape Cod, wherever you're able to connect privately. We don't have a physical office in the state, so every Massachusetts appointment is telehealth.",
     body: [
       "A first visit is a full psychiatric evaluation: we review your current symptoms, health and medication history, and goals for treatment, then talk through a plan together. Follow-up visits are shorter medication-management check-ins — how you're responding, any side effects, and whether adjustments make sense.",
       "You'll need a private space, a stable internet connection, and a computer, tablet, or smartphone with camera and microphone. Because Massachusetts requires the provider treating you to be licensed for the state you're physically in, you'll need to be located in Massachusetts at the time of your appointment.",
@@ -163,7 +163,7 @@ export const telehealthStates: TelehealthState[] = [
     ],
     metaTitle: 'Massachusetts Telehealth Psychiatry — Evaluations & Medication Management',
     metaDescription:
-      'Self-pay telehealth psychiatric evaluations and medication management for adults in Massachusetts, from a licensed psychiatric-mental health nurse practitioner. No Massachusetts office — video visits only.',
+      'Self-pay telehealth psychiatric evaluations and medication management for patients age 12 and older in Massachusetts, from a licensed psychiatric-mental health nurse practitioner. No Massachusetts office — video visits only.',
     ogImageUrl: null,
   },
   {
@@ -173,7 +173,7 @@ export const telehealthStates: TelehealthState[] = [
     badge: 'Now Scheduling Arizona Telehealth Appointments',
     heading: 'Arizona Telehealth Psychiatry — Evaluations & Medication Management',
     subheading:
-      "We provide psychiatric evaluation and ongoing medication management to adults across Arizona by secure video visit. We're not based in Arizona and don't have an in-state office, so telehealth is the only way we see Arizona patients.",
+      "We provide psychiatric evaluation and ongoing medication management to patients age 12 and older across Arizona by secure video visit. We're not based in Arizona and don't have an in-state office, so telehealth is the only way we see Arizona patients.",
     body: [
       "Your first appointment is a full evaluation — we go through your symptoms, psychiatric and general medical history, current medications, and what you want treatment to accomplish, then build a plan from there. After that, follow-up visits are focused check-ins on how the plan is working and whether it needs adjusting.",
       "Arizona law requires the clinician treating you to be authorized to practice where you're physically located, so you'll need to be in Arizona for each visit — not just an Arizona resident traveling elsewhere that day. Beyond that, all you need is a private, quiet space and a device with a camera, microphone, and stable internet.",
@@ -229,7 +229,7 @@ export const telehealthStates: TelehealthState[] = [
     ],
     metaTitle: 'Arizona Telehealth Psychiatry — Self-Pay Evaluations & Follow-Up Care',
     metaDescription:
-      'Psychiatric evaluations and ongoing medication management for adults in Arizona, delivered entirely by secure telehealth video visit. Self-pay only — no Arizona office.',
+      'Psychiatric evaluations and ongoing medication management for patients age 12 and older in Arizona, delivered entirely by secure telehealth video visit. Self-pay only — no Arizona office.',
     ogImageUrl: null,
   },
 ];
