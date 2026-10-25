@@ -206,10 +206,4 @@ export const CONDITION_PAGES: ConditionPage[] = [
   },
 ];
 
-export const REVIEW_PENDING = 'REVIEW_PENDING';
-export const CONDITION_REVIEW = {
-  reviewer: 'Lourdie Chachoute, PMHNP-BC',
-  date: 'October 25, 2026',
-} as const;
-
 export const getConditionPage = (slug: string) => CONDITION_PAGES.find((page) => page.slug === slug);
