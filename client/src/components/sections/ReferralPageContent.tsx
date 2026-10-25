@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { PageHero } from '@/components/sections/PageHero';
+import { FaxReferralBlock } from '@/components/sections/FaxReferralBlock';
 import { Section, Container } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
 
@@ -35,12 +36,9 @@ export function ForProvidersPageContent() {
         ]}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <a
-            href={`tel:${FAX.replace(/\D/g, '')}`}
-            className="inline-flex min-h-12 items-center justify-center rounded-sm bg-brand-primary-solid px-5 text-center text-sm font-semibold text-white no-underline transition-colors hover:bg-brand-primary-solid/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary-solid"
-          >
+          <span className="inline-flex min-h-12 items-center justify-center rounded-sm bg-brand-primary-solid px-5 text-center text-sm font-semibold text-white">
             Fax a referral: {FAX}
-          </a>
+          </span>
           <a
             href={`tel:${PHONE.replace(/\D/g, '')}`}
             className="inline-flex min-h-12 items-center justify-center rounded-sm border border-brand-primary-solid px-5 text-center text-sm font-semibold text-brand-primary-solid no-underline transition-colors hover:bg-brand-primary-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary-solid"
@@ -49,6 +47,12 @@ export function ForProvidersPageContent() {
           </a>
         </div>
       </PageHero>
+
+      <div className="bg-surface-raised px-5 pb-2 sm:px-[30px] lg:px-10">
+        <Container size="prose">
+          <FaxReferralBlock />
+        </Container>
+      </div>
 
       <Section tone="base">
         <Container size="prose">
