@@ -4,18 +4,20 @@ import { site } from '@/data/site';
 import {
   footerMentalHealthLinks,
   footerPrimaryCareLinks,
-  footerProfessionalEducationLinks,
-  footerExploreLinks,
+  footerConditionsLinks,
+  footerPatientResourceLinks,
+  footerLocationLinks,
+  footerProfessionalLinks,
   footerTelehealthLinks,
   legalLinks,
 } from '@/data/navigation';
 import { Container } from '@/components/ui/Section';
 import { FooterNewsletter } from '@/components/forms/NewsletterForm';
+import { FooterNav } from '@/components/layout/FooterNav';
 import { newsletter } from '@/data/marketing';
 import { getResolvedContent } from '@/lib/cms-resolve';
-import { cn } from '@/lib/utils';
 import { isOptimizableImageSrc } from '@/lib/site-asset';
-import type { NavLink } from '@/types/content';
+import type { ReactNode } from 'react';
 
 export async function Footer() {
   const cms = await getResolvedContent();
@@ -45,9 +47,8 @@ export async function Footer() {
 
       <div className="footer-band bg-[var(--lw-primary)] text-white">
         <Container>
-          {/* Practice / Brand, Mental Health (+Professional Education), Primary Care, Explore, Telehealth Care + Policies */}
-          <div className="grid min-w-0 grid-cols-1 gap-x-8 gap-y-12 py-10 sm:grid-cols-2 xl:grid-cols-12 xl:py-14">
-            <div className="xl:col-span-3">
+          <div className="grid min-w-0 grid-cols-1 gap-x-10 gap-y-10 py-14 md:grid-cols-2 md:gap-y-12 md:py-[72px] xl:grid-cols-12">
+            <div className="md:col-span-2 xl:col-span-4">
               <Link
                 href="/"
                 className="inline-flex rounded-[12px] bg-white px-3 py-2.5 sm:px-4 sm:py-3"
@@ -67,83 +68,39 @@ export async function Footer() {
                   <img src={logo} alt={site.name} loading="lazy" className="h-8 w-auto sm:h-10" />
                 )}
               </Link>
-              <p className="mt-6 max-w-[42ch] font-body text-[15px] font-normal leading-[1.7] text-white sm:text-[16px]">
-                {site.footerBlurb}
+              <p className="mt-6 max-w-[38ch] font-body text-[15px] font-normal leading-[1.7] text-[#c9d4ec]">
+                LifeWell Family Health &amp; Psychiatry provides compassionate psychiatric and
+                primary care, by secure telehealth or in our Orlando office.
               </p>
 
-              <address className="mt-5 max-w-[42ch] font-body text-[15px] font-normal not-italic leading-relaxed text-white sm:text-[16px]">
-                {primary?.street || primary?.address ? (
-                  <p className="mb-4">
-                    {primary.street || primary.address}
-                    {primary.city ? (
-                      <>
-                        <br />
-                        {[primary.city, primary.region, primary.postalCode].filter(Boolean).join(', ')}
-                      </>
-                    ) : null}
-                  </p>
-                ) : null}
-
-                <ul className="space-y-2.5">
-                  <li className="flex items-baseline gap-x-2">
-                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:max-desktop:text-[12px] desktop:text-[13px]">
-                      Phone
-                    </span>
-                    <a href={phoneHref} className="text-white no-underline hover:underline">
-                      {phone}
+              <address className="mt-6 max-w-[42ch] font-body text-[15px] not-italic leading-[1.7] text-[#c9d4ec]">
+                <ul className="space-y-3">
+                  <ContactItem icon="pin" label="Address">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=3680+Avalon+Park+E+Blvd%2C+Suite+310%2C+Orlando%2C+FL+32828" target="_blank" rel="noopener noreferrer">
+                      {site.address.full}
                     </a>
-                  </li>
-                  <li className="flex items-baseline gap-x-2">
-                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:max-desktop:text-[12px] desktop:text-[13px]">
-                      Fax
-                    </span>
+                  </ContactItem>
+                  <ContactItem icon="phone" label="Phone">
+                    <a href={phoneHref}>{phone}</a>
+                  </ContactItem>
+                  <ContactItem icon="fax" label="Fax">
                     <span>{site.contact.fax}</span>
-                  </li>
-                  <li className="flex items-baseline gap-x-2">
-                    <span className="inline-block w-14 shrink-0 text-[11px] font-semibold uppercase tracking-[1px] text-white/60 sm:max-desktop:text-[12px] desktop:text-[13px]">
-                      Email
-                    </span>
-                    <a href={`mailto:${email}`} className="break-all text-white no-underline hover:underline">
-                      {email}
-                    </a>
-                  </li>
+                  </ContactItem>
+                  <ContactItem icon="mail" label="Email">
+                    <a href={`mailto:${email}`}>{email}</a>
+                  </ContactItem>
                 </ul>
               </address>
 
-              {site.social.length > 0 && (
-                <ul className="mt-6 flex gap-3">
-                  {site.social.map((s) => (
-                    <li key={s.name}>
-                      <a
-                        href={s.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex size-10 items-center justify-center rounded-full bg-[var(--lw-accent)] text-white transition-colors duration-300 hover:bg-white hover:text-[var(--lw-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                      >
-                        <span className="sr-only">
-                          {site.name} on {s.name}
-                        </span>
-                        <SocialIcon name={s.name} />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <Link href={site.booking.page} className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#028815] px-5 py-3.5 font-body text-[15px] font-semibold text-white no-underline transition-colors hover:bg-[#02750f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto">
+                Book an Appointment <span aria-hidden="true">→</span>
+              </Link>
             </div>
 
-            <div className="flex min-w-0 flex-col gap-10 xl:col-span-2">
-              <FooterNav heading="Mental Health" links={footerMentalHealthLinks} />
-              <FooterNav heading="Professional Education" links={footerProfessionalEducationLinks} />
-            </div>
-
-            <FooterNav heading="Primary Care" links={footerPrimaryCareLinks} className="xl:col-span-3" />
-
-            <FooterNav heading="Explore" links={footerExploreLinks} className="xl:col-span-2" />
-
-            <div className="flex min-w-0 flex-col gap-10 xl:col-span-2">
-              <FooterNav heading="Telehealth Care" links={footerTelehealthLinks} />
-              <FooterNav heading="Policies & Accessibility" links={legalLinks} />
-            </div>
+            <FooterNav heading="Mental Health" links={footerMentalHealthLinks} subheading="Conditions" sublinks={footerConditionsLinks} className="xl:col-span-2" />
+            <FooterNav heading="Primary Care" links={footerPrimaryCareLinks} className="xl:col-span-2" />
+            <FooterNav heading="Patient Resources" links={footerPatientResourceLinks} className="xl:col-span-2" />
+            <FooterNav heading="Locations & Professionals" links={footerLocationLinks} subheading="Telehealth" sublinks={footerTelehealthLinks} secondSubheading="For Professionals" secondSublinks={footerProfessionalLinks} className="xl:col-span-2" />
           </div>
 
           {/*
@@ -151,13 +108,20 @@ export async function Footer() {
             row (stacked, centered on mobile) rather than one centered
             block.
           */}
-          <div className="flex flex-col items-center gap-2 border-t border-white/20 py-6 text-center sm:flex-row sm:items-baseline sm:justify-between sm:text-left">
-            <p className="font-body text-[12px] leading-relaxed text-white/70 sm:text-[13px]">
-              © 2026 {site.shortName}. All Rights Reserved.
+          <div className="flex flex-col gap-3 border-t border-white/15 py-6 text-left sm:flex-row sm:items-baseline sm:justify-between">
+            <p className="font-body text-[12px] leading-relaxed text-[#c9d4ec] sm:text-[13px]">
+              © {new Date().getFullYear()} {site.legalName}. All rights reserved.
             </p>
-            <p className="font-body text-[12px] leading-relaxed text-white/70 sm:text-[13px]">
-              Designed &amp; Engineered by Wesly Chachoute
-            </p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-body text-[12px] leading-relaxed text-[#c9d4ec] sm:text-[13px]">
+              {legalLinks.map((link, index) => (
+                <span key={link.href} className="inline-flex items-center gap-x-2">
+                  {index > 0 ? <span aria-hidden="true">·</span> : null}
+                  <Link href={link.href} className="hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">{link.label.replace(' Statement', '').replace(' / Communication Policy', '')}</Link>
+                </span>
+              ))}
+              <span className="hidden sm:inline" aria-hidden="true">·</span>
+              <span>Designed &amp; Engineered by Wesly Chachoute</span>
+            </div>
           </div>
         </Container>
       </div>
@@ -165,30 +129,21 @@ export async function Footer() {
   );
 }
 
-function FooterNav({ heading, links, className }: { heading: string; links: NavLink[]; className?: string }) {
-  return (
-    <nav aria-label={heading} className={cn('min-w-0', className)}>
-      <h3 className="font-heading text-[20px] font-normal leading-[1.3] text-white sm:max-desktop:text-[22px] desktop:text-[24px]">
-        {heading}
-      </h3>
-      <ul className="mt-5 flex flex-col gap-3 sm:gap-3.5">
-        {links.map((link) => (
-          <li key={link.href} className="min-w-0">
-            <Link
-              href={link.href}
-              prefetch
-              className="inline-block min-w-6 break-words py-1 font-body text-[15px] font-normal leading-snug text-white no-underline transition-opacity duration-300 hover:opacity-80 focus-visible:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-[16px]"
-            >
-              {link.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
+function ContactItem({ icon, label, children }: { icon: 'pin' | 'phone' | 'fax' | 'mail'; label: string; children: ReactNode }) {
+  return <li className="flex gap-3"><ContactIcon name={icon} /><span><span className="mr-2 text-[11px] font-semibold uppercase tracking-[1.2px] text-[#9fb0d6]">{label}</span>{children}</span></li>;
 }
 
-function SocialIcon({ name }: { name: string }) {
+function ContactIcon({ name }: { name: 'pin' | 'phone' | 'fax' | 'mail' }) {
+  const paths = {
+    pin: 'M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
+    phone: 'M6.6 3.2 9 2.5l1.6 4-1.5 1.2a15 15 0 0 0 3.2 3.2l1.2-1.5 4 1.6-.7 2.4c-.3 1-1.3 1.6-2.3 1.4A13.5 13.5 0 0 1 5.2 5.5c-.2-1 .4-2 1.4-2.3Z',
+    fax: 'M5 8V3h10v5M5 17H3V9h18v8h-2M7 13h10v8H7v-8Zm3 3h4',
+    mail: 'M3 5h18v14H3V5Zm1 1 8 6 8-6',
+  } as const;
+  return <svg aria-hidden="true" className="mt-1 size-5 shrink-0 text-[#4cc25a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d={paths[name]} strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+export function SocialIcon({ name }: { name: string }) {
   const common = {
     'aria-hidden': true as const,
     focusable: 'false' as const,

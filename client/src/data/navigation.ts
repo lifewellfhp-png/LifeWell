@@ -166,6 +166,36 @@ export const footerTelehealthLinks: NavLink[] = telehealthStates.map((s) => ({
   href: `/telehealth/${s.slug}`,
 }));
 
+export const footerConditionsLinks: NavLink[] = [
+  { label: 'ADHD', href: '/conditions/adhd' },
+  { label: 'Anxiety', href: '/conditions/anxiety' },
+  { label: 'Depression', href: '/conditions/depression' },
+  { label: 'Bipolar Disorder', href: '/conditions/bipolar-disorder' },
+  { label: 'PTSD', href: '/conditions/ptsd' },
+  { label: 'View all conditions →', href: '/conditions' },
+];
+
+export const footerPatientResourceLinks: NavLink[] = [
+  { label: 'Fees & Insurance', href: '/fees-insurance' },
+  { label: 'FAQs', href: '/faqs' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Videos', href: '/videos' },
+  { label: 'Testimonials', href: '/telehealth-mental-health-testimonials' },
+  { label: 'Meet Our Provider', href: '/bio' },
+  { label: 'Contact Us', href: '/contact-telehealth-mental-health-provider' },
+];
+
+export const footerLocationLinks: NavLink[] = [
+  { label: 'Orlando Office', href: '/orlando-psychiatric-care' },
+  { label: 'Avalon Park', href: '/psychiatric-care-avalon-park' },
+];
+
+export const footerProfessionalLinks: NavLink[] = [
+  { label: 'For Providers', href: '/for-providers' },
+  { label: 'Partners', href: '/partners' },
+  { label: 'Preceptorship Program', href: hrefFor('preceptorship-program') },
+];
+
 export const legalLinks: NavLink[] = [
   { label: 'Privacy Policy', href: '/privacy-policy' },
   { label: 'Terms & Conditions', href: '/terms-conditions' },
