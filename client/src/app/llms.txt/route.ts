@@ -94,6 +94,8 @@ export async function GET() {
     ['Book an Appointment', cms.booking.page],
     ['FAQs', '/faqs'],
     ['Meet Your Provider', '/bio'],
+    ['For Providers', '/for-providers'],
+    ['Partners', '/partners'],
   ];
   for (const [label, path] of pages) {
     lines.push(`- ${label}: ${site.url}${path}`);
