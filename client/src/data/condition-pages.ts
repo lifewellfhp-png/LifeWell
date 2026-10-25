@@ -63,7 +63,7 @@ export const CONDITION_PAGES: ConditionPage[] = [
     metaDescription:
       'Explore anxiety evaluation and treatment for patients age 12+ in Orlando and by telehealth. LifeWell offers calm, individualized psychiatric support.',
     summary:
-      'Anxiety can involve persistent worry, fear, or physical symptoms that make everyday life harder. LifeWell provides evaluation and follow-up care for patients age 12 and older.',
+      'Anxiety can involve persistent worry, fear, or physical symptoms that make everyday life harder. Common forms include generalized anxiety, panic, social anxiety, and specific phobias. LifeWell provides evaluation and follow-up care for patients age 12 and older.',
     whatItIs:
       'Anxiety is a common human response to stress. An anxiety disorder involves symptoms that are difficult to control, last longer than expected, or interfere with daily life. Different anxiety conditions can look different, so an evaluation helps clarify what you are experiencing.',
     signs: [
@@ -100,7 +100,7 @@ export const CONDITION_PAGES: ConditionPage[] = [
     metaDescription:
       'Learn about depression evaluation and treatment for patients age 12+ in Orlando and by telehealth. LifeWell provides personalized psychiatric follow-up care.',
     summary:
-      'Depression can affect mood, interest, energy, sleep, thinking, and daily functioning. LifeWell offers evaluation and psychiatric care for patients age 12 and older.',
+      'Depression can involve persistent sadness, loss of interest, low energy, sleep changes, and difficulty with daily functioning. LifeWell offers evaluation and psychiatric care for patients age 12 and older.',
     whatItIs:
       'Depression is more than a brief period of sadness. A depressive illness can affect emotions, thoughts, body, relationships, and the ability to manage everyday activities. A clinician looks at the duration, pattern, severity, and impact of symptoms.',
     signs: [
@@ -137,7 +137,7 @@ export const CONDITION_PAGES: ConditionPage[] = [
     metaDescription:
       'Learn about bipolar disorder evaluation and ongoing care for patients age 12+ in Orlando and by telehealth, with individualized psychiatric follow-up.',
     summary:
-      'Bipolar disorder involves changes in mood, energy, activity, and concentration. LifeWell provides evaluation and outpatient follow-up for patients age 12 and older.',
+      'Bipolar disorder involves shifts in mood, energy, activity, and concentration, including elevated or irritable periods and depressive periods. LifeWell provides evaluation and outpatient follow-up for patients age 12 and older.',
     whatItIs:
       'Bipolar disorder involves episodes of unusually elevated or irritable mood and episodes of depression. Mood changes can affect sleep, energy, judgment, concentration, and daily life. Care begins with a careful history because several conditions can cause overlapping symptoms.',
     signs: [
@@ -174,7 +174,7 @@ export const CONDITION_PAGES: ConditionPage[] = [
     metaDescription:
       'Learn about PTSD evaluation and outpatient treatment for patients age 12+ in Orlando and by telehealth, with compassionate psychiatric follow-up from LifeWell.',
     summary:
-      'Post-traumatic stress disorder (PTSD) can develop after a traumatic experience and affect mood, sleep, memories, and daily life. LifeWell offers outpatient evaluation and care.',
+      'Post-traumatic stress disorder (PTSD) can develop after a traumatic experience and affect memories, mood, sleep, and daily life, including unwanted memories and feeling constantly on guard. LifeWell offers outpatient evaluation and care.',
     whatItIs:
       'PTSD can develop after someone experiences or witnesses a traumatic event. Symptoms may include unwanted memories, avoidance, changes in mood or thinking, and feeling constantly on guard. Not everyone who experiences trauma develops PTSD, and support can help clarify what is happening.',
     signs: [

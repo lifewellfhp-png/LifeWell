@@ -27,7 +27,7 @@ const mentalHealthMenuLinks: NavLink[] = [
   },
   {
     label: 'Conditions We Treat',
-    href: hrefFor('treatment-for-depression-anxiety-adhd-bipolar-disorder-ptsd'),
+    href: '/conditions',
     description: 'Depression, anxiety, ADHD, bipolar disorder, PTSD',
   },
   {
@@ -150,6 +150,13 @@ export const footerExploreLinks: NavLink[] = [
   { label: 'FAQs', href: '/faqs' },
   { label: 'For Providers', href: '/for-providers' },
   { label: 'Partners', href: '/partners' },
+  { label: 'Conditions We Treat', href: '/conditions' },
+  { label: 'ADHD', href: '/conditions/adhd' },
+  { label: 'Anxiety', href: '/conditions/anxiety' },
+  { label: 'Depression', href: '/conditions/depression' },
+  { label: 'Bipolar Disorder', href: '/conditions/bipolar-disorder' },
+  { label: 'PTSD', href: '/conditions/ptsd' },
+  { label: 'Psychiatric Care Near Avalon Park', href: '/psychiatric-care-avalon-park' },
   { label: 'Contact Us', href: '/contact-telehealth-mental-health-provider' },
 ];
 

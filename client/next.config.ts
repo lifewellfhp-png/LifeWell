@@ -65,6 +65,11 @@ const nextConfig: NextConfig = {
       { source: '/reviews', destination: '/telehealth-mental-health-testimonials', permanent: true },
       { source: '/faq', destination: '/faqs', permanent: true },
       { source: '/services-overview', destination: '/our-services', permanent: true },
+      { source: '/our-services/anxiety-disorders', destination: '/conditions/anxiety', permanent: true },
+      { source: '/our-services/depression-mdd', destination: '/conditions/depression', permanent: true },
+      { source: '/our-services/ptsd', destination: '/conditions/ptsd', permanent: true },
+      { source: '/our-services/bipolar-disorder', destination: '/conditions/bipolar-disorder', permanent: true },
+      { source: '/our-services/adhd', destination: '/conditions/adhd', permanent: true },
 
       // Retired WooCommerce surface (was an indexable soft-404 on the old site).
       { source: '/shop', destination: '/', permanent: true },

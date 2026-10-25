@@ -96,6 +96,13 @@ export async function GET() {
     ['Meet Your Provider', '/bio'],
     ['For Providers', '/for-providers'],
     ['Partners', '/partners'],
+    ['Conditions We Treat', '/conditions'],
+    ['ADHD care', '/conditions/adhd'],
+    ['Anxiety care', '/conditions/anxiety'],
+    ['Depression care', '/conditions/depression'],
+    ['Bipolar disorder care', '/conditions/bipolar-disorder'],
+    ['PTSD care', '/conditions/ptsd'],
+    ['Psychiatric care near Avalon Park', '/psychiatric-care-avalon-park'],
   ];
   for (const [label, path] of pages) {
     lines.push(`- ${label}: ${site.url}${path}`);

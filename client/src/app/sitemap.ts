@@ -4,7 +4,6 @@ import { serviceSlugs, services } from '@/data/services';
 import { telehealthStateSlugs } from '@/data/telehealth-states';
 import { generatedLegalPages } from '@/data/generated/legal';
 import { publishedPosts, postHref } from '@/data/blog';
-import { PSYCHIATRIC_CONDITIONS } from '@/data/psychiatric-conditions';
 import { CONDITION_PAGES } from '@/data/condition-pages';
 import { fetchPublicCms } from '@/lib/cms';
 
@@ -88,13 +87,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  const psychiatricConditionEntries: MetadataRoute.Sitemap = PSYCHIATRIC_CONDITIONS.map((condition) => ({
-    url: abs(condition.canonicalPath),
-    lastModified: now,
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }));
-
   const conditionPageEntries: MetadataRoute.Sitemap = CONDITION_PAGES.map((condition) => ({
     url: abs(`/conditions/${condition.slug}`),
     lastModified: now,
@@ -139,7 +131,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...core,
     ...serviceEntries,
-    ...psychiatricConditionEntries,
     ...conditionPageEntries,
     ...telehealthStateEntries,
     ...blogIndex,
