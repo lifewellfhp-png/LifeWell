@@ -66,6 +66,7 @@ const nextConfig: NextConfig = {
       { source: '/faq', destination: '/faqs', permanent: true },
       { source: '/services-overview', destination: '/our-services', permanent: true },
       { source: '/our-services/anxiety-disorders', destination: '/conditions/anxiety', statusCode: 301 },
+      { source: '/our-services/major-depressive-disorder', destination: '/conditions/depression', statusCode: 301 },
       { source: '/our-services/depression-mdd', destination: '/conditions/depression', statusCode: 301 },
       { source: '/our-services/ptsd', destination: '/conditions/ptsd', statusCode: 301 },
       { source: '/our-services/bipolar-disorder', destination: '/conditions/bipolar-disorder', statusCode: 301 },
