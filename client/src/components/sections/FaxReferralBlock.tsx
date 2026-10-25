@@ -1,10 +1,26 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 const FAX_NUMBER = '4077108252';
 
-export function FaxReferralBlock() {
+type FaxReferralBlockProps = {
+  label?: string;
+  supportingText?: ReactNode;
+};
+
+export function FaxReferralBlock({
+  label = 'Fax referrals & records to',
+  supportingText = (
+    <>
+      Phone: (407) 603-1717 <span aria-hidden="true">·</span>{' '}
+      <span className="block sm:inline">
+        Include records and the patient&apos;s contact information.
+      </span>
+    </>
+  ),
+}: FaxReferralBlockProps) {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,7 +55,7 @@ export function FaxReferralBlock() {
         id="fax-referrals-heading"
         className="text-xs font-bold uppercase tracking-[0.16em] text-[#002574]"
       >
-        Fax referrals &amp; records to
+        {label}
       </p>
       <div className="mt-3 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <FaxIcon />
@@ -48,8 +64,7 @@ export function FaxReferralBlock() {
         </p>
       </div>
       <p className="mt-4 text-sm font-semibold leading-relaxed text-[#002574]">
-        Phone: (407) 603-1717 <span aria-hidden="true">·</span>{' '}
-        <span className="block sm:inline">Include records and the patient&apos;s contact information.</span>
+        {supportingText}
       </p>
       <button
         type="button"
@@ -58,7 +73,11 @@ export function FaxReferralBlock() {
       >
         Copy fax number
       </button>
-      <p role="status" aria-live="polite" className="mt-2 min-h-5 text-sm font-semibold text-[#002574]">
+      <p
+        role="status"
+        aria-live="polite"
+        className="mt-2 min-h-5 text-sm font-semibold text-[#002574]"
+      >
         {copyStatus === 'copied' ? 'Copied' : copyStatus === 'error' ? 'Unable to copy. Please try again.' : ''}
       </p>
     </section>

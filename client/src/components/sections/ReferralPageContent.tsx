@@ -167,6 +167,23 @@ export function PartnersPageContent() {
         ]}
       />
 
+      <div className="bg-surface-raised px-5 pb-2 sm:px-[30px] lg:px-10">
+        <Container size="prose">
+          <FaxReferralBlock
+            label="FAX STUDENT & EMPLOYEE REFERRALS TO"
+            supportingText={
+              <>
+                Partnership questions: call{' '}
+                <a href={`tel:${PHONE.replace(/\D/g, '')}`} className="underline">
+                  {PHONE}
+                </a>
+                .
+              </>
+            }
+          />
+        </Container>
+      </div>
+
       <Section tone="base">
         <Container size="prose">
           <section aria-labelledby="employers">
