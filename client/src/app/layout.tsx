@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Lora, Source_Sans_3 } from 'next/font/google';
+import localFont from 'next/font/local';
 import '@/styles/globals.css';
 
 import { site } from '@/data/site';
@@ -17,18 +17,26 @@ import { getResolvedContent } from '@/lib/cms-resolve';
 
 /* Self-hosted via next/font — no runtime request to Google. Only the weights
    the design system actually uses are loaded. */
-const lora = Lora({
-  subsets: ['latin'],
+const lora = localFont({
+  src: [
+    { path: '../../public/fonts/lora-normal-400.ttf', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/lora-normal-500.ttf', weight: '500', style: 'normal' },
+    { path: '../../public/fonts/lora-normal-600.ttf', weight: '600', style: 'normal' },
+    { path: '../../public/fonts/lora-italic-400.ttf', weight: '400', style: 'italic' },
+    { path: '../../public/fonts/lora-italic-500.ttf', weight: '500', style: 'italic' },
+    { path: '../../public/fonts/lora-italic-600.ttf', weight: '600', style: 'italic' },
+  ],
   display: 'swap',
-  weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
   variable: '--font-lora',
 });
 
-const sourceSans = Source_Sans_3({
-  subsets: ['latin'],
+const sourceSans = localFont({
+  src: [
+    { path: '../../public/fonts/source-sans-400.ttf', weight: '400' },
+    { path: '../../public/fonts/source-sans-600.ttf', weight: '600' },
+    { path: '../../public/fonts/source-sans-700.ttf', weight: '700' },
+  ],
   display: 'swap',
-  weight: ['400', '600', '700'],
   variable: '--font-source-sans',
 });
 
