@@ -7,6 +7,7 @@ import { ServicesGrid } from '@/components/sections/ServicesGrid';
 import { HowItWorks } from '@/components/sections/HowItWorks';
 import { VideosSection } from '@/components/sections/VideosSection';
 import { TrustStrip } from '@/components/sections/TrustStrip';
+import { StatsBand } from '@/components/sections/StatsBand';
 import { WelcomeAndBenefits } from '@/components/sections/WelcomeAndBenefits';
 import { provider as staticProvider } from '@/data/provider';
 
@@ -58,6 +59,7 @@ export default async function HomePage() {
         bookingProfiles={cms.bookingProfiles}
       />
       <TrustStrip provider={cms.provider ?? staticProvider} states={cms.telehealthStates} />
+      <StatsBand stats={cms.stats.slice(0, 4)} compact />
 
       <Section tone="raised" aria-labelledby="services-heading">
         <Container>

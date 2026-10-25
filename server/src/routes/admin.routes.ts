@@ -795,6 +795,7 @@ adminRouter.use(
     orderBy: { column: 'page_key', ascending: true },
     beforeCreate: enforceStatsVerificationGate,
     beforeUpdate: enforceStatsVerificationGate,
+    awaitRefresh: true,
   })
 );
 

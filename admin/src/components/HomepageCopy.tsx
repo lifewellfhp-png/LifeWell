@@ -34,13 +34,9 @@ const emptyStat: StatItem = { value: '', suffix: '', label: '', hidden: false, r
 
 /**
  * Kept in sync with the approved figures/labels in client/src/data/marketing.ts —
- * but NOT with their visibility. The owner's current decision is that every
- * homepage stat stays hidden regardless of how well-supported the underlying
- * fact is (the 15+ years figure itself remains approved and visible on
- * /bio — that's a separate decision from whether the homepage stat band
- * shows it). "Reset to approved defaults" must never be a one-click way to
- * publish a stat the owner has asked to keep hidden, so every entry here
- * stays hidden: true until that owner decision changes.
+ * but NOT with their visibility. Resetting to approved defaults remains an
+ * explicit editor action, so visibility is preserved as a deliberate choice
+ * rather than inferred from the underlying fact.
  */
 export const APPROVED_STATS: StatItem[] = [
   { value: '1', suffix: '', label: 'Licensed Provider', hidden: true, requiresVerification: false },
@@ -393,6 +389,9 @@ export function HomepageCopy() {
       <p className="muted" style={{ marginTop: 0 }}>
         Only claims you can support should appear here — each figure needs no supporting evidence
         beyond what is already true of the practice.
+      </p>
+      <p className="muted" style={{ marginTop: 0 }}>
+        Only the first 4 visible stats appear on the homepage.
       </p>
       {statsItems.length === 0 ? (
         <div className="empty" style={{ marginBottom: '0.75rem' }}>

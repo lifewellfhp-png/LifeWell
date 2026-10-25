@@ -935,19 +935,46 @@ export function mapStats(cms: PublicCmsPayload | null): Stat[] {
   const content = sectionContent(cms, 'home', 'stats');
   if (!content || !Array.isArray(content.items)) return staticStats;
   const raw = content.items;
-  const items: Stat[] = raw
-    .map((item) => {
-      if (!item || typeof item !== 'object') return null;
+  const items = raw
+    .map((item, index) => {
+      if (!item || typeof item !== 'object') {
+        console.warn(`[cms] Skipping invalid homepage stat at position ${index + 1}: expected an object.`);
+        return null;
+      }
       const row = item as Record<string, unknown>;
-      if (typeof row.label !== 'string' || row.hidden === true) return null;
+      const label = typeof row.label === 'string' ? row.label.trim() : '';
+      const suffix = typeof row.suffix === 'string' ? row.suffix : '';
+      const rawValue = row.value;
+      const value =
+        typeof rawValue === 'number'
+          ? rawValue
+          : typeof rawValue === 'string' && /^\d+$/.test(rawValue.trim())
+            ? Number(rawValue)
+            : Number.NaN;
+      const hidden = row.hidden === true || row.visible === false;
+      const requiresVerification = row.requiresVerification === true || row.requires_verification === true;
+      const allowedSuffixes = new Set(['', '+', '%', '/7']);
+      if (hidden || requiresVerification) return null;
+      if (!label || label.length > 80 || !Number.isFinite(value) || value < 0 || !Number.isInteger(value) || !allowedSuffixes.has(suffix)) {
+        console.warn(`[cms] Skipping invalid homepage stat at position ${index + 1}.`);
+        return null;
+      }
       return {
-        value: Number(row.value) || 0,
-        suffix: typeof row.suffix === 'string' ? row.suffix : '',
-        label: row.label,
-        requiresVerification: Boolean(row.requiresVerification),
-      } satisfies Stat;
+        value,
+        suffix,
+        label,
+        requiresVerification: false,
+        order: typeof row.order === 'number' && Number.isFinite(row.order) ? row.order : index,
+      };
     })
-    .filter((item): item is Stat => Boolean(item));
+    .filter((item): item is Stat & { order: number } => Boolean(item))
+    .sort((a, b) => a.order - b.order)
+    .map((item) => ({
+      value: item.value,
+      suffix: item.suffix,
+      label: item.label,
+      requiresVerification: item.requiresVerification,
+    }));
   return items;
 }
 

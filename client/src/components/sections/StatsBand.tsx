@@ -25,14 +25,39 @@ export function StatsBand({
   showCta = true,
   heading,
   body,
+  compact = false,
 }: {
   stats: Stat[];
   bookingUrl?: string;
   showCta?: boolean;
   heading?: string;
   body?: string;
+  compact?: boolean;
 }) {
   const bookHref = bookingUrl ?? site.booking.page;
+  if (compact) {
+    return (
+      <section aria-labelledby="stats-heading" className="bg-white py-10 sm:py-14">
+        <Container>
+          <h2 id="stats-heading" className="sr-only">LifeWell by the numbers</h2>
+          <dl className="grid grid-cols-2 gap-y-8 sm:grid-cols-4 sm:divide-x sm:divide-border-subtle">
+            {stats.map((stat) => (
+              <div key={stat.label} className="px-4 text-center first:sm:pl-0 last:sm:pr-0">
+                <dt className="sr-only">{stat.label}</dt>
+                <dd>
+                  <span className="font-heading text-[42px] font-normal leading-none text-[#002574] sm:text-[50px]">
+                    {formatCount(stat.value)}
+                    <span className="text-[#028815]">{stat.suffix}</span>
+                  </span>
+                  <span className="mt-3 block text-sm leading-snug text-text-primary">{stat.label}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Container>
+      </section>
+    );
+  }
   return (
     <section aria-labelledby="stats-heading" className="bg-white py-14 md:py-24">
       <Container>

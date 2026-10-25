@@ -48,6 +48,7 @@ type CrudOptions = {
   orderBy?: { column: string; ascending?: boolean };
   beforeCreate?: (data: Record<string, unknown>) => Record<string, unknown>;
   beforeUpdate?: (data: Record<string, unknown>) => Record<string, unknown>;
+  awaitRefresh?: boolean;
   /**
    * Phase 11: optional async validation, run after schema parsing but
    * before beforeCreate/insert — separate from beforeCreate/beforeUpdate
@@ -70,6 +71,7 @@ export function createCrudRouter(options: CrudOptions): Router {
     orderBy = { column: 'created_at', ascending: false },
     beforeCreate,
     beforeUpdate,
+    awaitRefresh = false,
     validateCreate,
     validateUpdate,
   } = options;
@@ -141,7 +143,8 @@ export function createCrudRouter(options: CrudOptions): Router {
         resourceId: data?.id ? String(data.id) : null,
         summary: `Created ${module}: ${recordLabel(data as Record<string, unknown>)}`,
       });
-      void refreshPublicSite();
+      if (awaitRefresh) await refreshPublicSite();
+      else void refreshPublicSite();
       res.status(201).json({ success: true, data });
     })
   );
@@ -209,7 +212,8 @@ export function createCrudRouter(options: CrudOptions): Router {
         summary: `Updated ${module}: ${recordLabel(data as Record<string, unknown>)}`,
         meta: changes ? { changes, origin: { method: 'PATCH', endpoint: `/${table}/:id` } } : undefined,
       });
-      void refreshPublicSite();
+      if (awaitRefresh) await refreshPublicSite();
+      else void refreshPublicSite();
       res.json({ success: true, data });
     })
   );
@@ -228,7 +232,8 @@ export function createCrudRouter(options: CrudOptions): Router {
         resourceId: String(req.params.id),
         summary: `Deleted ${module} record`,
       });
-      void refreshPublicSite();
+      if (awaitRefresh) await refreshPublicSite();
+      else void refreshPublicSite();
       res.json({ success: true });
     })
   );
