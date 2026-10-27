@@ -3,6 +3,8 @@
 These rules apply to any AI assistant (Claude, Copilot, or otherwise)
 working in this repository, regardless of which branch or task.
 
+- Public website forms must never collect medical or clinical information. No free-text message fields on public forms. Clinical information goes through the CharmHealth patient portal only.
+
 - Never run SQL against any database. If a change needs SQL, write it to
   a file for the project owner to review, with a rollback included, and
   don't run it.

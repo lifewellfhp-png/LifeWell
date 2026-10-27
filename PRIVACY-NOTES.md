@@ -48,6 +48,16 @@ What each third-party script/embed on the LifeWell site receives, and whether it
 
 ## Forms and chat: patient-facing wording
 
+### No medical information in website forms
+
+Public website forms collect only administrative details and must never collect medical or clinical information. Patients should use these channels:
+
+- Scheduling and office questions: the website contact form, without medical details.
+- General questions: `contact@lifewellfhp.com`.
+- Medical information, symptoms, medications, intake forms, and provider messages: the CharmHealth patient portal.
+
+Patients can also call `(407) 603-1717`. The website itself is not described as HIPAA-compliant; the portal and email handling follow the practice's configured privacy and compliance arrangements.
+
 - The contact form explicitly tells visitors not to include medical information in their message (verified present in production HTML as of this writing).
 - The chat assistant's system prompt instructs it never to request, store, or discuss clinical/medical details, and to redirect any such question to booking an appointment or requesting a callback instead.
 - Neither the contact form nor the newsletter signup has a free-text field beyond what's needed for an administrative request (name/email/phone/preferred contact method) — this is a deliberate design choice elsewhere in this codebase, not incidental.

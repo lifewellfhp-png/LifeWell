@@ -246,6 +246,11 @@ export const faqs: Faq[] = [
     answer:
       'Yes. Sleep disturbances are often connected to anxiety, depression, and other mental health concerns. As part of a psychiatric evaluation, we assess sleep along with your other symptoms and include it in your personalized treatment and medication management plan.',
   },
+  {
+    question: 'How do I send medical information securely?',
+    answer:
+      'Use the CharmHealth patient portal for symptoms, medications, intake forms, and messages to your provider. Email contact@lifewellfhp.com for general questions or call (407) 603-1717. Never use the website contact form for medical details.',
+  },
 ];
 
 /* -------------------------------------------------------- cta / news ---- */

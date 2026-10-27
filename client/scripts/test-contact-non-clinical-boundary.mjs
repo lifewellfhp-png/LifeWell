@@ -90,10 +90,10 @@ test('SelectField exists in Field.tsx with label/required/error/aria wiring matc
 });
 
 test('the administrative/privacy guidance is visible and makes no false claims', () => {
-  assert.match(source, /scheduling and administrative questions only/i);
-  assert.match(source, /do not include medical\s+information/i);
+  assert.match(source, /scheduling and office questions only/i);
+  assert.match(source, /don(?:&apos;|')t include medical\s+details/i);
   assert.doesNotMatch(source, /HIPAA/i);
-  assert.doesNotMatch(source, /patient portal/i);
+  assert.match(source, /patient portal/i);
   assert.doesNotMatch(source, /this form is (secure|encrypted)/i);
 });
 

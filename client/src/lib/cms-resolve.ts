@@ -199,6 +199,10 @@ function mapFaqs(cms: PublicCmsPayload | null, live: boolean): Faq[] {
   const mapped = rows
     .filter((r) => r.question && r.answer && String(r.category || 'General') !== 'Fees')
     .map((r) => ({ question: String(r.question), answer: String(r.answer) }));
+  const secureMedicalInfoFaq = staticFaqs.find((faq) => faq.question === 'How do I send medical information securely?');
+  if (secureMedicalInfoFaq && !mapped.some((faq) => faq.question === secureMedicalInfoFaq.question)) {
+    mapped.push(secureMedicalInfoFaq);
+  }
   if (live) return mapped;
   return mapped.length ? mapped : staticFaqs;
 }
