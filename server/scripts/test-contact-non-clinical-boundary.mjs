@@ -173,15 +173,15 @@ test('19. Paubox is primary and SMTP is an explicit fallback', () => {
   assert.match(emailServiceSource, /Paubox API key is not configured/);
 });
 
-test('20. the privacy/administrative warning is present in source and makes no HIPAA/portal claims', () => {
+test('20. the privacy/administrative warning is present in source without claiming the website is HIPAA-compliant', () => {
   const clientContactForm = readFileSync(
     join(root, '../client/src/components/forms/ContactForm.tsx'),
     'utf8'
   );
-  assert.match(clientContactForm, /scheduling and administrative questions only/i);
-  assert.match(clientContactForm, /do not include medical\s+information/i);
+  assert.match(clientContactForm, /scheduling and office questions only/i);
+  assert.match(clientContactForm, /don(?:&apos;|')t include medical\s+details/i);
   assert.doesNotMatch(clientContactForm, /HIPAA/i);
-  assert.doesNotMatch(clientContactForm, /patient portal/i);
+  assert.match(clientContactForm, /patient portal/i);
 });
 
 test('the honeypot and consent fields still validate correctly alongside the new reason field', () => {

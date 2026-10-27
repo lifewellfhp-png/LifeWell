@@ -43,18 +43,19 @@ test('A/B. the warning block is the unconditional first child of <form> — rend
 });
 
 test('C. the warning tells visitors not to include medical information (P4-B4: reworded for the now-administrative-only form)', () => {
-  assert.match(source, /do not include/i);
-  assert.match(source, /do not include medical\s+information/i);
+  assert.match(source, /don(?:&apos;|')t include/i);
+  assert.match(source, /don(?:&apos;|')t include medical\s+details/i);
 });
 
-test('D. the warning references the existing centralized office phone data, not a hardcoded second number', () => {
-  assert.match(source, /please call our office at/i);
+test('D. the warning references the existing centralized office phone data', () => {
+  assert.match(source, /patient portal/i);
+  assert.match(source, /or call us instead/i);
   assert.match(source, /site\.contact\.phoneHref/);
   assert.match(source, /\{site\.contact\.phone\}/);
 });
 
-test('E. no "secure patient portal" wording exists', () => {
-  assert.doesNotMatch(source, /patient portal/i);
+test('E. the warning directs clinical matters to the patient portal', () => {
+  assert.match(source, /patient portal/i);
 });
 
 test('F. no HIPAA-compliance claim (or other forbidden phrase) is introduced', () => {

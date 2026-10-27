@@ -29,6 +29,10 @@ export const site = {
     email: 'contact@lifewellfhp.com',
     emailHref: 'mailto:contact@lifewellfhp.com',
   },
+  patientPortal: {
+    url: 'https://phr.charmtracker.com/login.sas?FACILITY_ID=6da761489431a97476e61511abdc470926a1a06adbd537c498ee2e5ce9d5cc8ac81b440bc8a53a00',
+    label: 'CharmHealth patient portal',
+  },
 
   address: {
     street: '3680 Avalon Park E Blvd',

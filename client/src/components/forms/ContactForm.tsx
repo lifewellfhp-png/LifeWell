@@ -149,9 +149,13 @@ export function ContactForm({ variant = 'full' }: { variant?: 'full' | 'compact'
     <form onSubmit={onSubmit} noValidate className={compact ? 'space-y-5' : 'space-y-6'}>
       <div className="rounded-md border border-border-subtle bg-surface-muted px-5 py-4">
         <p className="text-sm text-text-secondary">
-          <strong className="font-semibold text-text-primary">Please note:</strong> use this form
-          for scheduling and administrative questions only. Please do not include medical
-          information. For clinical matters, please call our office at{' '}
+          <strong className="font-semibold text-text-primary">Please note:</strong> This form is
+          for scheduling and office questions only. Please don&apos;t include medical details. Use
+          the{' '}
+          <a href={site.patientPortal.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-text-link">
+            patient portal
+          </a>{' '}
+          or call us instead. For urgent concerns, call our office at{' '}
           <a href={site.contact.phoneHref} className="font-semibold text-text-link">
             {site.contact.phone}
           </a>

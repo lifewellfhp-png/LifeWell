@@ -1,5 +1,7 @@
 # Standing rules
 
+Public website forms must never collect medical or clinical information. No free-text message fields on public forms. Clinical information goes through the CharmHealth patient portal only.
+
 ## Database changes
 
 Never run SQL against the production database (or any live Supabase project backing this

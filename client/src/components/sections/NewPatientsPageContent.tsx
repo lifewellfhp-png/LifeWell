@@ -55,6 +55,13 @@ export function NewPatientsPageContent() {
               </li>
             ))}
           </ul>
+          <p className="mt-6 text-[15px] leading-[1.5] text-[#374151] sm:text-[16px]">
+            Current patients can use the{' '}
+            <a href={site.patientPortal.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--lw-primary)] underline-offset-4 hover:underline">
+              CharmHealth patient portal
+            </a>{' '}
+            for intake forms.
+          </p>
         </Container>
       </Section>
 

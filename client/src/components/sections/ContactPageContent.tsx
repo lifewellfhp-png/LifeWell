@@ -54,6 +54,45 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
         bookingUrl={bookingUrl}
       />
 
+      <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 min-[1601px]:px-[80px]">
+        <div className="mx-auto max-w-[1280px]">
+          <h2 className="font-heading text-[30px] font-normal leading-[1.15] tracking-[-2px] text-[var(--lw-accent)] sm:text-[42px]">
+            How to reach us
+          </h2>
+          <div className="mt-8 grid gap-5 lg:grid-cols-3">
+            <ContactChannel
+              title="Scheduling & general questions"
+              description="Use the contact form for scheduling and office questions only."
+              note="Please don't include medical information in this form."
+              href="#contact-form"
+              label="Go to contact form"
+            />
+            <ContactChannel
+              title="Email us"
+              description="Email us at"
+              note="Our email is HIPAA-compliant. For detailed medical information, please use the patient portal."
+              href={emailHref}
+              label={email}
+            />
+            <ContactChannel
+              title="Medical information & forms (current patients)"
+              description="Use the secure CharmHealth patient portal for symptoms, medications, intake forms and messages to your provider."
+              note="Use the secure portal for symptoms, medications, intake forms and messages to your provider."
+              href={site.patientPortal.url}
+              label="Open patient portal"
+              external
+            />
+          </div>
+          <p className="mt-6 text-[16px] text-text-primary">
+            Prefer to talk? Call{' '}
+            <a href={phoneHref} className="font-semibold text-[var(--lw-primary)] underline-offset-4 hover:underline">
+              {phone}
+            </a>
+            .
+          </p>
+        </div>
+      </section>
+
       <section className="px-5 pb-16 sm:max-[1601px]:px-[30px] sm:pb-24 lg:max-[1601px]:px-10 lg:pb-[150px] min-[1601px]:px-[80px]">
         <div className="mx-auto grid max-w-[1280px] items-stretch gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-x-10">
           <div className="lg:max-[1601px]:pr-10 min-[1601px]:pr-20">
@@ -107,7 +146,7 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
             </address>
           </div>
 
-          <div>
+          <div id="contact-form" className="scroll-mt-24">
             <div className="min-h-[320px] overflow-hidden rounded-[20px] sm:min-h-[420px] lg:min-h-[500px]">
               <iframe
                 title={`${street}, ${cityLine}`}
@@ -156,6 +195,39 @@ export function ContactPageContent({ contact }: { contact?: ContactCms } = {}) {
         </div>
       </section>
     </div>
+  );
+}
+
+function ContactChannel({
+  title,
+  description,
+  note,
+  href,
+  label,
+  external = false,
+}: {
+  title: string;
+  description: string;
+  note: string;
+  href: string;
+  label: string;
+  external?: boolean;
+}) {
+  return (
+    <article className="flex h-full flex-col rounded-[18px] border border-border-subtle bg-surface-muted p-6">
+      <h3 className="font-heading text-[23px] leading-[1.2] text-[var(--lw-primary)]">{title}</h3>
+      <p className="mt-4 text-[15px] leading-[1.5] text-text-primary">{description}</p>
+      <p className="mt-3 text-[14px] leading-[1.5] text-text-secondary">{note}</p>
+      <a
+        href={href}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener noreferrer' : undefined}
+        className="mt-auto inline-flex pt-5 font-semibold text-[var(--lw-primary)] underline-offset-4 hover:underline"
+      >
+        {label}
+        {external ? ' ↗' : ''}
+      </a>
+    </article>
   );
 }
 

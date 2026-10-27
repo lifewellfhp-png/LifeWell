@@ -79,18 +79,20 @@ test('A. no public marketing surface (benefits, FAQs, generated services, genera
 });
 
 test('B. the Contact form still warns against submitting medical information (P4-B4: reworded for the now-administrative-only form)', () => {
-  assert.match(contactFormSource, /do not include/i);
-  assert.match(contactFormSource, /do not include medical\s+information/i);
+  assert.match(contactFormSource, /don(?:&apos;|')t include/i);
+  assert.match(contactFormSource, /don(?:&apos;|')t include medical\s+details/i);
 });
 
-test('C. the Contact form no longer references a nonexistent "secure patient portal"', () => {
-  assert.doesNotMatch(contactFormSource, /patient portal/i);
+test('C. the Contact form references the configured CharmHealth patient portal', () => {
+  assert.match(contactFormSource, /patient portal/i);
+  assert.match(contactFormSource, /site\.patientPortal\.url/);
 });
 
-test('D. the Contact form directs to the office phone number rather than inventing a portal link', () => {
+test('D. the Contact form retains the office phone and portal guidance', () => {
   assert.match(contactFormSource, /site\.contact\.phoneHref/);
-  assert.match(contactFormSource, /please call our office/i);
-  assert.doesNotMatch(contactFormSource, /portal/i);
+  assert.match(contactFormSource, /patient portal/i);
+  assert.match(contactFormSource, /or call us instead/i);
+  assert.match(contactFormSource, /portal/i);
 });
 
 test('E. booking configuration (CharmHealth external calendar) is unchanged by this phase', () => {
