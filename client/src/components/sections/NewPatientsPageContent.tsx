@@ -56,11 +56,11 @@ export function NewPatientsPageContent() {
             ))}
           </ul>
           <p className="mt-6 text-[15px] leading-[1.5] text-[#374151] sm:text-[16px]">
-            Current patients can use the{' '}
+            After you book, we&apos;ll send you an invitation to the{' '}
             <a href={site.patientPortal.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--lw-primary)] underline-offset-4 hover:underline">
               CharmHealth patient portal
-            </a>{' '}
-            for intake forms.
+            </a>
+            , where you&apos;ll complete your intake forms.
           </p>
         </Container>
       </Section>
