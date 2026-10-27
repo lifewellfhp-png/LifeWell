@@ -52,7 +52,7 @@ Requires Node 20+.
 # API
 cd server
 npm install
-cp .env.example .env          # runs in log-only mode until SMTP is configured
+cp .env.example .env          # set PAUBOX_API_KEY for transactional email
 npm run dev                   # http://localhost:4000
 
 # Frontend (second terminal)
@@ -197,9 +197,12 @@ there are no user accounts.
 > in HIPAA scope. The form carries a visible notice asking patients not to include clinical
 > detail, and the logger redacts message bodies and contact fields.
 >
-> Before launch the practice needs a mail provider that will sign a **BAA**. Standard transactional
-> providers do not offer one on default plans. Until SMTP is configured the API runs in log-only
-> mode and refuses to start a submission in production rather than silently dropping it.
+> Before launch the practice needs a mail provider that will sign a **BAA**. Paubox is the primary
+> transactional provider when `PAUBOX_API_KEY` is set. If that key is absent, fully configured
+> `SMTP_*` settings are used as an explicit fallback; with neither transport configured, the API
+> refuses to send rather than silently claiming delivery. Newsletter subscriptions remain on the
+> configured `NEWSLETTER_PROVIDER` (Mailchimp or ConvertKit), and marketing campaigns remain on
+> their existing campaign transport; neither is changed by the transactional migration.
 
 ---
 
@@ -326,10 +329,10 @@ long-lived process keeps rate limiting global and lets SMTP connections pool.
 `server/api/index.ts` route everything to the same Express app, so the paths are unchanged. Note
 that rate limiting becomes per-instance under serverless — see the caveats in `api/index.ts`.
 
-Either way set `CORS_ORIGINS` to the deployed frontend origin, `NODE_ENV=production`, and the
-`SMTP_*` set. In production the server refuses to accept a submission without SMTP rather than
-silently dropping it. `trust proxy` is enabled in production so the rate limiter sees real client
-IPs behind the platform's load balancer.
+Either way set `CORS_ORIGINS` to the deployed frontend origin, `NODE_ENV=production`, and
+`PAUBOX_API_KEY`. Keep the complete `SMTP_*` set only when the explicit fallback is needed.
+`trust proxy` is enabled in production so the rate limiter sees real client IPs behind the
+platform's load balancer.
 
 ### Notes
 

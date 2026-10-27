@@ -1,8 +1,9 @@
-import { env, isProduction } from '../config/env.js';
+import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 import { serverError } from '../utils/errors.js';
 import { CONTACT_REASON_LABELS, type ContactInput } from '../validation/schemas.js';
 import { getSupabase, supabaseConfigured } from '../lib/supabase.js';
+import nodemailer from 'nodemailer';
 
 /**
  * P4-D5: outbound mail goes through the Paubox REST Email API rather than
@@ -16,10 +17,11 @@ import { getSupabase, supabaseConfigured } from '../lib/supabase.js';
  * this file — they're left configured in Vercel deliberately, as a rollback
  * path back to the SMTP transport if this migration needs to be reverted.
  */
-const PAUBOX_API_KEY = env.SMTP_PASSWORD;
+const PAUBOX_API_KEY = env.PAUBOX_API_KEY;
 const PAUBOX_ENDPOINT = 'https://api.paubox.com/v1/email/messages';
 const PAUBOX_TIMEOUT_MS = 20_000;
 export const pauboxConfigured = Boolean(PAUBOX_API_KEY);
+const sender = { name: 'LifeWell Family Health & Psychiatry', address: 'contact@lifewellfhp.com' };
 
 /** Escapes a value for safe interpolation into the HTML email body. */
 export const escapeHtml = (value: string) =>
@@ -106,7 +108,7 @@ export async function sendViaPauboxApi(params: {
             recipients: [formatAddress(params.to)],
             headers: {
               subject: params.subject,
-              from: env.MAIL_FROM,
+              from: formatAddress(sender),
               ...(params.replyTo ? { 'reply-to': formatAddress(params.replyTo) } : {}),
             },
             content: {
@@ -145,6 +147,50 @@ export async function sendViaPauboxApi(params: {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function sendViaSmtp(params: {
+  to: PauboxAddress;
+  subject: string;
+  text: string;
+  html: string;
+  replyTo?: PauboxAddress;
+}): Promise<PauboxApiResult> {
+  if (!env.SMTP_HOST || !env.SMTP_PORT || !env.SMTP_USER || !env.SMTP_PASSWORD) {
+    return { ok: false, httpStatus: 0, errorMessage: 'SMTP fallback is not configured' };
+  }
+  try {
+    const transport = nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      secure: env.SMTP_SECURE,
+      auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD },
+    });
+    await transport.sendMail({
+      from: formatAddress(sender),
+      to: formatAddress(params.to),
+      subject: params.subject,
+      text: params.text,
+      html: params.html,
+      replyTo: params.replyTo ? formatAddress(params.replyTo) : undefined,
+    });
+    return { ok: true, httpStatus: 250 };
+  } catch (error) {
+    logger.error('SMTP fallback failed', { reason: error instanceof Error ? error.message : 'unknown' });
+    return { ok: false, httpStatus: 0, errorMessage: 'SMTP fallback failed' };
+  }
+}
+
+async function sendTransactionalMail(params: {
+  to: PauboxAddress;
+  subject: string;
+  text: string;
+  html: string;
+  replyTo?: PauboxAddress;
+}): Promise<PauboxApiResult> {
+  if (pauboxConfigured) return sendViaPauboxApi(params);
+  logger.warn('PAUBOX_API_KEY is not configured; using SMTP fallback');
+  return sendViaSmtp(params);
 }
 
 /**
@@ -199,19 +245,7 @@ export async function sendContactNotification(
 
   const inbox = await resolveInboxEmail();
 
-  if (!pauboxConfigured) {
-    // Log-only mode. Never claim delivery that did not happen.
-    logger.warn('Paubox API key is not configured — contact notification was not sent', {
-      referenceId,
-      reason: input.reason,
-    });
-    if (isProduction) {
-      throw serverError('Mail transport is not configured');
-    }
-    return { delivered: false, referenceId, inbox };
-  }
-
-  const result = await sendViaPauboxApi({
+  const result = await sendTransactionalMail({
     to: { address: inbox },
     subject,
     text,
@@ -275,7 +309,7 @@ export async function sendOutboundMail(input: OutboundMail): Promise<OutboundRes
     return { delivered: false, error };
   }
 
-  const result = await sendViaPauboxApi({
+  const result = await sendTransactionalMail({
     to: { name: input.toName, address: input.to },
     subject: input.subject,
     text,
@@ -301,9 +335,13 @@ export async function sendOutboundMail(input: OutboundMail): Promise<OutboundRes
 
 /** Local dev only (never invoked on Vercel — see index.ts) — confirms the Paubox API key is present at boot. */
 export async function verifyMailTransport(): Promise<void> {
-  if (!pauboxConfigured) {
-    logger.warn('Paubox API key not configured — contact form runs in log-only mode');
+  if (pauboxConfigured) {
+    logger.info('Paubox Email API configured');
     return;
   }
-  logger.info('Paubox Email API key configured');
+  if (env.SMTP_HOST && env.SMTP_PORT && env.SMTP_USER && env.SMTP_PASSWORD) {
+    logger.warn('PAUBOX_API_KEY is not configured — SMTP fallback is active');
+    return;
+  }
+  logger.warn('No transactional mail transport is configured');
 }

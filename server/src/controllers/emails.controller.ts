@@ -15,7 +15,8 @@ export async function getMailConfig(_req: Request, res: Response): Promise<void>
     success: true,
     data: {
       configured: mailConfigured,
-      from: env.MAIL_FROM,
+      provider: env.PAUBOX_API_KEY ? 'paubox' : mailConfigured ? 'smtp-fallback' : 'none',
+      from: 'LifeWell Family Health & Psychiatry <contact@lifewellfhp.com>',
       smtp_user: env.SMTP_USER || null,
       smtp_host: env.SMTP_HOST || null,
       smtp_port: env.SMTP_PORT || null,
@@ -83,7 +84,7 @@ export async function sendAdminEmails(req: Request, res: Response): Promise<void
 
     await logEmailMessage({
       direction: 'outbound',
-      from_email: env.SMTP_USER || 'noreply@lifewellfhp.com',
+      from_email: 'contact@lifewellfhp.com',
       from_name: 'LifeWell Family Health & Psychiatry',
       to_email: recipient.email,
       to_name: recipient.name ?? null,

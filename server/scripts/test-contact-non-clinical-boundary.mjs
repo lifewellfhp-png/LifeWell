@@ -128,8 +128,8 @@ test('13. visitor email remains Reply-To, and is never used as From', () => {
   assert.doesNotMatch(emailServiceSource, /from:\s*input\.email/);
   // The shared low-level sender (sendViaPauboxApi, defined above
   // sendContactNotification) is what actually sets `from` — always the
-  // fixed env.MAIL_FROM, for every caller, never a visitor-supplied value.
-  assert.match(emailServiceSource, /from:\s*env\.MAIL_FROM/);
+  // fixed LifeWell sender, for every caller, never a visitor-supplied value.
+  assert.match(emailServiceSource, /address:\s*'contact@lifewellfhp\.com'/);
 });
 
 test('14. operational logs contain no visitor narrative — only the reason enum value (a fixed classification, not free text) or nothing at all', () => {
@@ -166,13 +166,11 @@ test('17/18. P4-B2/P4-B3 principles remain satisfied at a structural level — n
   assert.equal('reason' in contactSchema.shape, true);
 });
 
-test('19. the Paubox REST transport itself is unchanged by this phase', () => {
+test('19. Paubox is primary and SMTP is an explicit fallback', () => {
   assert.match(emailServiceSource, /https:\/\/api\.paubox\.com\/v1\/email\/messages/);
-  assert.match(emailServiceSource, /const PAUBOX_API_KEY = env\.SMTP_PASSWORD;/);
-  // The comment explaining SMTP_HOST/PORT/SECURE are intentionally left
-  // unused (rollback path) is expected — only actual usage is disallowed.
-  assert.doesNotMatch(emailServiceSource, /env\.SMTP_HOST|env\.SMTP_PORT|env\.SMTP_SECURE/);
-  assert.doesNotMatch(emailServiceSource, /^import nodemailer/m);
+  assert.match(emailServiceSource, /const PAUBOX_API_KEY = env\.PAUBOX_API_KEY;/);
+  assert.match(emailServiceSource, /sendViaSmtp/);
+  assert.match(emailServiceSource, /PAUBOX_API_KEY is not configured/);
 });
 
 test('20. the privacy/administrative warning is present in source and makes no HIPAA/portal claims', () => {

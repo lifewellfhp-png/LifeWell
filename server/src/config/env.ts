@@ -20,7 +20,7 @@ const schema = z.object({
 
   /** Destination for contact-form notifications. */
   CONTACT_EMAIL: z.string().email().default('contact@lifewellfhp.com'),
-  MAIL_FROM: z.string().default('LifeWell Website <no-reply@lifewellfhp.com>'),
+  PAUBOX_API_KEY: z.string().optional(),
 
   /* SMTP. When unset the server runs in log-only mode — useful locally and in
      CI, and it prevents silent data loss from being mistaken for delivery. */
@@ -149,7 +149,7 @@ export const corsOrigins = env.CORS_ORIGINS.split(',')
 
 /** True once SMTP is fully configured; otherwise mail is logged, not sent. */
 export const mailConfigured = Boolean(
-  env.SMTP_HOST && env.SMTP_PORT && env.SMTP_USER && env.SMTP_PASSWORD
+  env.PAUBOX_API_KEY || (env.SMTP_HOST && env.SMTP_PORT && env.SMTP_USER && env.SMTP_PASSWORD)
 );
 
 /** True once a Gemini API key is present; otherwise /api/chat answers with a clear "not configured" error. */
