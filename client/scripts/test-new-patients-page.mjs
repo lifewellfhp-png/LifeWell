@@ -45,9 +45,15 @@ test('B. metadata resolves against the /new-patients CMS path', () => {
   assert.match(pageSource, /path:\s*'\/new-patients'/);
 });
 
-test('C. no unsupported intake-form / records / prescription / guarantee claims', () => {
+test('C. no unsupported records / prescription / guarantee claims', () => {
   const forbidden = [
-    /intake form/i,
+    // Not "intake form" outright: the page correctly says intake forms are
+    // completed through the external CharmHealth portal (the accurate,
+    // approved claim), not on this site directly — that's the thing this
+    // guard actually cares about.
+    /fill out (your |the )?intake form/i,
+    /download (your |the )?intake form/i,
+    /submit (your |the )?intake form (here|on this (site|page))/i,
     /records must be transferred/i,
     /guarantee/i,
     /same-day prescription/i,
