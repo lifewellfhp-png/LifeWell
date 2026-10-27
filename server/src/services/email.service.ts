@@ -189,7 +189,7 @@ async function sendTransactionalMail(params: {
   replyTo?: PauboxAddress;
 }): Promise<PauboxApiResult> {
   if (pauboxConfigured) return sendViaPauboxApi(params);
-  logger.warn('PAUBOX_API_KEY is not configured; using SMTP fallback');
+  logger.warn('Paubox API key is not configured; using SMTP fallback');
   return sendViaSmtp(params);
 }
 

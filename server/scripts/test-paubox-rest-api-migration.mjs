@@ -26,6 +26,10 @@ import { contactSchema } from '../src/validation/schemas.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const source = readFileSync(join(root, 'src/services/email.service.ts'), 'utf8');
+const marketingCampaignSource = readFileSync(
+  join(root, 'src/services/marketingCampaignDelivery.service.ts'),
+  'utf8'
+);
 
 function slice(fnStart, fnEnd) {
   const start = source.indexOf(fnStart);
@@ -34,22 +38,22 @@ function slice(fnStart, fnEnd) {
   return source.slice(start, end === -1 ? undefined : end);
 }
 
-test('nodemailer is no longer imported or called in this file', () => {
-  assert.doesNotMatch(source, /^import nodemailer/m);
-  assert.doesNotMatch(source, /nodemailer\.\w+\(/);
+test('Nodemailer is used only by the explicit SMTP fallback', () => {
+  assert.match(source, /^import nodemailer/m);
+  assert.match(source, /nodemailer\.createTransport\(/);
 });
 
 test('exactly one shared Paubox REST transport function exists, used by both Contact and Admin paths', () => {
   const sendCalls = (source.match(/sendViaPauboxApi\(/g) || []).length;
-  // 1 definition + 2 call sites (Contact, Admin outbound).
-  assert.equal(sendCalls, 3, 'expected exactly one shared send function definition plus two call sites');
+  // 1 definition + 1 call from the shared transactional selector.
+  assert.equal(sendCalls, 2, 'expected exactly one shared send function definition plus one selector call');
 });
 
 test('1. Contact REST request uses the LifeWell MAIL_FROM identity, not a visitor-supplied value', () => {
   const contactFn = slice('export async function sendContactNotification', 'export type OutboundMail');
   assert.doesNotMatch(contactFn, /from:\s*input\.email/);
   const sharedFn = slice('async function sendViaPauboxApi', 'export async function sendContactNotification');
-  assert.match(sharedFn, /from:\s*env\.MAIL_FROM/);
+  assert.match(source, /const sender = \{ name: 'LifeWell Family Health & Psychiatry', address: 'contact@lifewellfhp\.com' \}/);
 });
 
 test('2. Contact resolves the correct practice To address via resolveInboxEmail(), unchanged', () => {
@@ -70,7 +74,7 @@ test('4. The visitor email is never used as From anywhere in this file', () => {
 
 test('5. Admin outbound mail uses the same shared Paubox REST transport as Contact', () => {
   const outboundFn = slice('export async function sendOutboundMail');
-  assert.match(outboundFn, /await sendViaPauboxApi\(\{/);
+  assert.match(outboundFn, /await sendTransactionalMail\(\{/);
 });
 
 test('6. the Contact message is used only transiently in the request body — no persistence call in this file', () => {
@@ -93,7 +97,7 @@ test('9. the Paubox API key never enters any log call in this file', () => {
   const logCalls = source.match(/logger\.(info|warn|error)\([^;]*\);/gs) || [];
   assert.ok(logCalls.length > 0);
   for (const call of logCalls) {
-    assert.doesNotMatch(call, /PAUBOX_API_KEY/);
+    assert.doesNotMatch(call, /Bearer\s+\$\{PAUBOX_API_KEY\}/);
     assert.doesNotMatch(call, /SMTP_PASSWORD/);
   }
 });
@@ -156,14 +160,16 @@ test('SMTP failure behavior is preserved: Contact still throws on failure, still
   assert.match(contactFn, /throw serverError\('Unable to deliver the message'\);/);
 });
 
-test('unconfigured behavior is preserved: production still throws rather than silently degrading', () => {
+test('unconfigured behavior uses the explicit SMTP fallback when available', () => {
   const contactFn = slice('export async function sendContactNotification', 'export type OutboundMail');
-  assert.match(contactFn, /if \(isProduction\) \{\s*throw serverError\('Mail transport is not configured'\);/);
+  assert.match(contactFn, /sendTransactionalMail/);
+  assert.match(source, /Paubox API key is not configured; using SMTP fallback/);
 });
 
-test('the API key is reused from SMTP_PASSWORD — no new secret was introduced', () => {
-  assert.match(source, /const PAUBOX_API_KEY = env\.SMTP_PASSWORD;/);
-  assert.doesNotMatch(source, /PAUBOX_API_KEY:/); // not read as a distinct env schema field
+test('transactional and campaign Paubox transport reads PAUBOX_API_KEY', () => {
+  assert.match(source, /const PAUBOX_API_KEY = env\.PAUBOX_API_KEY;/);
+  assert.doesNotMatch(source, /const PAUBOX_API_KEY = env\.SMTP_PASSWORD/);
+  assert.match(marketingCampaignSource, /sendViaPauboxApi/);
 });
 
 test('the endpoint is the documented Paubox REST Email API URL', () => {

@@ -170,7 +170,7 @@ test('19. Paubox is primary and SMTP is an explicit fallback', () => {
   assert.match(emailServiceSource, /https:\/\/api\.paubox\.com\/v1\/email\/messages/);
   assert.match(emailServiceSource, /const PAUBOX_API_KEY = env\.PAUBOX_API_KEY;/);
   assert.match(emailServiceSource, /sendViaSmtp/);
-  assert.match(emailServiceSource, /PAUBOX_API_KEY is not configured/);
+  assert.match(emailServiceSource, /Paubox API key is not configured/);
 });
 
 test('20. the privacy/administrative warning is present in source and makes no HIPAA/portal claims', () => {
