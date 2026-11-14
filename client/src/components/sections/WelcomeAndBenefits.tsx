@@ -6,7 +6,7 @@ import { benefits as staticBenefits } from '@/data/marketing';
 import type { Benefit } from '@/types/content';
 
 function WelcomeHeading({ heading }: { heading: string }) {
-  const branded = /^welcome to\s+lifewell(\s+family health\s*&\s*psychiatry)?$/i.test(heading.trim());
+  const branded = /^welcome to\s+lifewell(?:\s*family health\s*&\s*psychiatry)?$/i.test(heading.trim());
   if (branded) {
     return (
       <h2

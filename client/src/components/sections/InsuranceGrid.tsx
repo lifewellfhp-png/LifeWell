@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { Container, Section } from '@/components/ui/Section';
 import { SwapButton } from '@/components/ui/SwapButton';
@@ -82,86 +82,20 @@ export function InsuranceGrid({
 }
 
 function LogoCarousel({ carriers }: { carriers: InsuranceCarrier[] }) {
-  const count = carriers.length;
-  const loop = [...carriers, ...carriers];
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(6);
-  const [paused, setPaused] = useState(false);
-  const [instant, setInstant] = useState(false);
-
-  useEffect(() => {
-    const update = () => {
-      const w = window.innerWidth;
-      setVisible(w >= 1024 ? 6 : w >= 768 ? 5 : w >= 640 ? 3 : 2);
-    };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
-
-  useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced || paused) return;
-    const id = window.setInterval(() => setIndex((i) => i + 1), 5000);
-    return () => window.clearInterval(id);
-  }, [paused]);
-
-  useEffect(() => {
-    if (index !== count) return;
-    const timeout = window.setTimeout(() => {
-      setInstant(true);
-      setIndex(0);
-    }, 500);
-    return () => window.clearTimeout(timeout);
-  }, [index, count]);
-
-  // A resize can change `visible` independently of `index`. Since the track's
-  // offset is `index` steps of `100/visible`%, a drop in `visible` while
-  // `index` is already advanced can push the offset past the duplicated
-  // strip's own width, translating every logo out of view. Snap back to the
-  // start whenever the breakpoint changes so the offset is always recomputed
-  // against the current `visible`.
-  useEffect(() => {
-    setInstant(true);
-    setIndex(0);
-  }, [visible]);
-
-  useEffect(() => {
-    if (!instant) return;
-    const id = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setInstant(false));
-    });
-    return () => cancelAnimationFrame(id);
-  }, [instant]);
-
-  // Belt-and-suspenders: never let the offset scroll past the last item of
-  // the duplicated strip, regardless of how `index` and `visible` interact.
-  const maxSlide = Math.max(0, loop.length - visible);
-  const slide = Math.min(index, count, maxSlide);
-
   return (
     <div
-      className="mt-12 overflow-hidden sm:mt-14"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      className="mt-12 overflow-x-auto scroll-smooth sm:mt-14"
+      tabIndex={0}
+      aria-label="Accepted insurance plans"
     >
       <p className="sr-only">
         Accepted plans: {carriers.map((c) => c.name).join(', ')}.
       </p>
-      <ul
-        aria-hidden="true"
-        className="flex items-center"
-        style={{
-          transform: `translateX(-${(slide * 100) / visible}%)`,
-          transition: instant ? 'none' : 'transform 650ms cubic-bezier(0.4, 0, 0.2, 1)',
-          willChange: 'transform',
-        }}
-      >
-        {loop.map((carrier, i) => (
+      <ul className="flex min-w-max items-center">
+        {carriers.map((carrier) => (
           <li
-            key={`${carrier.name}-${i}`}
-            className="flex shrink-0 items-center justify-center px-3 sm:px-5"
-            style={{ width: `${100 / visible}%` }}
+            key={carrier.name}
+            className="flex w-[50vw] shrink-0 items-center justify-center px-3 sm:w-[33.333vw] sm:px-5 md:w-[20vw] lg:w-[16.666vw]"
           >
             <div className="aspect-[220/100] w-full max-w-[200px] sm:max-w-[220px]">
               <CarrierLogo carrier={carrier} />

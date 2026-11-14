@@ -4,7 +4,7 @@ import { SwapButton } from '@/components/ui/SwapButton';
 import { welcome as staticWelcome } from '@/data/marketing';
 
 function WelcomeHeading({ heading }: { heading: string }) {
-  const branded = /^welcome to\s+lifewell(\s+family health\s*&\s*psychiatry)?$/i.test(heading.trim());
+  const branded = /^welcome to\s+lifewell(?:\s*family health\s*&\s*psychiatry)?$/i.test(heading.trim());
   if (branded) {
     return (
       <h2
