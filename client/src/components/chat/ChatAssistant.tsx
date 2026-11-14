@@ -96,10 +96,10 @@ export function ChatAssistant(props: {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
 
-  // Checked once per page load (not on every open) — a single lightweight
-  // GET, not polled, matching this component's no-persistence/no-background-
-  // chatter posture.
+  // Defer the status request until the visitor first opens chat so it cannot
+  // compete with the hero and other above-the-fold resources.
   useEffect(() => {
+    if (!open) return;
     let cancelled = false;
     getChatStatus().then((online) => {
       if (!cancelled) setChatOnline(online);
@@ -107,7 +107,7 @@ export function ChatAssistant(props: {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [open]);
 
   const close = () => {
     setOpen(false);

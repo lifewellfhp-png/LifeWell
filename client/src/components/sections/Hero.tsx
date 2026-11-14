@@ -37,7 +37,12 @@ export function Hero({
   // priority loading instead of a (potentially mismatched) preload.
   const usingStaticPoster = !(data.hasCmsImage && data.image && isUsableImageSrc(data.image.src));
   if (usingStaticPoster) {
-    preload(HERO_POSTER_SRC, { as: 'image', fetchPriority: 'high' });
+    preload(HERO_POSTER_SRC, { as: 'image', fetchPriority: 'high', media: '(max-width: 767px)' });
+    preload('/images/sections/home-hero-poster-desktop.webp', {
+      as: 'image',
+      fetchPriority: 'high',
+      media: '(min-width: 768px)',
+    });
   }
 
   const rawPrimary = data.headingPrimary || data.heading;

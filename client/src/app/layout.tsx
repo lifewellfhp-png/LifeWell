@@ -19,12 +19,12 @@ import { getResolvedContent } from '@/lib/cms-resolve';
    the design system actually uses are loaded. */
 const lora = localFont({
   src: [
-    { path: '../../public/fonts/lora-normal-400.ttf', weight: '400', style: 'normal' },
-    { path: '../../public/fonts/lora-normal-500.ttf', weight: '500', style: 'normal' },
-    { path: '../../public/fonts/lora-normal-600.ttf', weight: '600', style: 'normal' },
-    { path: '../../public/fonts/lora-italic-400.ttf', weight: '400', style: 'italic' },
-    { path: '../../public/fonts/lora-italic-500.ttf', weight: '500', style: 'italic' },
-    { path: '../../public/fonts/lora-italic-600.ttf', weight: '600', style: 'italic' },
+    { path: '../../public/fonts/lora-normal-400.woff2', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/lora-normal-500.woff2', weight: '500', style: 'normal' },
+    { path: '../../public/fonts/lora-normal-600.woff2', weight: '600', style: 'normal' },
+    { path: '../../public/fonts/lora-italic-400.woff2', weight: '400', style: 'italic' },
+    { path: '../../public/fonts/lora-italic-500.woff2', weight: '500', style: 'italic' },
+    { path: '../../public/fonts/lora-italic-600.woff2', weight: '600', style: 'italic' },
   ],
   display: 'swap',
   variable: '--font-lora',
@@ -32,9 +32,9 @@ const lora = localFont({
 
 const sourceSans = localFont({
   src: [
-    { path: '../../public/fonts/source-sans-400.ttf', weight: '400' },
-    { path: '../../public/fonts/source-sans-600.ttf', weight: '600' },
-    { path: '../../public/fonts/source-sans-700.ttf', weight: '700' },
+    { path: '../../public/fonts/source-sans-400.woff2', weight: '400' },
+    { path: '../../public/fonts/source-sans-600.woff2', weight: '600' },
+    { path: '../../public/fonts/source-sans-700.woff2', weight: '700' },
   ],
   display: 'swap',
   variable: '--font-source-sans',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { isOptimizableImageSrc } from '@/lib/site-asset';
 
@@ -24,7 +24,8 @@ import { isOptimizableImageSrc } from '@/lib/site-asset';
  * only controls whether `.play()` is called, via a ref, not whether the
  * element exists.
  */
-export const HERO_POSTER_SRC = '/images/sections/home-hero-poster.jpg';
+export const HERO_POSTER_SRC = '/images/sections/home-hero-poster.webp';
+const HERO_DESKTOP_POSTER_SRC = '/images/sections/home-hero-poster-desktop.webp';
 
 export function HeroMedia({
   image,
@@ -34,22 +35,44 @@ export function HeroMedia({
   hasCmsImage?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [loadVideo, setLoadVideo] = useState(false);
   const cmsImage = hasCmsImage && image && isUsableImageSrc(image.src) ? image : null;
 
   useEffect(() => {
     if (cmsImage) return;
-    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const apply = () => {
-      if (query.matches) {
-        videoRef.current?.pause();
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const desktopQuery = window.matchMedia('(min-width: 768px)');
+    const saveData = 'connection' in navigator && Boolean(
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData,
+    );
+    if (motionQuery.matches || !desktopQuery.matches || saveData) return;
+
+    let cancelled = false;
+    const schedule = () => {
+      const callback = () => {
+        if (!cancelled) setLoadVideo(true);
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(callback, { timeout: 1500 });
       } else {
-        void videoRef.current?.play();
+        setTimeout(callback, 0);
       }
     };
-    apply();
-    query.addEventListener('change', apply);
-    return () => query.removeEventListener('change', apply);
+    if (document.readyState === 'complete') {
+      schedule();
+    } else {
+      window.addEventListener('load', schedule, { once: true });
+    }
+    return () => {
+      cancelled = true;
+      window.removeEventListener('load', schedule);
+    };
   }, [cmsImage]);
+
+  useEffect(() => {
+    if (!loadVideo) return;
+    void videoRef.current?.play();
+  }, [loadVideo]);
 
   if (cmsImage) {
     return isOptimizableImageSrc(cmsImage.src) ? (
@@ -74,23 +97,34 @@ export function HeroMedia({
   }
 
   return (
-    <video
-      ref={videoRef}
-      className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
-      poster={HERO_POSTER_SRC}
-      // React's DOM typings don't model fetchPriority on <video> yet (it's
-      // valid HTML/supported by Chrome) — spread it in as a plain attribute.
-      {...{ fetchpriority: 'high' }}
-      muted
-      loop
-      playsInline
-      preload="none"
-      // Decorative; the heading carries the meaning.
-      aria-hidden="true"
-      tabIndex={-1}
-    >
-      <source src="/video/home-hero.mp4" type="video/mp4" />
-    </video>
+    <>
+      <picture>
+        <source media="(min-width: 768px)" srcSet={HERO_DESKTOP_POSTER_SRC} />
+        <img
+          src={HERO_POSTER_SRC}
+          alt=""
+          fetchPriority="high"
+          sizes="(max-width: 767px) 100vw, 100vw"
+          className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
+          aria-hidden="true"
+        />
+      </picture>
+      {loadVideo && (
+        <video
+          ref={videoRef}
+          className="absolute inset-0 -z-20 h-full w-full object-cover object-[80%_center]"
+          poster={HERO_DESKTOP_POSTER_SRC}
+          preload="none"
+          muted
+          loop
+          playsInline
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          <source src="/video/home-hero.mp4" type="video/mp4" />
+        </video>
+      )}
+    </>
   );
 }
 
