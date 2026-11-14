@@ -22,9 +22,9 @@
     "check:vercel": "node scripts/check-vercel-config.mjs"
   },
   "dependencies": {
-    "next": "15.5.27",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "next": "15.5.29",
+    "react": "19.2.9",
+    "react-dom": "19.2.9"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.14",

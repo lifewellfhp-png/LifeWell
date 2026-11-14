@@ -54,6 +54,11 @@ export function middleware(request: NextRequest) {
     url.pathname = englishPathForSpanishPath(pathname);
     return NextResponse.redirect(url, 301);
   }
+  if (pathname === '/blog/understanding-anxiety-when-worry-becomes-more-than-everyday-stress') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/blog/understanding-anxiety-symptoms-and-when-to-seek-help';
+    return NextResponse.redirect(url, 301);
+  }
 
   const apiOrigin = process.env.NEXT_PUBLIC_API_URL || 'https://lifewellfhp-server.vercel.app';
 
